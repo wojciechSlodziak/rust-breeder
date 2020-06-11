@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import App from './App.vue';
-import * as workerPath from 'file-loader?name=[name].js!./worker';
+import Worker from 'worker-loader!./worker';
 
 Vue.config.productionTip = false;
 
@@ -8,10 +8,8 @@ new Vue({
   render: (h) => h(App)
 }).$mount('#app');
 
-const worker = new Worker(workerPath);
-
-console.log(workerPath, worker);
-worker.addEventListener('message', (message) => {
-  console.log(message);
+const worker = new Worker();
+worker.postMessage({ a: 1 });
+worker.addEventListener('message', function(event) {
+  console.log('in parent', event);
 });
-worker.postMessage('this is a test message to the worker');

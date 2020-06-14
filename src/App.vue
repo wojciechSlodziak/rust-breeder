@@ -1,7 +1,7 @@
 <template>
-  <div id="app">
+  <v-app style="margin-top: 0">
     <CrossbreedingSimulator />
-  </div>
+  </v-app>
 </template>
 
 <script lang="ts">

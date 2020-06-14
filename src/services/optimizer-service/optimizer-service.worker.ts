@@ -5,7 +5,7 @@ ctx.addEventListener('message', (event) => {
   event.data.sourceGenes;
 
   const map = geneticsSimulatorService.simulateCrossbreeding(event.data.sourceGenes, {
-    callProgressCallbackAfterCombinations: 1000,
+    callProgressCallbackAfterCombinations: 10000,
     progressCallback: (progressPercent) => {
       ctx.postMessage({ progressPercent });
     }

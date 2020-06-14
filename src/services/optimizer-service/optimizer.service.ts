@@ -1,6 +1,12 @@
 import Worker from 'worker-loader!./optimizer-service.worker';
 
+interface EventListenerCallback {
+  (eventType: 'PROGRESS_UPDATE' | 'DONE', data: any): void;
+}
+
 class OptimizerService {
+  listeners: EventListenerCallback[] = [];
+
   simulateBestGenetics(sourceGenesString: string) {
     const allSourceSaplingsGenes: string[] = sourceGenesString.split(/\r?\n/);
 
@@ -11,13 +17,21 @@ class OptimizerService {
     const worker = new Worker();
 
     worker.postMessage({ sourceGenes: deduplicatedSourceSaplingsGenes });
-    worker.addEventListener('message', function(event) {
+    worker.addEventListener('message', (event) => {
       if (event.data.map) {
-        console.log('done!', event.data.map);
+        this.listeners.forEach((listener) => {
+          listener('DONE', event.data.map);
+        });
       } else if (event.data.progressPercent) {
-        console.log('progress!', event.data.progressPercent);
+        this.listeners.forEach((listener) => {
+          listener('PROGRESS_UPDATE', event.data.progressPercent);
+        });
       }
     });
+  }
+
+  addEventListener(callback: EventListenerCallback) {
+    this.listeners.push(callback);
   }
 }
 

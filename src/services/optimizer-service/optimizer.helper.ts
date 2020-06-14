@@ -35,7 +35,7 @@ function rFact(num: number): number {
 
 export function getNumberOfCrossbreedCombinations(itemsCount: number) {
   let numberOfAllCombinations = 0;
-  let maxItemsInVariation = Math.min(itemsCount, 8);
+  const maxItemsInVariation = Math.min(itemsCount, 8);
   for (let i = 2; i <= maxItemsInVariation; i++) {
     numberOfAllCombinations += rFact(itemsCount) / (rFact(i) * rFact(itemsCount - i));
   }

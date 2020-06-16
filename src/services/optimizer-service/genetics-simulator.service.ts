@@ -1,5 +1,5 @@
-import GeneticsMap from './models/genetics-map.model';
-import Sapling from './models/sapling.model';
+import GeneticsMap from '../../models/genetics-map.model';
+import Sapling from '../../models/sapling.model';
 import crossbreedingService from './crossbreeding.service';
 import {
   sortResults,
@@ -7,18 +7,20 @@ import {
   resetFollowingPositions,
   getNumberOfCrossbreedCombinations
 } from './optimizer.helper';
+import GeneEnum from '../../enums/gene.enum';
 
 interface SimulateOptions {
   progressCallback: (percentDone: number) => void;
   callProgressCallbackAfterCombinations: number;
+  geneScores: Record<GeneEnum, number>;
 }
 
 class GeneticsSimulatorService {
-  simulateCrossbreeding(sourceGenes: string[], options?: SimulateOptions): GeneticsMap[] {
+  simulateCrossbreeding(sourceGenes: string[], options: SimulateOptions): GeneticsMap[] {
     const sourceSaplings: Sapling[] = sourceGenes.map((singleGenes) => new Sapling(singleGenes));
     let result: GeneticsMap[] = [];
 
-    const originalBestScore = this.getOriginalBestScore(sourceSaplings);
+    const originalBestScore = this.getOriginalBestScore(sourceSaplings, options.geneScores);
 
     const allCombinationsCount = getNumberOfCrossbreedCombinations(sourceSaplings.length);
 
@@ -37,7 +39,13 @@ class GeneticsSimulatorService {
           crossbreedSaplings.push(sourceSaplings[position]);
         });
 
-        this.performCrossbreedingAndScoring(result, sourceSaplings, crossbreedSaplings, originalBestScore);
+        this.performCrossbreedingAndScoring(
+          result,
+          sourceSaplings,
+          crossbreedSaplings,
+          originalBestScore,
+          options.geneScores
+        );
 
         let keepOriganizingPositions = true;
         while (keepOriganizingPositions) {
@@ -76,7 +84,8 @@ class GeneticsSimulatorService {
     result: GeneticsMap[],
     sourceSaplings: Sapling[],
     crossbreedSaplings: Sapling[],
-    originalBestScore: number
+    originalBestScore: number,
+    geneScores: Record<GeneEnum, number>
   ) {
     const targetSaplings: Sapling[] = crossbreedingService.crossbreed(crossbreedSaplings);
 
@@ -88,22 +97,22 @@ class GeneticsSimulatorService {
         otherSaplings.forEach((baseSapling) => {
           const rebreedTargetSapling = crossbreedingService.crossbreedTargetWithBase(targetSapling, baseSapling);
 
-          if (rebreedTargetSapling.getScore() >= originalBestScore) {
+          if (rebreedTargetSapling.getScore(geneScores) >= originalBestScore) {
             result.push({
               crossbreedSaplings,
               baseSapling,
               targetSapling: rebreedTargetSapling,
-              score: rebreedTargetSapling.getScore(),
+              score: rebreedTargetSapling.getScore(geneScores),
               chancePercent: Number((100 / targetSaplings.length).toFixed(2))
             });
           }
         });
       } else if (numberOfBaseGenes === 0) {
-        if (targetSapling.getScore() >= originalBestScore) {
+        if (targetSapling.getScore(geneScores) >= originalBestScore) {
           result.push({
             crossbreedSaplings,
             targetSapling,
-            score: targetSapling.getScore(),
+            score: targetSapling.getScore(geneScores),
             chancePercent: Number((100 / targetSaplings.length).toFixed(2))
           });
         }
@@ -111,10 +120,10 @@ class GeneticsSimulatorService {
     });
   }
 
-  private getOriginalBestScore(sourceSaplings: Sapling[]) {
+  private getOriginalBestScore(sourceSaplings: Sapling[], geneScores: Record<GeneEnum, number>) {
     let currentScore = Number.MIN_VALUE;
     sourceSaplings.forEach((sapling) => {
-      const saplingScore = sapling.getScore();
+      const saplingScore = sapling.getScore(geneScores);
       currentScore = saplingScore > currentScore ? saplingScore : currentScore;
     });
     return currentScore;

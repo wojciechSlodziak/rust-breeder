@@ -13,7 +13,7 @@
 
             <!--OPTIONS-->
             <span class="ml-2">
-              <OptionsButton />
+              <OptionsButton ref="optionsButton" />
             </span>
 
             <!--TEXT AREA-->
@@ -46,7 +46,7 @@
 import { Component, Vue } from 'vue-property-decorator';
 import { plainToClass } from 'class-transformer';
 import optimizerService, { EventListenerCallbackData } from '../services/optimizer-service/optimizer.service';
-import GeneticsMap from '../services/optimizer-service/models/genetics-map.model';
+import GeneticsMap from '../models/genetics-map.model';
 import SimulationResults from './SimulationResults.vue';
 import OptionsButton from './OptionsButton.vue';
 
@@ -91,7 +91,7 @@ export default class CrossbreedingSimulator extends Vue {
     this.saplingGenes = this.saplingGenes.trim();
     this.progressPercent = 0;
     this.resultMapList = null;
-    optimizerService.simulateBestGenetics(this.saplingGenes);
+    optimizerService.simulateBestGenetics(this.saplingGenes, (this.$refs.optionsButton as OptionsButton).getOptions());
     this.isSimulating = true;
   }
 }
@@ -99,6 +99,6 @@ export default class CrossbreedingSimulator extends Vue {
 
 <style scoped lang="scss">
 .simulator_progress-container {
-  height: 10px;
+  height: 5px;
 }
 </style>

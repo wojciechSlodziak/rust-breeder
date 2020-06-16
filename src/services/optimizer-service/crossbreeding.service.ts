@@ -1,5 +1,5 @@
-import Sapling from './models/sapling.model';
-import GeneEnum from './enums/gene.enum';
+import Sapling from '../../models/sapling.model';
+import GeneEnum from '../../enums/gene.enum';
 
 class CrossbreedingService {
   crossbreed(crossbreedSaplings: Sapling[]): Sapling[] {

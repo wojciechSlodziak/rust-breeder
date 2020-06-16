@@ -1,4 +1,4 @@
-import GeneticsMap from './models/genetics-map.model';
+import GeneticsMap from '../../models/genetics-map.model';
 
 export function sortResults(geneticsMap1: GeneticsMap, geneticsMap2: GeneticsMap): number {
   if (

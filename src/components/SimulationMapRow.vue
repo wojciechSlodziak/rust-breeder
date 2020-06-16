@@ -49,7 +49,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
-import GeneticsMap from '../services/optimizer-service/models/genetics-map.model';
+import GeneticsMap from '../models/genetics-map.model';
 import SaplingGeneRepresentation from './SaplingGeneRepresentation.vue';
 
 @Component({

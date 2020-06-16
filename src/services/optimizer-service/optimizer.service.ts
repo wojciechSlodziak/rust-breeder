@@ -1,5 +1,6 @@
 import Worker from 'worker-loader!./optimizer-service.worker';
-import GeneticsMap from './models/genetics-map.model';
+import GeneticsMap from '../../models/genetics-map.model';
+import ApplicationOptions from '@/interfaces/application-options';
 
 export interface EventListenerCallback {
   (eventType: 'PROGRESS_UPDATE' | 'DONE', data: EventListenerCallbackData): void;
@@ -14,7 +15,7 @@ export interface EventListenerCallbackData {
 class OptimizerService {
   listeners: EventListenerCallback[] = [];
 
-  simulateBestGenetics(sourceGenesString: string) {
+  simulateBestGenetics(sourceGenesString: string, options: ApplicationOptions) {
     const allSourceSaplingsGenes: string[] = sourceGenesString.split(/\r?\n/);
 
     const deduplicatedSourceSaplingsGenes: string[] = allSourceSaplingsGenes.filter(
@@ -23,7 +24,7 @@ class OptimizerService {
 
     const worker = new Worker();
 
-    worker.postMessage({ sourceGenes: deduplicatedSourceSaplingsGenes });
+    worker.postMessage({ sourceGenes: deduplicatedSourceSaplingsGenes, options });
     worker.addEventListener('message', (event) => {
       if (event.data.mapList) {
         this.listeners.forEach((listener) => {

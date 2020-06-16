@@ -11,7 +11,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
-import Sapling from '@/services/optimizer-service/models/sapling.model';
+import Sapling from '../models/sapling.model';
 
 @Component
 export default class SaplingGeneRepresentation extends Vue {
@@ -34,9 +34,6 @@ $radiusPX: 25px;
     color: white;
     background-color: rgb(18, 158, 18);
     line-height: $radiusPX;
-    span {
-      vertical-align: middle;
-    }
   }
   .sapling-gene-repr_gene--red {
     background-color: rgb(197, 0, 0);

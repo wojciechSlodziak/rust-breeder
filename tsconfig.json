@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "noImplicitAny": true,
     "emitDecoratorMetadata": true,
     "target": "esnext",
     "module": "esnext",

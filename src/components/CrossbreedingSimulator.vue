@@ -54,7 +54,7 @@ import OptionsButton from './OptionsButton.vue';
   components: { SimulationResults, OptionsButton }
 })
 export default class CrossbreedingSimulator extends Vue {
-  saplingGenes = 'YGYHYY\nYGGHWX\nXHHYGY\nGGYGWX\nHWXYGG\nGYXHYY\nWHXGWX\nYGHYGY\nHYGYGH';
+  saplingGenes = 'YYYWYX\nGGHGHY\nHHGGGY';
   progressPercent = 0;
   isSimulating = false;
   isFormValid = false;

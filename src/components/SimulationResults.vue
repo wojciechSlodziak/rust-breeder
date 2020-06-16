@@ -1,9 +1,12 @@
 <template>
-  <ul :class="{ 'simulation-results--visible': animate }">
-    <li v-for="(map, index) in mapList" :key="index">
-      <SimulationMapRow :map="map" />
-    </li>
-  </ul>
+  <div class="text-center">
+    <ul :class="{ 'simulation-results--visible': animate }">
+      <li v-for="(map, index) in visibleMapList" :key="index">
+        <SimulationMapRow :map="map" />
+      </li>
+    </ul>
+    <v-btn @click="showMore" v-if="hasMore" class="mt-2">Show more</v-btn>
+  </div>
 </template>
 
 <script lang="ts">
@@ -18,6 +21,20 @@ export default class SimulationResults extends Vue {
   @Prop({ type: Array, required: true }) readonly mapList!: GeneticsMap[];
 
   animate = false;
+
+  page = 1;
+
+  get visibleMapList() {
+    return this.mapList.slice(0, this.page * 100);
+  }
+
+  get hasMore() {
+    return this.mapList.length > this.visibleMapList.length;
+  }
+
+  showMore() {
+    this.page = this.page + 1;
+  }
 
   created() {
     setTimeout(() => {

@@ -1,7 +1,14 @@
 import Worker from 'worker-loader!./optimizer-service.worker';
+import GeneticsMap from './models/genetics-map.model';
 
-interface EventListenerCallback {
-  (eventType: 'PROGRESS_UPDATE' | 'DONE', data: any): void;
+export interface EventListenerCallback {
+  (eventType: 'PROGRESS_UPDATE' | 'DONE', data: EventListenerCallbackData): void;
+}
+
+export interface EventListenerCallbackData {
+  isDone?: boolean;
+  progressPercent?: number;
+  mapList?: GeneticsMap[];
 }
 
 class OptimizerService {
@@ -18,13 +25,13 @@ class OptimizerService {
 
     worker.postMessage({ sourceGenes: deduplicatedSourceSaplingsGenes });
     worker.addEventListener('message', (event) => {
-      if (event.data.map) {
+      if (event.data.mapList) {
         this.listeners.forEach((listener) => {
-          listener('DONE', event.data.map);
+          listener('DONE', { isDone: true, mapList: event.data.mapList });
         });
       } else if (event.data.progressPercent) {
         this.listeners.forEach((listener) => {
-          listener('PROGRESS_UPDATE', event.data.progressPercent);
+          listener('PROGRESS_UPDATE', { isDone: false, progressPercent: event.data.progressPercent });
         });
       }
     });

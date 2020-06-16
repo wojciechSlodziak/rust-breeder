@@ -1,6 +1,12 @@
 <template>
-  <v-app style="margin-top: 0">
-    <CrossbreedingSimulator />
+  <v-app>
+    <v-app-bar app>
+      <img src="https://files.facepunch.com/s/c0444ba57c9a.svg" alt="Rust" width="112" height="28" class="mr-4" />
+      <v-toolbar-title>Crossbreeding Simulator</v-toolbar-title>
+    </v-app-bar>
+    <v-main>
+      <CrossbreedingSimulator />
+    </v-main>
   </v-app>
 </template>
 
@@ -16,13 +22,4 @@ import CrossbreedingSimulator from './components/CrossbreedingSimulator.vue';
 export default class App extends Vue {}
 </script>
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
+<style lang="scss"></style>

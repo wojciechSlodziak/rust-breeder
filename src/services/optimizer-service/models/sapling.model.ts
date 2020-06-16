@@ -1,7 +1,10 @@
+import 'reflect-metadata'; // TODO: why need this again here?
 import Gene from './gene.model';
 import GeneEnum from '../enums/gene.enum';
+import { Type } from 'class-transformer';
 
 export default class Sapling {
+  @Type(() => Gene)
   genes: Gene[];
 
   constructor(genes: Gene[] | string) {

@@ -88,7 +88,7 @@ class GeneticsSimulatorService {
         otherSaplings.forEach((baseSapling) => {
           const rebreedTargetSapling = crossbreedingService.crossbreedTargetWithBase(targetSapling, baseSapling);
 
-          if (rebreedTargetSapling.getScore() > originalBestScore || rebreedTargetSapling.getScore() === 6) {
+          if (rebreedTargetSapling.getScore() >= originalBestScore) {
             result.push({
               crossbreedSaplings,
               baseSapling,
@@ -99,7 +99,7 @@ class GeneticsSimulatorService {
           }
         });
       } else if (numberOfBaseGenes === 0) {
-        if (targetSapling.getScore() > originalBestScore || targetSapling.getScore() === 6) {
+        if (targetSapling.getScore() >= originalBestScore) {
           result.push({
             crossbreedSaplings,
             targetSapling,

@@ -4,11 +4,11 @@ import geneticsSimulatorService from './genetics-simulator.service';
 ctx.addEventListener('message', (event) => {
   event.data.sourceGenes;
 
-  const map = geneticsSimulatorService.simulateCrossbreeding(event.data.sourceGenes, {
+  const mapList = geneticsSimulatorService.simulateCrossbreeding(event.data.sourceGenes, {
     callProgressCallbackAfterCombinations: 10000,
     progressCallback: (progressPercent) => {
       ctx.postMessage({ progressPercent });
     }
   });
-  ctx.postMessage({ map });
+  ctx.postMessage({ mapList });
 });

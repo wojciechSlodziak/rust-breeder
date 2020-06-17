@@ -11,3 +11,5 @@ ctx.addEventListener('message', (event) => {
   });
   ctx.postMessage({ mapList });
 });
+
+export default null as any;

@@ -4,7 +4,7 @@ import GeneEnum from '../../enums/gene.enum';
 class CrossbreedingService {
   crossbreed(crossbreedSaplings: Sapling[]): Sapling[] {
     let partialGenes: string[] = [''];
-    let involvedSaplings: Sapling[] = [];
+    const involvedSaplings: Sapling[] = [];
     for (let genePosition = 0; genePosition < 6; genePosition++) {
       const geneToWeightMap: Record<GeneEnum, number> = {
         [GeneEnum.G]: 0,
@@ -41,10 +41,7 @@ class CrossbreedingService {
 
       winnerGeneTypes.forEach((geneType) => {
         crossbreedSaplings.forEach((sapling) => {
-          if (
-            (sapling.genes[genePosition].type === geneType || geneType == GeneEnum.B) &&
-            involvedSaplings.indexOf(sapling) === -1
-          ) {
+          if (sapling.genes[genePosition].type === geneType && involvedSaplings.indexOf(sapling) === -1) {
             involvedSaplings.push(sapling);
           }
         });
@@ -63,7 +60,9 @@ class CrossbreedingService {
       throw new Error('Not all saplings were used for crossbreeding.');
     }
 
-    return partialGenes.map((finalGenes) => new Sapling(finalGenes));
+    return partialGenes
+      .map((finalGenes) => new Sapling(finalGenes))
+      .filter((sapling) => sapling.getNumberOfBaseGenes() < 6);
   }
 
   // used for overriding target sapling's B type genes with the base

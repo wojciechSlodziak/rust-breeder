@@ -90,7 +90,9 @@ class GeneticsSimulatorService {
     let targetSaplings: Sapling[] = [];
     try {
       targetSaplings = crossbreedingService.crossbreed(crossbreedSaplings);
-    } catch (e) {}
+    } catch (e) {
+      // do nothing!
+    }
 
     targetSaplings.forEach((targetSapling) => {
       const numberOfBaseGenes = targetSapling.getNumberOfBaseGenes();

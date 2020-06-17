@@ -87,7 +87,10 @@ class GeneticsSimulatorService {
     originalBestScore: number,
     geneScores: Record<GeneEnum, number>
   ) {
-    const targetSaplings: Sapling[] = crossbreedingService.crossbreed(crossbreedSaplings);
+    let targetSaplings: Sapling[] = [];
+    try {
+      targetSaplings = crossbreedingService.crossbreed(crossbreedSaplings);
+    } catch (e) {}
 
     targetSaplings.forEach((targetSapling) => {
       const numberOfBaseGenes = targetSapling.getNumberOfBaseGenes();

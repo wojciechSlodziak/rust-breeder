@@ -18,8 +18,10 @@
 
             <!--TEXT AREA-->
             <v-textarea
+              ref="saplingGenesInput"
               label="Source Saplings"
-              v-model="saplingGenes"
+              :value="saplingGenes"
+              @input="handleSaplingGenesInput($event)"
               outlined
               auto-grow
               validate-on-blur
@@ -68,6 +70,20 @@ export default class CrossbreedingSimulator extends Vue {
   constructor() {
     super();
     optimizerService.addEventListener(this.onOptimizerServiceEvent);
+  }
+
+  handleSaplingGenesInput(value: string) {
+    const textarea = (this.$refs.saplingGenesInput as Vue).$el.querySelector('textarea');
+    if (textarea) {
+      const caretPosition = textarea.selectionStart;
+      this.saplingGenes = value;
+      this.$nextTick(() => {
+        this.saplingGenes = value.toUpperCase().replace(/[^GHWYX\n]/g, '');
+        this.$nextTick(() => {
+          textarea.selectionEnd = caretPosition + (this.saplingGenes.length - value.length);
+        });
+      });
+    }
   }
 
   onOptimizerServiceEvent(type: string, data: EventListenerCallbackData) {

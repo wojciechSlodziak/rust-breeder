@@ -26,6 +26,7 @@
               auto-grow
               validate-on-blur
               :rules="sourceSaplingRules"
+              autocomplete="off"
               class="mt-5"
               hint="Enter each Sapling's genes in new line using 'XXYWGH' format."
             ></v-textarea>

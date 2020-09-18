@@ -3,7 +3,13 @@
     <v-container class="pa-0">
       <v-row>
         <v-col v-for="n in 6" :key="n">
-          <v-text-field type="text" :label="'Gene ' + n" v-model="filteringGenes['gene' + (n - 1)]"></v-text-field>
+          <v-text-field
+            type="text"
+            :label="'Gene ' + n"
+            v-model="filteringGenes['gene' + (n - 1)]"
+            hint="Use / for alternative. Example: 'G/Y'."
+            autocomplete="off"
+          ></v-text-field>
         </v-col>
       </v-row>
     </v-container>
@@ -42,7 +48,6 @@ export default class SimulationResults extends Vue {
   page = 1;
 
   get filteredMapList() {
-    console.log(this.filteringGenes);
     if (
       this.filteringGenes.gene0 !== '' ||
       this.filteringGenes.gene1 !== '' ||
@@ -56,7 +61,10 @@ export default class SimulationResults extends Vue {
         for (let i = 0; i < 6; i++) {
           if (
             this.filteringGenes[`gene${i}`] !== '' &&
-            map.targetSapling.genes[i].type !== (this.filteringGenes[`gene${i}`] || '').toUpperCase()
+            !(this.filteringGenes[`gene${i}`] || '')
+              .toUpperCase()
+              .split('/')
+              .includes(map.targetSapling.genes[i].type)
           ) {
             allGenesMatch = false;
           }

@@ -16,21 +16,27 @@ interface SimulateOptions {
 }
 
 class GeneticsSimulatorService {
-  simulateCrossbreeding(sourceGenes: string[], options: SimulateOptions): GeneticsMap[] {
+  simulateCrossbreeding(
+    sourceGenes: string[],
+    startingPositions: number[],
+    combinationsToProcess: number,
+    options: SimulateOptions
+  ): GeneticsMap[] {
     const sourceSaplings: Sapling[] = sourceGenes.map((singleGenes) => new Sapling(singleGenes));
     let result: GeneticsMap[] = [];
 
     const originalBestScore = this.getOriginalBestScore(sourceSaplings, options.geneScores);
 
-    const allCombinationsCount = getNumberOfCrossbreedCombinations(sourceSaplings.length);
-
     let combinationsProcessed = 0;
     for (
-      let crossbreedSaplingsCount = 2;
+      let crossbreedSaplingsCount = startingPositions.length;
       crossbreedSaplingsCount <= Math.min(sourceSaplings.length, 8);
       crossbreedSaplingsCount++
     ) {
-      const positions = buildInitialSaplingPositions(crossbreedSaplingsCount);
+      const positions =
+        crossbreedSaplingsCount === startingPositions.length
+          ? startingPositions
+          : buildInitialSaplingPositions(crossbreedSaplingsCount);
       let positionIndexForInc = crossbreedSaplingsCount - 1;
       let hasCombinations = true;
       while (hasCombinations) {
@@ -69,15 +75,17 @@ class GeneticsSimulatorService {
 
         combinationsProcessed++;
         if (options && combinationsProcessed % options.callProgressCallbackAfterCombinations === 0) {
-          options.progressCallback(Number(((combinationsProcessed / allCombinationsCount) * 100).toFixed(2)));
+          options.progressCallback(combinationsProcessed);
+        }
+
+        if (combinationsProcessed === combinationsToProcess) {
+          result = result.filter((map) => sourceGenes.indexOf(map.targetSapling.toString()) === -1);
+          return result;
         }
       }
     }
 
-    result = result.filter((map) => sourceGenes.indexOf(map.targetSapling.toString()) === -1);
-
-    result.sort(sortResults);
-    return result;
+    return [];
   }
 
   private performCrossbreedingAndScoring(

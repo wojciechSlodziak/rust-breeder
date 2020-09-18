@@ -10,7 +10,6 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "class-transformer": "^0.2.3",
     "core-js": "^3.6.5",
     "express": "^4.17.1",
     "http-server": "^0.12.3",

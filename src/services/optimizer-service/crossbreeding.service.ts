@@ -18,7 +18,7 @@ class CrossbreedingService {
         geneToWeightMap[crossbreedSapling.genes[genePosition].type] =
           (geneToWeightMap[crossbreedSapling.genes[genePosition].type]
             ? geneToWeightMap[crossbreedSapling.genes[genePosition].type]
-            : 0) + crossbreedSapling.genes[genePosition].getCrossbreedingWeight();
+            : 0) + crossbreedSapling.genes[genePosition].crossbreedingWeight;
       });
 
       let highestGeneWeight = Number.MIN_VALUE;

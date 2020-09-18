@@ -46,7 +46,6 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import { plainToClass } from 'class-transformer';
 import optimizerService, { EventListenerCallbackData } from '../services/optimizer-service/optimizer.service';
 import GeneticsMap from '../models/genetics-map.model';
 import SimulationResults from './SimulationResults.vue';
@@ -60,11 +59,11 @@ export default class CrossbreedingSimulator extends Vue {
   progressPercent = 0;
   isSimulating = false;
   isFormValid = false;
-  resultMapList: GeneticsMap[] | null = null;
+  resultMapList: readonly GeneticsMap[] | null = null;
 
   sourceSaplingRules = [
     (v: string) => v !== '' || 'Give me some plants to work with!',
-    (v: string) => /^([GHWYX]{6}\n{1})*([GHWYX]{6}\n{0})*\n*$/.test(v) || 'Blyat, the format is wrong...'
+    (v: string) => /^([GHWYX]{6}\n{1})*([GHWYX]{6}\n{0})*\n*$/.test(v) || 'The format is wrong...'
   ];
 
   constructor() {
@@ -92,8 +91,7 @@ export default class CrossbreedingSimulator extends Vue {
     }
     if (type === 'DONE') {
       this.progressPercent = 100;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      this.resultMapList = plainToClass(GeneticsMap, data.mapList!) || null;
+      this.resultMapList = Object.freeze(data.mapList as GeneticsMap[]);
 
       setTimeout(() => {
         this.isSimulating = false;

@@ -1,7 +1,7 @@
 <template>
   <div class="sapling-gene-repr">
     <template v-for="(gene, index) in sapling.genes">
-      <span class="sapling-gene-repr_gene" :class="{ 'sapling-gene-repr_gene--red': !gene.isGreen() }" :key="index"
+      <span class="sapling-gene-repr_gene" :class="{ 'sapling-gene-repr_gene--red': !gene.isGreen }" :key="index"
         ><span>{{ gene.type }}</span></span
       >
       <span class="sapling-gene-repr_separator" v-if="sapling.genes.length - 1 > index" :key="index + 'sep'">-</span>
@@ -15,7 +15,7 @@ import Sapling from '../models/sapling.model';
 
 @Component
 export default class SaplingGeneRepresentation extends Vue {
-  @Prop({ type: Sapling, required: true }) readonly sapling!: Sapling;
+  @Prop({ type: Object, required: true }) readonly sapling!: Sapling;
 }
 </script>
 

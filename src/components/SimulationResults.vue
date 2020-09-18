@@ -22,14 +22,28 @@ export default class SimulationResults extends Vue {
 
   animate = false;
 
+  // filteringGenes = {
+  //   gene0: null,
+  //   gene1: null,
+  //   gene2: null,
+  //   gene3: null,
+  //   gene4: null,
+  //   gene5: 'Y',
+  // }
+
   page = 1;
 
+  get filteredMapList() {
+    // const gene = Y
+    return this.mapList;
+  }
+
   get visibleMapList() {
-    return this.mapList.slice(0, this.page * 100);
+    return this.filteredMapList.slice(0, this.page * 20);
   }
 
   get hasMore() {
-    return this.mapList.length > this.visibleMapList.length;
+    return this.filteredMapList.length > this.visibleMapList.length;
   }
 
   showMore() {
@@ -37,6 +51,7 @@ export default class SimulationResults extends Vue {
   }
 
   created() {
+    this.page = 1;
     setTimeout(() => {
       this.animate = true;
     });

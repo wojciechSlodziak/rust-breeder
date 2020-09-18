@@ -1,7 +1,7 @@
-const express = require('express');
+import express, { static } from 'express';
 const app = express();
 
-app.use(express.static('dist'));
+app.use(static('dist'));
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => {

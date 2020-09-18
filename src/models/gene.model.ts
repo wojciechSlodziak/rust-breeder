@@ -2,16 +2,12 @@ import GeneEnum from '../enums/gene.enum';
 
 export default class Gene {
   type: GeneEnum;
+  isGreen: boolean;
+  crossbreedingWeight: number;
 
   constructor(type: GeneEnum) {
     this.type = type;
-  }
-
-  isGreen(): boolean {
-    return [GeneEnum.G, GeneEnum.H, GeneEnum.Y].indexOf(this.type) !== -1;
-  }
-
-  getCrossbreedingWeight() {
-    return this.isGreen() ? 0.6 : 1;
+    this.isGreen = [GeneEnum.G, GeneEnum.H, GeneEnum.Y].indexOf(this.type) !== -1;
+    this.crossbreedingWeight = this.isGreen ? 0.6 : 1;
   }
 }

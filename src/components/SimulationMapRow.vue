@@ -56,7 +56,7 @@ import SaplingGeneRepresentation from './SaplingGeneRepresentation.vue';
   components: { SaplingGeneRepresentation }
 })
 export default class SimulationMapRow extends Vue {
-  @Prop({ type: GeneticsMap, required: true }) readonly map!: GeneticsMap;
+  @Prop({ type: Object, required: true }) readonly map!: GeneticsMap;
 
   get chanceClass() {
     let chanceClass = 'map-row_chance--';

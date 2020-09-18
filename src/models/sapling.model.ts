@@ -25,6 +25,10 @@ export default class Sapling {
     return this.genes.map((gene) => gene.type).join('');
   }
 
+  hasGreenGenes() {
+    return this.genes.reduce((acc, gene) => acc || gene.isGreen, false);
+  }
+
   toJSON() {
     return this.toString();
   }

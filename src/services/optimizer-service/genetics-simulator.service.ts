@@ -13,6 +13,7 @@ interface SimulateOptions {
   progressCallback: (percentDone: number) => void;
   callProgressCallbackAfterCombinations: number;
   geneScores: Record<GeneEnum, number>;
+  includeAllResults: boolean;
 }
 
 class GeneticsSimulatorService {
@@ -50,7 +51,8 @@ class GeneticsSimulatorService {
           sourceSaplings,
           crossbreedSaplings,
           originalBestScore,
-          options.geneScores
+          options.geneScores,
+          options.includeAllResults
         );
 
         let keepOriganizingPositions = true;
@@ -93,7 +95,8 @@ class GeneticsSimulatorService {
     sourceSaplings: Sapling[],
     crossbreedSaplings: Sapling[],
     originalBestScore: number,
-    geneScores: Record<GeneEnum, number>
+    geneScores: Record<GeneEnum, number>,
+    includeAllResults: boolean
   ) {
     let targetSaplings: Sapling[] = [];
     try {
@@ -110,7 +113,10 @@ class GeneticsSimulatorService {
         otherSaplings.forEach((baseSapling) => {
           const rebreedTargetSapling = crossbreedingService.crossbreedTargetWithBase(targetSapling, baseSapling);
 
-          if (rebreedTargetSapling.getScore(geneScores) >= originalBestScore) {
+          if (
+            rebreedTargetSapling.getScore(geneScores) >= originalBestScore ||
+            (includeAllResults === true && rebreedTargetSapling.hasGreenGenes())
+          ) {
             result.push({
               crossbreedSaplings,
               baseSapling,
@@ -121,7 +127,10 @@ class GeneticsSimulatorService {
           }
         });
       } else if (numberOfBaseGenes === 0) {
-        if (targetSapling.getScore(geneScores) >= originalBestScore) {
+        if (
+          targetSapling.getScore(geneScores) >= originalBestScore ||
+          (includeAllResults === true && targetSapling.hasGreenGenes())
+        ) {
           result.push({
             crossbreedSaplings,
             targetSapling,

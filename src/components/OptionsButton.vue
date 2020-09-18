@@ -26,6 +26,15 @@
                 ></v-text-field>
               </v-col>
             </v-row>
+            <v-row>
+              <v-checkbox
+                class="mx-2"
+                v-model="includeAllResults"
+                hint="By default only results as good as the Source Saplings are included. If checked, even results with bad score are included. Can cause app crash due to insufficient memory."
+                persistent-hint
+                label="Include all results (memory WARNING!)"
+              />
+            </v-row>
           </v-container>
         </v-card-text>
         <v-divider></v-divider>
@@ -56,6 +65,7 @@ export default class OptionsButton extends Vue {
   isFormValid = false;
 
   options: ApplicationOptions = {
+    includeAllResults: false,
     geneScores: {
       [GeneEnum.G]: 1,
       [GeneEnum.Y]: 1,
@@ -65,6 +75,8 @@ export default class OptionsButton extends Vue {
       [GeneEnum.B]: 0
     }
   };
+
+  includeAllResults = false;
 
   newGeneScores: Record<GeneEnum, number> | null = null;
 
@@ -81,13 +93,9 @@ export default class OptionsButton extends Vue {
   }
 
   resetInputs() {
+    this.includeAllResults = this.options.includeAllResults;
     this.newGeneScores = {
-      [GeneEnum.G]: this.options.geneScores[GeneEnum.G],
-      [GeneEnum.Y]: this.options.geneScores[GeneEnum.Y],
-      [GeneEnum.H]: this.options.geneScores[GeneEnum.H],
-      [GeneEnum.X]: this.options.geneScores[GeneEnum.X],
-      [GeneEnum.W]: this.options.geneScores[GeneEnum.W],
-      [GeneEnum.B]: this.options.geneScores[GeneEnum.B]
+      ...this.options.geneScores
     };
   }
 
@@ -102,6 +110,7 @@ export default class OptionsButton extends Vue {
 
   saveOptions() {
     this.isDialogOpen = false;
+    this.options.includeAllResults = this.includeAllResults;
     Object.keys(this.newGeneScores || {}).forEach((key) => {
       this.options.geneScores[key as GeneEnum] = this.newGeneScores?.[key as GeneEnum] || 0;
     });

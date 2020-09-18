@@ -1,7 +1,8 @@
-import express, { static } from 'express';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const express = require('express');
 const app = express();
 
-app.use(static('dist'));
+app.use(express.static('dist'));
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => {

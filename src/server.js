@@ -2,7 +2,11 @@
 const express = require('express');
 const app = express();
 
-app.use(express.static('dist'));
+app.use(
+  express.static('dist', {
+    maxAge: 1000 * 60 * 60 * 24 * 10
+  })
+);
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => {

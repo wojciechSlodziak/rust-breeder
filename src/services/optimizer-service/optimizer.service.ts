@@ -1,17 +1,14 @@
 import Worker from 'worker-loader!./optimizer-service.worker';
 import GeneticsMap from '../../models/genetics-map.model';
 import ApplicationOptions from '@/interfaces/application-options';
-import { getWorkChunks, sortResults, getNumberOfCrossbreedCombinations } from './optimizer.helper';
-
-export interface EventListenerCallback {
-  (eventType: 'PROGRESS_UPDATE' | 'DONE', data: EventListenerCallbackData): void;
-}
-
-export interface EventListenerCallbackData {
-  isDone?: boolean;
-  progressPercent?: number;
-  mapList?: GeneticsMap[];
-}
+import {
+  getWorkChunks,
+  resultMapsSortingFunction,
+  getNumberOfCrossbreedCombinations,
+  getGroupedResults,
+  EventListenerCallback,
+  NotEnoughSourceSaplingsError
+} from './optimizer.helper';
 
 class OptimizerService {
   listeners: EventListenerCallback[] = [];
@@ -19,23 +16,22 @@ class OptimizerService {
   workerProgress: number[] = [];
   resultMapLists: GeneticsMap[][] = [];
 
-  simulateBestGenetics(sourceGenesString: string, options: ApplicationOptions) {
+  simulateBestGenetics(sourceGenes: string[], options: ApplicationOptions) {
     this.workerProgress = [];
     this.resultMapLists = [];
 
-    const allSourceSaplingsGenes: string[] = sourceGenesString.split(/\r?\n/);
-    const allCombinationsCount = getNumberOfCrossbreedCombinations(allSourceSaplingsGenes.length);
+    if (sourceGenes.length < 2) {
+      throw new NotEnoughSourceSaplingsError();
+    }
 
-    const deduplicatedSourceSaplingsGenes: string[] = allSourceSaplingsGenes.filter(
-      (genes, index, self) => index === self.findIndex((otherGenes) => otherGenes === genes)
-    );
+    const allCombinationsCount = getNumberOfCrossbreedCombinations(sourceGenes.length);
 
-    const workChunks = getWorkChunks(deduplicatedSourceSaplingsGenes.length);
+    const workChunks = getWorkChunks(sourceGenes.length);
     workChunks.forEach((workChunk, workerIndex) => {
       const worker = new Worker();
 
       worker.postMessage({
-        sourceGenes: deduplicatedSourceSaplingsGenes,
+        sourceGenes: sourceGenes,
         ...workChunk,
         options
       });
@@ -44,11 +40,13 @@ class OptimizerService {
           this.resultMapLists.push(event.data.mapList);
 
           if (this.resultMapLists.length === workChunks.length) {
+            const mapList = this.resultMapLists.flat().sort(resultMapsSortingFunction);
+
             this.listeners.forEach((listener) => {
-              listener('DONE', { isDone: true, mapList: this.resultMapLists.flat().sort(sortResults) });
-              this.resultMapLists = [];
-              this.workerProgress = [];
+              listener('DONE', { isDone: true, mapGroups: getGroupedResults(mapList) });
             });
+            this.resultMapLists = [];
+            this.workerProgress = [];
           }
         } else if (event.data.combinationsProcessed) {
           this.listeners.forEach((listener) => {

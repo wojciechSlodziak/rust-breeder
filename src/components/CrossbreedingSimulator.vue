@@ -35,9 +35,18 @@
 
         <!--RESULTS-->
         <v-col cols="12" md="8">
-          <SimulationResults v-if="resultMapList && !isSimulating" :mapList="resultMapList" />
-          <div class="text-center" v-if="resultMapList !== null && resultMapList.length === 0 && !isSimulating">
+          <SimulationResults
+            v-if="resultMapGroups !== null && resultMapGroups.length !== 0 && !isSimulating"
+            :mapGroups="resultMapGroups"
+          />
+          <div
+            class="text-center py-md-6"
+            v-if="resultMapGroups !== null && resultMapGroups.length === 0 && !isSimulating"
+          >
             No bueno! You'll need to find more source plants. Try to pick the <strong>good</strong> ones!
+          </div>
+          <div class="text-center py-md-6" v-if="showNotEnoughSaplingsError">
+            No bueno! More plants are needed to crossbreed!
           </div>
         </v-col>
       </v-row>
@@ -47,20 +56,41 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-import optimizerService, { EventListenerCallbackData } from '../services/optimizer-service/optimizer.service';
-import GeneticsMap from '../models/genetics-map.model';
+import optimizerService from '../services/optimizer-service/optimizer.service';
 import SimulationResults from './SimulationResults.vue';
 import OptionsButton from './OptionsButton.vue';
+import {
+  EventListenerCallbackData,
+  MapGroup,
+  NotEnoughSourceSaplingsError
+} from '@/services/optimizer-service/optimizer.helper';
 
 @Component({
   components: { SimulationResults, OptionsButton }
 })
 export default class CrossbreedingSimulator extends Vue {
-  saplingGenes = 'YYYWYX\nGGHGHY\nHHGGGY';
+  saplingGenes = `GGYXHW
+WGYXGH
+XYHWGW
+YGHWYH
+XGGWYW
+XGYXXW
+WHGXGY
+XWGYHH
+XYGWGX
+XHGWYH
+WHYYGW
+WYWWGX
+WYGXWX
+YYHXGW
+XGXYYW
+XXGXHY
+WWGYYH`;
   progressPercent = 0;
   isSimulating = false;
   isFormValid = false;
-  resultMapList: readonly GeneticsMap[] | null = null;
+  showNotEnoughSaplingsError = false;
+  resultMapGroups: readonly MapGroup[] | null = null;
 
   sourceSaplingRules = [
     (v: string) => v !== '' || 'Give me some plants to work with!',
@@ -73,6 +103,7 @@ export default class CrossbreedingSimulator extends Vue {
   }
 
   handleSaplingGenesInput(value: string) {
+    this.showNotEnoughSaplingsError = false;
     const textarea = (this.$refs.saplingGenesInput as Vue).$el.querySelector('textarea');
     if (textarea) {
       const caretPosition = textarea.selectionStart;
@@ -92,8 +123,9 @@ export default class CrossbreedingSimulator extends Vue {
     }
     if (type === 'DONE') {
       this.progressPercent = 100;
-      this.resultMapList = Object.freeze(data.mapList as GeneticsMap[]);
+      this.resultMapGroups = Object.freeze(data.mapGroups || null);
 
+      console.log(this.resultMapGroups);
       setTimeout(() => {
         this.isSimulating = false;
         this.progressPercent = 0;
@@ -103,11 +135,25 @@ export default class CrossbreedingSimulator extends Vue {
   }
 
   submit() {
-    this.saplingGenes = this.saplingGenes.trim();
+    const splitSaplingGenes: string[] = this.saplingGenes.trim().split(/\r?\n/);
+    const deduplicatedSaplingGenes: string[] = splitSaplingGenes.filter(
+      (genes, index, self) => index === self.findIndex((otherGenes) => otherGenes === genes)
+    );
+    this.saplingGenes = deduplicatedSaplingGenes.join('\n');
+
     this.progressPercent = 0;
-    this.resultMapList = null;
-    optimizerService.simulateBestGenetics(this.saplingGenes, (this.$refs.optionsButton as OptionsButton).getOptions());
-    this.isSimulating = true;
+    this.resultMapGroups = null;
+    try {
+      optimizerService.simulateBestGenetics(
+        deduplicatedSaplingGenes,
+        (this.$refs.optionsButton as OptionsButton).getOptions()
+      );
+      this.isSimulating = true;
+    } catch (e) {
+      if (e instanceof NotEnoughSourceSaplingsError) {
+        this.showNotEnoughSaplingsError = true;
+      }
+    }
   }
 }
 </script>

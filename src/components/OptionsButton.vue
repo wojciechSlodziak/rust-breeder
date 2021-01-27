@@ -9,12 +9,12 @@
     <v-card>
       <v-form v-model="isFormValid">
         <v-card-title class="headline" primary-title>
-          Options
+          <h3>Options</h3>
         </v-card-title>
 
         <v-card-text>
-          Gene Scores
-          <v-container class="pa-0">
+          <v-container>
+            <h3>Gene Scores</h3>
             <v-row>
               <v-col v-for="geneScore in scoreInputs" :key="geneScore.key">
                 <v-text-field
@@ -26,6 +26,8 @@
                 ></v-text-field>
               </v-col>
             </v-row>
+          </v-container>
+          <v-container>
             <v-row>
               <v-checkbox
                 class="mx-2"

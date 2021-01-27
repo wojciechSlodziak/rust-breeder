@@ -40,6 +40,7 @@ $radiusPX: 25px;
   }
   .sapling-gene-repr_separator {
     display: inline-block;
+    color: #505050;
     margin: 0 2px;
     user-select: none;
   }

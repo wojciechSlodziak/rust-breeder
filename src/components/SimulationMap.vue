@@ -1,22 +1,28 @@
 <template>
-  <v-card max-width="320" class="mx-auto map-row" outlined>
-    <v-list-item class="map-row_header">
+  <v-card
+    v-ripple
+    class="map"
+    :class="{ 'map--hidden': isDummy }"
+    :style="{ height: isDummy ? forcedHeight + 'px' : 'auto' }"
+    outlined
+  >
+    <v-list-item class="map_header">
       <v-list-item-content>
         <v-list-item-title class="headline">
-          <SaplingGeneRepresentation :sapling="map.targetSapling" class="map-row_target-sapling" />
+          <SaplingGeneRepresentation :sapling="map.targetSapling" class="map_target-sapling" />
         </v-list-item-title>
         <v-list-item-subtitle class="mt-1">
-          <span class="map-row_score"
+          <span class="map_score"
             >Score: <span>{{ map.score }}</span></span
           >&nbsp;&middot;&nbsp;
-          <span class="map-row_chance" :class="chanceClass">
+          <span class="map_chance" :class="chanceClass">
             Chance: <span>{{ map.chancePercent }}%</span>
           </span>
         </v-list-item-subtitle>
       </v-list-item-content>
     </v-list-item>
     <v-divider class="mx-4"></v-divider>
-    <v-card-text>
+    <v-card-text class="map_detail">
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attrs }">
           <div v-bind="attrs" v-on="on" style="cursor:default" class="mb-4">
@@ -55,11 +61,13 @@ import SaplingGeneRepresentation from './SaplingGeneRepresentation.vue';
 @Component({
   components: { SaplingGeneRepresentation }
 })
-export default class SimulationMapRow extends Vue {
+export default class SimulationMap extends Vue {
   @Prop({ type: Object, required: true }) readonly map!: GeneticsMap;
+  @Prop({ type: Boolean }) isDummy: boolean;
+  @Prop({ type: Number }) forcedHeight: number;
 
   get chanceClass() {
-    let chanceClass = 'map-row_chance--';
+    let chanceClass = 'map_chance--';
     if (this.map.chancePercent >= 75) {
       chanceClass += 'high';
     } else if (this.map.chancePercent >= 50) {
@@ -73,32 +81,39 @@ export default class SimulationMapRow extends Vue {
 </script>
 
 <style scoped lang="scss">
-.map-row {
+.map {
   color: lightgray;
   text-align: center;
-  .map-row_header {
-    .map-row_score {
+  width: 320px;
+  .map_header {
+    .map_score {
       span {
         font-weight: bold;
         color: white;
       }
     }
-    .map-row_chance {
+    .map_chance {
       span {
         font-weight: bold;
       }
-      &.map-row_chance--low span {
+      &.map_chance--low span {
         color: rgb(197, 0, 0);
       }
-      &.map-row_chance--moderate span {
+      &.map_chance--moderate span {
         color: rgb(223, 145, 0);
       }
-      &.map-row_chance--high span {
+      &.map_chance--high span {
         color: rgb(18, 158, 18);
       }
     }
   }
-  .map-row_target-sapling {
+  &.map--hidden {
+    .map_header,
+    .map_detail {
+      visibility: hidden;
+    }
+  }
+  .map_target-sapling {
     background-color: #191919;
   }
 }

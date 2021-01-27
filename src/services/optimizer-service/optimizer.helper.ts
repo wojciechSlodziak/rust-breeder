@@ -1,6 +1,24 @@
 import GeneticsMap from '../../models/genetics-map.model';
 
-export function sortResults(geneticsMap1: GeneticsMap, geneticsMap2: GeneticsMap): number {
+export interface EventListenerCallback {
+  (eventType: 'PROGRESS_UPDATE' | 'DONE', data: EventListenerCallbackData): void;
+}
+
+export class NotEnoughSourceSaplingsError extends Error {}
+
+export interface MapGroup {
+  targetSaplingGeneString: string;
+  mapList: GeneticsMap[];
+  sortIndex: number;
+}
+
+export interface EventListenerCallbackData {
+  isDone?: boolean;
+  progressPercent?: number;
+  mapGroups?: MapGroup[];
+}
+
+export function resultMapsSortingFunction(geneticsMap1: GeneticsMap, geneticsMap2: GeneticsMap): number {
   if (
     geneticsMap1.score > geneticsMap2.score ||
     (geneticsMap1.score === geneticsMap2.score && geneticsMap1.chancePercent > geneticsMap2.chancePercent)
@@ -42,8 +60,8 @@ export function getNumberOfCrossbreedCombinations(itemsCount: number) {
   return numberOfAllCombinations;
 }
 
-export function getWorkChunks(sourceSaplingsLength: number) {
-  const allCombinationsCount = getNumberOfCrossbreedCombinations(sourceSaplingsLength);
+export function getWorkChunks(sourceSaplingsCount: number) {
+  const allCombinationsCount = getNumberOfCrossbreedCombinations(sourceSaplingsCount);
   const numberOfWorkers = navigator.hardwareConcurrency - 1;
   const combinationsPerWorker = Math.ceil(allCombinationsCount / numberOfWorkers);
 
@@ -53,7 +71,7 @@ export function getWorkChunks(sourceSaplingsLength: number) {
   let combinationsProcessed = 0;
   for (
     let crossbreedSaplingsCount = 2;
-    crossbreedSaplingsCount <= Math.min(sourceSaplingsLength, 8);
+    crossbreedSaplingsCount <= Math.min(sourceSaplingsCount, 8);
     crossbreedSaplingsCount++
   ) {
     const positions = buildInitialSaplingPositions(crossbreedSaplingsCount);
@@ -71,7 +89,7 @@ export function getWorkChunks(sourceSaplingsLength: number) {
       let keepOriganizingPositions = true;
       while (keepOriganizingPositions) {
         positions[positionIndexForInc] += 1;
-        if (positions[positionIndexForInc] > sourceSaplingsLength - (crossbreedSaplingsCount - positionIndexForInc)) {
+        if (positions[positionIndexForInc] > sourceSaplingsCount - (crossbreedSaplingsCount - positionIndexForInc)) {
           if (positionIndexForInc === 0) {
             hasCombinations = false;
             keepOriganizingPositions = false;
@@ -95,4 +113,23 @@ export function getWorkChunks(sourceSaplingsLength: number) {
   }
 
   return workChunks;
+}
+
+export function getGroupedResults(mapList: GeneticsMap[]): MapGroup[] {
+  const mapGroupMap: { [key: string]: MapGroup } = {};
+  let sortIndex = 0;
+  mapList.forEach((geneticsMap) => {
+    const targetSaplingGeneString = geneticsMap.targetSapling.genes.map((gene) => gene.type.toString()).join('');
+    if (mapGroupMap[targetSaplingGeneString] === undefined) {
+      mapGroupMap[targetSaplingGeneString] = {
+        targetSaplingGeneString,
+        mapList: [geneticsMap],
+        sortIndex: sortIndex++
+      };
+    } else {
+      mapGroupMap[targetSaplingGeneString].mapList.push(geneticsMap);
+    }
+  });
+
+  return Object.values(mapGroupMap).sort((a, b) => a.sortIndex - b.sortIndex);
 }

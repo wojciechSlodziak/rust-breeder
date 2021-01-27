@@ -4,6 +4,10 @@ import GeneEnum from '../enums/gene.enum';
 
 export default class Sapling {
   genes: Gene[];
+  numberOfGs: number;
+  numberOfYs: number;
+  numberOfHs: number;
+  [key: string]: any;
 
   constructor(genes: Gene[] | string) {
     if (typeof genes === 'string') {
@@ -11,6 +15,10 @@ export default class Sapling {
     } else {
       this.genes = genes;
     }
+
+    this.numberOfGs = this.genes.reduce((acc, gene) => acc + (gene.type === GeneEnum.G ? 1 : 0), 0);
+    this.numberOfYs = this.genes.reduce((acc, gene) => acc + (gene.type === GeneEnum.Y ? 1 : 0), 0);
+    this.numberOfHs = this.genes.reduce((acc, gene) => acc + (gene.type === GeneEnum.H ? 1 : 0), 0);
   }
 
   getScore(geneScores: Record<GeneEnum, number>): number {

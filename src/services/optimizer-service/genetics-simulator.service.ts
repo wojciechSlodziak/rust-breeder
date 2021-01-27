@@ -1,12 +1,7 @@
 import GeneticsMap from '../../models/genetics-map.model';
 import Sapling from '../../models/sapling.model';
 import crossbreedingService from './crossbreeding.service';
-import {
-  sortResults,
-  buildInitialSaplingPositions,
-  resetFollowingPositions,
-  getNumberOfCrossbreedCombinations
-} from './optimizer.helper';
+import { buildInitialSaplingPositions, resetFollowingPositions } from './optimizer.helper';
 import GeneEnum from '../../enums/gene.enum';
 
 interface SimulateOptions {

@@ -2,7 +2,37 @@
   <div class="text-center">
     <v-container class="pa-0">
       <v-row>
-        <v-col v-for="n in 6" :key="n">
+        <v-col>
+          <v-text-field
+            type="number"
+            label="No. of Gs"
+            v-model="geneCount.gCount"
+            autocomplete="off"
+            :rules="geneCountRules"
+          ></v-text-field>
+        </v-col>
+        <v-col>
+          <v-text-field
+            type="number"
+            label="No. of Ys"
+            v-model="geneCount.yCount"
+            autocomplete="off"
+            :rules="geneCountRules"
+          ></v-text-field>
+        </v-col>
+        <v-col>
+          <v-text-field
+            type="number"
+            label="No. of Hs"
+            v-model="geneCount.hCount"
+            autocomplete="off"
+            :rules="geneCountRules"
+          ></v-text-field>
+        </v-col>
+      </v-row>
+      <v-divider></v-divider>
+      <v-row>
+        <v-col cols="4" md="2" v-for="n in 6" :key="n">
           <v-text-field
             type="text"
             :label="'Gene ' + n"
@@ -13,10 +43,9 @@
         </v-col>
       </v-row>
     </v-container>
-
-    <ul :class="{ 'simulation-results--visible': animate }">
-      <li v-for="(map, index) in visibleMapList" :key="index">
-        <SimulationMapRow :map="map" />
+    <ul class="mt-3" :class="{ 'simulation-results--visible': addAnimationClass }">
+      <li v-for="(group, index) in visibleMapGroups" :key="index">
+        <SimulationMapGroup :group="group" />
       </li>
     </ul>
     <v-btn @click="showMore" v-if="hasMore" class="mt-2">Show more</v-btn>
@@ -24,17 +53,18 @@
 </template>
 
 <script lang="ts">
+import GeneEnum from '@/enums/gene.enum';
+import { MapGroup } from '@/services/optimizer-service/optimizer.helper';
 import { Component, Vue, Prop } from 'vue-property-decorator';
-import GeneticsMap from '../models/genetics-map.model';
-import SimulationMapRow from './SimulationMapRow.vue';
+import SimulationMapGroup from './SimulationMapGroup.vue';
 
 @Component({
-  components: { SimulationMapRow }
+  components: { SimulationMapGroup }
 })
 export default class SimulationResults extends Vue {
-  @Prop({ type: Array, required: true }) readonly mapList!: GeneticsMap[];
+  @Prop({ type: Array, required: true }) readonly mapGroups!: MapGroup[];
 
-  animate = false;
+  addAnimationClass = false;
 
   filteringGenes: { [key: string]: string | null } = {
     gene0: '',
@@ -45,9 +75,31 @@ export default class SimulationResults extends Vue {
     gene5: ''
   };
 
+  geneCount: { [key: string]: string | null } = {
+    gCount: '',
+    yCount: '',
+    hCount: ''
+  };
+
+  geneCountRules = [
+    (v: number) => !v || v >= 1 || 'At least one..',
+    (v: number) => !v || v <= 6 || 'No more than six...'
+  ];
+
   page = 1;
 
-  get filteredMapList() {
+  get filteredMapGroups() {
+    let mapGroups = this.mapGroups;
+    [GeneEnum.Y, GeneEnum.G, GeneEnum.H].forEach((geneName) => {
+      if (this.geneCount[`${geneName.toLowerCase()}Count`]) {
+        mapGroups = mapGroups.filter(
+          (group) =>
+            group.mapList[0].targetSapling[`numberOf${geneName}s`] ===
+            Number(this.geneCount[`${geneName.toLowerCase()}Count`])
+        );
+      }
+    });
+
     if (
       this.filteringGenes.gene0 !== '' ||
       this.filteringGenes.gene1 !== '' ||
@@ -56,7 +108,7 @@ export default class SimulationResults extends Vue {
       this.filteringGenes.gene4 !== '' ||
       this.filteringGenes.gene5 !== ''
     ) {
-      return this.mapList.filter((map) => {
+      mapGroups = mapGroups.filter((group) => {
         let allGenesMatch = true;
         for (let i = 0; i < 6; i++) {
           if (
@@ -64,7 +116,7 @@ export default class SimulationResults extends Vue {
             !(this.filteringGenes[`gene${i}`] || '')
               .toUpperCase()
               .split('/')
-              .includes(map.targetSapling.genes[i].type)
+              .includes(group.mapList[0].targetSapling.genes[i].type)
           ) {
             allGenesMatch = false;
           }
@@ -72,26 +124,26 @@ export default class SimulationResults extends Vue {
         return allGenesMatch;
       });
     }
-    return this.mapList;
+    return mapGroups;
   }
 
-  get visibleMapList() {
-    return this.filteredMapList.slice(0, this.page * 20);
+  get visibleMapGroups() {
+    return this.filteredMapGroups.slice(0, this.page * 10);
   }
 
   get hasMore() {
-    return this.filteredMapList.length > this.visibleMapList.length;
-  }
-
-  showMore() {
-    this.page = this.page + 1;
+    return this.filteredMapGroups.length > this.visibleMapGroups.length;
   }
 
   created() {
     this.page = 1;
     setTimeout(() => {
-      this.animate = true;
+      this.addAnimationClass = true;
     });
+  }
+
+  showMore() {
+    this.page = this.page + 1;
   }
 }
 </script>
@@ -99,19 +151,20 @@ export default class SimulationResults extends Vue {
 <style scoped lang="scss">
 ul {
   list-style: none;
+  position: relative;
   margin: 0;
   padding: 0 !important;
   opacity: 0;
-  transform: translatey(-25px);
+  top: 25px;
   transition: 0.2s ease-out;
   &.simulation-results--visible {
     opacity: 1;
-    transform: translatey(0px);
+    top: 0px;
   }
   li {
     display: block;
     &:not(:first-child) {
-      margin-top: 7px;
+      margin-top: 10px;
     }
   }
 }

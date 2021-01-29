@@ -38,6 +38,8 @@
           <SimulationResults
             v-if="resultMapGroups !== null && resultMapGroups.length !== 0 && !isSimulating"
             :mapGroups="resultMapGroups"
+            :highlightedMap="highlightedMap"
+            v-on:select:map="handleSelectMapEvent"
           />
           <div
             class="text-center py-md-6"
@@ -59,11 +61,8 @@ import { Component, Vue } from 'vue-property-decorator';
 import optimizerService from '../services/optimizer-service/optimizer.service';
 import SimulationResults from './SimulationResults.vue';
 import OptionsButton from './OptionsButton.vue';
-import {
-  EventListenerCallbackData,
-  MapGroup,
-  NotEnoughSourceSaplingsError
-} from '@/services/optimizer-service/optimizer.helper';
+import { EventListenerCallbackData, MapGroup, NotEnoughSourceSaplingsError } from '@/services/optimizer-service/models';
+import GeneticsMap from '@/models/genetics-map.model';
 
 @Component({
   components: { SimulationResults, OptionsButton }
@@ -90,6 +89,7 @@ WWGYYH`;
   isSimulating = false;
   isFormValid = false;
   showNotEnoughSaplingsError = false;
+  highlightedMap: GeneticsMap | null = null;
   resultMapGroups: readonly MapGroup[] | null = null;
 
   sourceSaplingRules = [
@@ -154,6 +154,10 @@ WWGYYH`;
         this.showNotEnoughSaplingsError = true;
       }
     }
+  }
+
+  handleSelectMapEvent(map: GeneticsMap) {
+    this.highlightedMap = map;
   }
 }
 </script>

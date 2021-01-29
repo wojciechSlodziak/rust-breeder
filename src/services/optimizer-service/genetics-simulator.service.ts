@@ -3,13 +3,7 @@ import Sapling from '../../models/sapling.model';
 import crossbreedingService from './crossbreeding.service';
 import { buildInitialSaplingPositions, resetFollowingPositions } from './optimizer.helper';
 import GeneEnum from '../../enums/gene.enum';
-
-interface SimulateOptions {
-  progressCallback: (percentDone: number) => void;
-  callProgressCallbackAfterCombinations: number;
-  geneScores: Record<GeneEnum, number>;
-  includeAllResults: boolean;
-}
+import { SimulateOptions } from './models';
 
 class GeneticsSimulatorService {
   simulateCrossbreeding(

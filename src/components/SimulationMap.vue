@@ -1,6 +1,6 @@
 <template>
   <v-card
-    v-ripple
+    v-ripple="isDummy ? false : true"
     class="map"
     :class="{ 'map--hidden': isDummy }"
     :style="{ height: isDummy ? forcedHeight + 'px' : 'auto' }"
@@ -23,9 +23,9 @@
     </v-list-item>
     <v-divider class="mx-4"></v-divider>
     <v-card-text class="map_detail">
-      <v-tooltip bottom>
+      <v-tooltip bottom open-delay="250">
         <template v-slot:activator="{ on, attrs }">
-          <div v-bind="attrs" v-on="on" style="cursor:default" class="mb-4">
+          <div v-bind="attrs" v-on="on" class="mb-4">
             <div class="mb-1">Base Sapling:<span class="white--text" v-if="!map.baseSapling"> any</span></div>
             <SaplingGeneRepresentation :sapling="map.baseSapling" v-if="map.baseSapling" />
           </div>
@@ -33,9 +33,9 @@
         <span>Sapling that should be used as a center plant.</span>
       </v-tooltip>
       <v-divider class="mb-5"></v-divider>
-      <v-tooltip bottom>
+      <v-tooltip bottom open-delay="250">
         <template v-slot:activator="{ on, attrs }">
-          <div v-bind="attrs" v-on="on" style="cursor:default">
+          <div v-bind="attrs" v-on="on">
             <div class="mb-1">Crossbreeding Saplings:</div>
             <SaplingGeneRepresentation
               :sapling="crossbreedSapling"
@@ -82,6 +82,7 @@ export default class SimulationMap extends Vue {
 
 <style scoped lang="scss">
 .map {
+  cursor: pointer;
   color: lightgray;
   text-align: center;
   width: 320px;

@@ -45,7 +45,7 @@
     </v-container>
     <ul class="mt-3" :class="{ 'simulation-results--visible': addAnimationClass }">
       <li v-for="(group, index) in visibleMapGroups" :key="index">
-        <SimulationMapGroup :group="group" />
+        <SimulationMapGroup :group="group" v-on:select:map="handleSelectMapEvent" :highlightedMap="highlightedMap" />
       </li>
     </ul>
     <v-btn @click="showMore" v-if="hasMore" class="mt-2">Show more</v-btn>
@@ -54,7 +54,8 @@
 
 <script lang="ts">
 import GeneEnum from '@/enums/gene.enum';
-import { MapGroup } from '@/services/optimizer-service/optimizer.helper';
+import GeneticsMap from '@/models/genetics-map.model';
+import { MapGroup } from '@/services/optimizer-service/models';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import SimulationMapGroup from './SimulationMapGroup.vue';
 
@@ -63,6 +64,7 @@ import SimulationMapGroup from './SimulationMapGroup.vue';
 })
 export default class SimulationResults extends Vue {
   @Prop({ type: Array, required: true }) readonly mapGroups!: MapGroup[];
+  @Prop({ type: Object }) readonly highlightedMap: GeneticsMap;
 
   addAnimationClass = false;
 
@@ -140,6 +142,10 @@ export default class SimulationResults extends Vue {
     setTimeout(() => {
       this.addAnimationClass = true;
     });
+  }
+
+  handleSelectMapEvent(map: GeneticsMap) {
+    this.$emit('select:map', map);
   }
 
   showMore() {

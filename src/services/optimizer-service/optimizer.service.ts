@@ -3,24 +3,28 @@ import GeneticsMap from '../../models/genetics-map.model';
 import ApplicationOptions from '@/interfaces/application-options';
 import {
   getWorkChunks,
-  resultMapsSortingFunction,
+  resultMapGroupsSortingFunction,
   getNumberOfCrossbreedCombinations,
-  getGroupedResults,
-  EventListenerCallback,
-  NotEnoughSourceSaplingsError
+  appendListToMapGroupsMap
 } from './optimizer.helper';
+import { MIN_CROSSBREEDING_SAPLINGS } from '@/const';
+import { EventListenerCallback, MapGroup, NotEnoughSourceSaplingsError } from './models';
 
 class OptimizerService {
   listeners: EventListenerCallback[] = [];
 
   workerProgress: number[] = [];
   resultMapLists: GeneticsMap[][] = [];
+  mapGroupMap: { [key: string]: MapGroup } = {};
+  processedChunks = 0;
 
   simulateBestGenetics(sourceGenes: string[], options: ApplicationOptions) {
     this.workerProgress = [];
     this.resultMapLists = [];
+    this.mapGroupMap = {};
+    this.processedChunks = 0;
 
-    if (sourceGenes.length < 2) {
+    if (sourceGenes.length < MIN_CROSSBREEDING_SAPLINGS) {
       throw new NotEnoughSourceSaplingsError();
     }
 
@@ -37,16 +41,18 @@ class OptimizerService {
       });
       worker.addEventListener('message', (event) => {
         if (event.data.mapList) {
-          this.resultMapLists.push(event.data.mapList);
+          this.processedChunks += 1;
+          appendListToMapGroupsMap(this.mapGroupMap, event.data.mapList);
 
-          if (this.resultMapLists.length === workChunks.length) {
-            const mapList = this.resultMapLists.flat().sort(resultMapsSortingFunction);
+          if (this.processedChunks === workChunks.length) {
+            const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
 
             this.listeners.forEach((listener) => {
-              listener('DONE', { isDone: true, mapGroups: getGroupedResults(mapList) });
+              listener('DONE', { isDone: true, mapGroups: mapGroups });
             });
             this.resultMapLists = [];
             this.workerProgress = [];
+            this.mapGroupMap = {};
           }
         } else if (event.data.combinationsProcessed) {
           this.listeners.forEach((listener) => {

@@ -82,23 +82,7 @@ import goTo from 'vuetify/lib/services/goto';
   components: { SimulationResults, SimulationMap, SaplingInputHighlights, OptionsButton }
 })
 export default class CrossbreedingSimulator extends Vue {
-  saplingGenes = `GGYXHW
-WGYXGH
-XYHWGW
-YGHWYH
-XGGWYW
-XGYXXW
-WHGXGY
-XWGYHH
-XYGWGX
-XHGWYH
-WHYYGW
-WYWWGX
-WYGXWX
-YYHXGW
-XGXYYW
-XXGXHY
-WWGYYH`;
+  saplingGenes = 'YYYWYX\nGGHGHY\nHHGGGY';
   progressPercent = 0;
   isSimulating = false;
   isFormValid = false;

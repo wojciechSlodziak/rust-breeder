@@ -6,7 +6,7 @@
     <v-container fluid>
       <v-row>
         <v-col cols="12" :md="showHighlight ? 12 : 4" :lg="showHighlight ? 5 : 3" class="pa-1">
-          <v-form ref="form" v-model="isFormValid">
+          <v-form ref="form" v-model="isFormValid" spellcheck="false">
             <v-row class="d-flex justify-center mt-1">
               <v-btn color="primary" @click="handleSimulateClick" :disabled="isSimulating || !isFormValid"
                 >Simulate</v-btn
@@ -143,7 +143,6 @@ WWGYYH`;
       this.progressPercent = 100;
       this.resultMapGroups = Object.freeze(data.mapGroups || null);
 
-      console.log(this.resultMapGroups);
       setTimeout(() => {
         this.isSimulating = false;
         this.progressPercent = 0;
@@ -204,7 +203,6 @@ WWGYYH`;
       'Alt',
       'Control'
     ];
-    console.log(event);
     if (
       !(event.altKey || event.ctrlKey) &&
       allowedKeys.indexOf(event.key) === -1 &&

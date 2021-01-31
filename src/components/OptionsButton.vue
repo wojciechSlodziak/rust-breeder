@@ -26,9 +26,7 @@
                 ></v-text-field>
               </v-col>
             </v-row>
-          </v-container>
-          <v-container>
-            <v-row>
+            <v-row class="mt-0">
               <v-checkbox
                 class="mx-2"
                 v-model="includeAllResults"

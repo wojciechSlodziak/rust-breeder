@@ -3,14 +3,13 @@
 ## Required software
 
 1. Install NodeJS - https://nodejs.org/en/
-2. Install Yarn - https://classic.yarnpkg.com/en/docs/install/#windows-stable
 
 ## Minimal commands to start the app locally:
 
 ```
-yarn install
-yarn build
-yarn start
+npm install
+npm run build
+npm run start
 ```
 
 Go to: http://localhost:8080/
@@ -18,37 +17,37 @@ Go to: http://localhost:8080/
 ## Dependencies
 
 ```
-yarn install
+npm run install
 ```
 
 ### Compiles and hot-reloads for development
 
 ```
-yarn serve
+npm run serve
 ```
 
 ### Compiles and minifies for production
 
 ```
-yarn build
+npm run build
 ```
 
 ### Run for production
 
 ```
-yarn start
+npm run start
 ```
 
 ### Run your unit tests
 
 ```
-yarn test:unit
+npm run test:unit
 ```
 
 ### Lints and fixes files
 
 ```
-yarn lint
+npm run lint
 ```
 
 ### Customize configuration

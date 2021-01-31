@@ -223,13 +223,16 @@ WWGYYH`;
   }
 
   playWrongKeySound() {
-    const headshotAudio = document.getElementById('headshotAudio') as HTMLElement & {
-      volume: string;
-      play: () => void;
-    };
-    if (headshotAudio) {
-      headshotAudio.volume = '0.05';
-      headshotAudio.play();
+    const audioElement = document.getElementById('headshotAudio');
+    if (audioElement) {
+      const headshotAudio = audioElement.cloneNode() as HTMLElement & {
+        volume: string;
+        play: () => void;
+      };
+      if (headshotAudio) {
+        headshotAudio.volume = '0.05';
+        headshotAudio.play();
+      }
     }
   }
 

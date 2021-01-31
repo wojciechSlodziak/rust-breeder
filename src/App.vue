@@ -3,6 +3,7 @@
     <v-app-bar app>
       <img src="https://files.facepunch.com/s/c0444ba57c9a.svg" alt="Rust" width="112" height="28" class="mr-4" />
       <v-toolbar-title class="d-none d-sm-block">Crossbreeding Optimizer</v-toolbar-title>
+      <v-toolbar-title class="d-sm-none">XO</v-toolbar-title>
       <div class="ml-auto">
         <AboutButton />
         <v-btn

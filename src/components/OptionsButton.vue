@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="isDialogOpen" width="500" @click:outside="resetInputs">
     <template v-slot:activator="{ on, attrs }">
-      <v-btn color="blue darken-4" dark v-bind="attrs" v-on="on">
+      <v-btn v-bind="attrs" v-on="on">
         Options
       </v-btn>
     </template>

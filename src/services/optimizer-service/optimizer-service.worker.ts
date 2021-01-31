@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ctx: Worker = self as any;
 import geneticsSimulatorService from './genetics-simulator.service';
 
@@ -17,4 +18,5 @@ ctx.addEventListener('message', (event) => {
   ctx.postMessage({ mapList });
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default null as any;

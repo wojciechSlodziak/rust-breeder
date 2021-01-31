@@ -1,4 +1,4 @@
-import 'reflect-metadata'; // TODO: why need this again here?
+import 'reflect-metadata';
 import Gene from './gene.model';
 import GeneEnum from '../enums/gene.enum';
 
@@ -7,7 +7,7 @@ export default class Sapling {
   numberOfGs: number;
   numberOfYs: number;
   numberOfHs: number;
-  [key: string]: any;
+  [key: string]: unknown;
 
   constructor(genes: Gene[] | string) {
     if (typeof genes === 'string') {

@@ -1,40 +1,50 @@
 <template>
   <div class="simulator">
-    <!--PROGRESS-->
     <div class="simulator_progress-container">
-      <v-progress-linear color="teal" v-if="isSimulating" v-model="progressPercent" stream></v-progress-linear>
+      <v-progress-linear color="secondary" v-if="isSimulating" v-model="progressPercent" stream></v-progress-linear>
     </div>
     <v-container fluid>
       <v-row>
-        <v-col cols="12" md="4" class="text-center">
+        <v-col cols="12" :md="showHighlight ? 12 : 4" :lg="showHighlight ? 5 : 3" class="pa-1">
           <v-form ref="form" v-model="isFormValid">
-            <!--SUBMIT-->
-            <v-btn @click="submit" :disabled="isSimulating || !isFormValid">Simulate</v-btn>
+            <v-row class="d-flex justify-center mt-1">
+              <v-btn color="primary" @click="handleSimulateClick" :disabled="isSimulating || !isFormValid"
+                >Simulate</v-btn
+              >
+              <span class="ml-2">
+                <OptionsButton ref="optionsButton" />
+              </span>
+            </v-row>
 
-            <!--OPTIONS-->
-            <span class="ml-2">
-              <OptionsButton ref="optionsButton" />
-            </span>
+            <v-row class="d-flex mx-1 pt-3">
+              <div class="flex-grow-1 mx-3 simulator_sapling-input-container">
+                <v-textarea
+                  full-width
+                  ref="saplingGenesInput"
+                  class="simulator_sapling-input"
+                  label="Source Saplings"
+                  :value="saplingGenes"
+                  @input="handleSaplingGenesInput($event)"
+                  @blur="handleSaplingGenesBlur"
+                  outlined
+                  auto-grow
+                  validate-on-blur
+                  :rules="sourceSaplingRules"
+                  autocomplete="off"
+                  hint="Enter each Sapling's genes in new line using 'XXYWGH' format."
+                ></v-textarea>
+                <SaplingInputHighlights :inputString="saplingGenes" :highlightedMap="highlightedMap" />
+              </div>
 
-            <!--TEXT AREA-->
-            <v-textarea
-              ref="saplingGenesInput"
-              label="Source Saplings"
-              :value="saplingGenes"
-              @input="handleSaplingGenesInput($event)"
-              outlined
-              auto-grow
-              validate-on-blur
-              :rules="sourceSaplingRules"
-              autocomplete="off"
-              class="mt-5"
-              hint="Enter each Sapling's genes in new line using 'XXYWGH' format."
-            ></v-textarea>
+              <div v-if="showHighlight" class="d-flex flex-column align-center" style="flex: 1 0 0">
+                <SimulationMap :map="highlightedMap" :isHighlight="true" />
+                <v-btn class="mt-3" @click="handleClearHighlightClick">Clear</v-btn>
+              </div>
+            </v-row>
           </v-form>
         </v-col>
 
-        <!--RESULTS-->
-        <v-col cols="12" md="8">
+        <v-col cols="12" :md="showHighlight ? 12 : 8" :lg="showHighlight ? 7 : 9">
           <SimulationResults
             v-if="resultMapGroups !== null && resultMapGroups.length !== 0 && !isSimulating"
             :mapGroups="resultMapGroups"
@@ -60,12 +70,15 @@
 import { Component, Vue } from 'vue-property-decorator';
 import optimizerService from '../services/optimizer-service/optimizer.service';
 import SimulationResults from './SimulationResults.vue';
+import SimulationMap from './SimulationMap.vue';
+import SaplingInputHighlights from './SaplingInputHighlights.vue';
 import OptionsButton from './OptionsButton.vue';
 import { EventListenerCallbackData, MapGroup, NotEnoughSourceSaplingsError } from '@/services/optimizer-service/models';
 import GeneticsMap from '@/models/genetics-map.model';
+import goTo from 'vuetify/lib/services/goto';
 
 @Component({
-  components: { SimulationResults, OptionsButton }
+  components: { SimulationResults, SimulationMap, SaplingInputHighlights, OptionsButton }
 })
 export default class CrossbreedingSimulator extends Vue {
   saplingGenes = `GGYXHW
@@ -96,6 +109,10 @@ WWGYYH`;
     (v: string) => v !== '' || 'Give me some plants to work with!',
     (v: string) => /^([GHWYX]{6}\n{1})*([GHWYX]{6}\n{0})*\n*$/.test(v) || 'The format is wrong...'
   ];
+
+  get showHighlight() {
+    return this.highlightedMap !== null;
+  }
 
   constructor() {
     super();
@@ -134,7 +151,8 @@ WWGYYH`;
     this.$forceUpdate();
   }
 
-  submit() {
+  handleSimulateClick() {
+    this.clearHighlight();
     const splitSaplingGenes: string[] = this.saplingGenes.trim().split(/\r?\n/);
     const deduplicatedSaplingGenes: string[] = splitSaplingGenes.filter(
       (genes, index, self) => index === self.findIndex((otherGenes) => otherGenes === genes)
@@ -156,8 +174,26 @@ WWGYYH`;
     }
   }
 
+  handleSaplingGenesBlur() {
+    this.saplingGenes = this.saplingGenes.replaceAll(/[\n]{2,}/g, '\n');
+    this.$nextTick(() => {
+      if ((this.$refs.form as Vue & { validate: () => boolean }).validate()) {
+        (this.$refs.form as Vue & { resetValidation: () => boolean }).resetValidation();
+      }
+    });
+  }
+
+  handleClearHighlightClick() {
+    this.clearHighlight();
+  }
+
+  clearHighlight() {
+    this.highlightedMap = null;
+  }
+
   handleSelectMapEvent(map: GeneticsMap) {
     this.highlightedMap = map;
+    goTo(0, { duration: 200 });
   }
 }
 </script>
@@ -165,5 +201,11 @@ WWGYYH`;
 <style scoped lang="scss">
 .simulator_progress-container {
   height: 5px;
+}
+.simulator_sapling-input-container {
+  position: relative;
+  .simulator_sapling-input {
+    z-index: 1;
+  }
 }
 </style>

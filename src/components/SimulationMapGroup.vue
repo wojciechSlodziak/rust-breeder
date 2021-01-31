@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="group mx-auto"
-    :class="{ 'group--browsing-mode': isGroupBrowsingMode, 'group--back-highlighted': isBackMapHighlighted }"
-  >
+  <div class="group mx-auto" :class="{ 'group--browsing-mode': isGroupBrowsingMode }">
     <div class="group_container" :class="{ 'group_container--overflowed': applyOverflowInBrowsingMode }">
       <SimulationMap
         @click.native="handleMapClick(map, index !== 0 && !isGroupBrowsingMode)"
@@ -22,7 +19,7 @@
         :style="{
           'z-index': maxDisplayedMaps - index,
           opacity:
-            !isGroupBrowsingMode && index !== 0
+            !isGroupBrowsingMode && index !== 0 && map !== highlightedMap
               ? ((maxDisplayedMaps - index) / maxDisplayedMaps) * (isMouseHoveringDummy ? 1 : 0.4)
               : 1,
           transform: !isGroupBrowsingMode ? 'translateX(' + index * (isMouseHoveringDummy ? 20 : 15) + 'px)' : 'none'
@@ -54,17 +51,9 @@ export default class SimulationMapGroup extends Vue {
   isMouseHoveringDummy = false;
   applyOverflowInBrowsingMode = false;
 
-  get isFrontMapHighlighted() {
-    return this.highlightedMap === this.group.mapList[0];
-  }
-
-  get isBackMapHighlighted() {
-    return !this.isFrontMapHighlighted && this.group.mapList.find((map) => map === this.highlightedMap) !== undefined;
-  }
-
   mounted() {
     if (this.$refs.map) {
-      Vue.nextTick(() => {
+      this.$nextTick(() => {
         this.dummyHeight = (this.$refs.map as Vue[])[0].$el.getBoundingClientRect().height;
       });
     }
@@ -132,13 +121,7 @@ export default class SimulationMapGroup extends Vue {
       top: 0;
     }
     &.group_map--highlighted {
-      box-shadow: 0px 0px 12px -2px white;
-      border: 1px solid white;
-    }
-  }
-  &.group--back-highlighted {
-    .group_map--dummy {
-      box-shadow: -4px 0px 7px -1px white;
+      box-shadow: 0px 0px 1px 2px white;
       border: 1px solid white;
     }
   }

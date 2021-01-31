@@ -2,7 +2,7 @@
   <v-app>
     <v-app-bar app>
       <img src="https://files.facepunch.com/s/c0444ba57c9a.svg" alt="Rust" width="112" height="28" class="mr-4" />
-      <v-toolbar-title>Crossbreeding Simulator</v-toolbar-title>
+      <v-toolbar-title>Crossbreeding Optimizer</v-toolbar-title>
     </v-app-bar>
     <v-main>
       <CrossbreedingSimulator />

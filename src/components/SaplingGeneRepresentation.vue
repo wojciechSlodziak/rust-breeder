@@ -32,11 +32,11 @@ $radiusPX: 25px;
     width: $radiusPX;
     border-radius: 50%;
     color: white;
-    background-color: rgb(18, 158, 18);
+    background-color: #5e861e;
     line-height: $radiusPX;
   }
   .sapling-gene-repr_gene--red {
-    background-color: rgb(197, 0, 0);
+    background-color: #9b4433;
   }
   .sapling-gene-repr_separator {
     display: inline-block;

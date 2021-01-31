@@ -45,7 +45,8 @@ class OptimizerService {
           appendListToMapGroupsMap(this.mapGroupMap, event.data.mapList);
 
           if (this.processedChunks === workChunks.length) {
-            const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
+            let mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
+            mapGroups = mapGroups.map((mapGroup, index) => ({ ...mapGroup, index }));
 
             this.listeners.forEach((listener) => {
               listener('DONE', { isDone: true, mapGroups: mapGroups });

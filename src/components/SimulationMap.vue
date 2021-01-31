@@ -1,6 +1,6 @@
 <template>
   <v-card
-    v-ripple="isDummy ? false : true"
+    v-ripple="isDummy || isHighlight ? false : true"
     class="map"
     :class="{ 'map--hidden': isDummy }"
     :style="{ height: isDummy ? forcedHeight + 'px' : 'auto' }"
@@ -11,7 +11,7 @@
         <v-list-item-title class="headline">
           <SaplingGeneRepresentation :sapling="map.targetSapling" class="map_target-sapling" />
         </v-list-item-title>
-        <v-list-item-subtitle class="mt-1">
+        <v-list-item-subtitle class="mt-2">
           <span class="map_score"
             >Score: <span>{{ map.score }}</span></span
           >&nbsp;&middot;&nbsp;
@@ -64,6 +64,7 @@ import SaplingGeneRepresentation from './SaplingGeneRepresentation.vue';
 export default class SimulationMap extends Vue {
   @Prop({ type: Object, required: true }) readonly map!: GeneticsMap;
   @Prop({ type: Boolean }) isDummy: boolean;
+  @Prop({ type: Boolean }) isHighlight: boolean;
   @Prop({ type: Number }) forcedHeight: number;
 
   get chanceClass() {
@@ -82,7 +83,6 @@ export default class SimulationMap extends Vue {
 
 <style scoped lang="scss">
 .map {
-  cursor: pointer;
   color: lightgray;
   text-align: center;
   width: 320px;
@@ -98,13 +98,13 @@ export default class SimulationMap extends Vue {
         font-weight: bold;
       }
       &.map_chance--low span {
-        color: rgb(197, 0, 0);
+        color: rgb(187, 49, 49);
       }
       &.map_chance--moderate span {
         color: rgb(223, 145, 0);
       }
       &.map_chance--high span {
-        color: rgb(18, 158, 18);
+        color: rgb(31, 196, 31);
       }
     }
   }

@@ -10,6 +10,7 @@ export class NotEnoughSourceSaplingsError extends Error {}
 export class MapGroup {
   targetSaplingGeneString: string;
   mapList: GeneticsMap[];
+  index?: number;
 }
 
 export interface EventListenerCallbackData {

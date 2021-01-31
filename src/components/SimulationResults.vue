@@ -2,7 +2,7 @@
   <div class="text-center">
     <v-container class="pa-0">
       <v-row>
-        <v-col>
+        <v-col class="px-3 py-1">
           <v-text-field
             type="number"
             label="No. of Gs"
@@ -11,7 +11,7 @@
             :rules="geneCountRules"
           ></v-text-field>
         </v-col>
-        <v-col>
+        <v-col class="px-3 py-1">
           <v-text-field
             type="number"
             label="No. of Ys"
@@ -20,7 +20,7 @@
             :rules="geneCountRules"
           ></v-text-field>
         </v-col>
-        <v-col>
+        <v-col class="px-3 py-1">
           <v-text-field
             type="number"
             label="No. of Hs"
@@ -31,8 +31,8 @@
         </v-col>
       </v-row>
       <v-divider></v-divider>
-      <v-row>
-        <v-col cols="4" md="2" v-for="n in 6" :key="n">
+      <v-row class="mt-1">
+        <v-col cols="4" md="2" v-for="n in 6" :key="n" class="px-3 py-0">
           <v-text-field
             type="text"
             :label="'Gene ' + n"
@@ -44,7 +44,7 @@
       </v-row>
     </v-container>
     <ul class="mt-3" :class="{ 'simulation-results--visible': addAnimationClass }">
-      <li v-for="(group, index) in visibleMapGroups" :key="index">
+      <li v-for="group in visibleMapGroups" :key="group.index">
         <SimulationMapGroup :group="group" v-on:select:map="handleSelectMapEvent" :highlightedMap="highlightedMap" />
       </li>
     </ul>

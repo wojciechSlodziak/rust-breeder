@@ -4,7 +4,7 @@ const app = express();
 
 app.use(
   express.static('dist', {
-    maxAge: 1000 * 60 * 60 * 24 * 10
+    maxAge: 1000 * 60 * 60 * 24
   })
 );
 

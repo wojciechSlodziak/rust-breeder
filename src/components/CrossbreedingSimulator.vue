@@ -25,7 +25,8 @@
                   label="Source Saplings"
                   :value="saplingGenes"
                   @input="handleSaplingGenesInput($event)"
-                  @blur="handleSaplingGenesBlur"
+                  @blur="handleSaplingGenesInputBlur"
+                  @keydown="handleSaplingGenesInputKeyDown($event)"
                   outlined
                   auto-grow
                   validate-on-blur
@@ -174,7 +175,7 @@ WWGYYH`;
     }
   }
 
-  handleSaplingGenesBlur() {
+  handleSaplingGenesInputBlur() {
     this.saplingGenes = this.saplingGenes.replaceAll(/[\n]{2,}/g, '\n');
     this.$nextTick(() => {
       if ((this.$refs.form as Vue & { validate: () => boolean }).validate()) {
@@ -183,12 +184,53 @@ WWGYYH`;
     });
   }
 
+  handleSaplingGenesInputKeyDown(event: KeyboardEvent) {
+    const allowedKeys = [
+      'H',
+      'G',
+      'Y',
+      'X',
+      'W',
+      'Enter',
+      'Backspace',
+      'ArrowRight',
+      'ArrowLeft',
+      'ArrowUp',
+      'ArrowDown',
+      'End',
+      'Delete',
+      'Home',
+      'Shift',
+      'Alt',
+      'Control'
+    ];
+    console.log(event);
+    if (
+      !(event.altKey || event.ctrlKey) &&
+      allowedKeys.indexOf(event.key) === -1 &&
+      allowedKeys.indexOf(event.key.toUpperCase()) === -1
+    ) {
+      this.playWrongKeySound();
+    }
+  }
+
   handleClearHighlightClick() {
     this.clearHighlight();
   }
 
   clearHighlight() {
     this.highlightedMap = null;
+  }
+
+  playWrongKeySound() {
+    const headshotAudio = document.getElementById('headshotAudio') as HTMLElement & {
+      volume: string;
+      play: () => void;
+    };
+    if (headshotAudio) {
+      headshotAudio.volume = '0.05';
+      headshotAudio.play();
+    }
   }
 
   handleSelectMapEvent(map: GeneticsMap) {

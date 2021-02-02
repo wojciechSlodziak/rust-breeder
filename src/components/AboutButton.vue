@@ -16,7 +16,7 @@
           <p>Hi. I hope you're enjoying the app :).</p>
           <p>
             I made it, because I prefer to make my brain hurt once than multiple times, and crossbreeding every wipe
-            without an app was a exhausting.
+            without an app was exhausting.
           </p>
           <p>
             I also like to have some fun with fancy Front-End

@@ -29,7 +29,7 @@
             <li>Discord - <strong>Diff#0911</strong></li>
             <li>Reddit - <a target="_blank" href="https://www.reddit.com/user/Diffrnt">/user/Diffrnt</a></li>
           </ul>
-          <p class="mt-3 mb-0">
+          <p class="mt-3">
             I am planning to maintain and improve this app in future.
           </p>
           <p class="mb-0">

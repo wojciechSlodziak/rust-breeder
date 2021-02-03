@@ -56,52 +56,88 @@ export function getNumberOfCrossbreedCombinations(itemsCount: number) {
   return numberOfAllCombinations;
 }
 
+/**
+ * Sets next position for crossbreeding.
+ * @return true if there's more combinations to go through
+ */
+export function setNextPosition(
+  positions: number[],
+  currentPositionIndexForInc: number,
+  positionCount: number,
+  sourceSaplingsCount: number
+): { nextPositionIndexForInc: number; hasMoreCombinations: boolean } {
+  let hasMoreCombinations = true;
+  let keepOriganizingPositions = true;
+  while (keepOriganizingPositions) {
+    positions[currentPositionIndexForInc] += 1;
+    // consider 3 possible positions and 8 source saplings
+    // last position is [5, 6, 7], following calculation has to be done:
+    // - to calculate max on third position: 8 - (3 - 2)
+    // - to calculate max on second position: 8 - (3 - 1)
+    // - to calculate max on first position: 8 - (3 - 0)
+    const maxSaplingIndexOnCurrentPosition = sourceSaplingsCount - (positionCount - currentPositionIndexForInc);
+    // if maximum has been reached on a position, it's time to:
+    // - increment previous position
+    // - check if it didn't already pass maximum, if so run above step again
+    // - reset following positions,
+    // - start incrementing again at the last position
+    if (positions[currentPositionIndexForInc] > maxSaplingIndexOnCurrentPosition) {
+      if (currentPositionIndexForInc === 0) {
+        hasMoreCombinations = false;
+        keepOriganizingPositions = false;
+      } else {
+        currentPositionIndexForInc -= 1;
+      }
+    } else {
+      resetFollowingPositions(positions, currentPositionIndexForInc);
+      currentPositionIndexForInc = positionCount - 1;
+      keepOriganizingPositions = false;
+    }
+  }
+
+  return {
+    nextPositionIndexForInc: currentPositionIndexForInc,
+    hasMoreCombinations
+  };
+}
+
 export function getWorkChunks(sourceSaplingsCount: number) {
   const allCombinationsCount = getNumberOfCrossbreedCombinations(sourceSaplingsCount);
-  const numberOfWorkers = navigator.hardwareConcurrency - 1;
+  const numberOfWorkers = navigator.hardwareConcurrency;
   const combinationsPerWorker = Math.ceil(allCombinationsCount / numberOfWorkers);
-
   const workChunks = [];
 
   let workerIndex = 0;
   let combinationsProcessed = 0;
   for (
-    let crossbreedSaplingsCount = MIN_CROSSBREEDING_SAPLINGS;
-    crossbreedSaplingsCount <= Math.min(sourceSaplingsCount, MAX_CROSSBREEDING_SAPLINGS);
-    crossbreedSaplingsCount++
+    let positionCount = MIN_CROSSBREEDING_SAPLINGS;
+    positionCount <= Math.min(sourceSaplingsCount, MAX_CROSSBREEDING_SAPLINGS);
+    positionCount++
   ) {
-    const positions = buildInitialSaplingPositions(crossbreedSaplingsCount);
+    const positions = buildInitialSaplingPositions(positionCount);
 
-    let positionIndexForInc = crossbreedSaplingsCount - 1;
-    let hasCombinations = true;
-    while (hasCombinations) {
+    let positionIndexForInc = positionCount - 1;
+    let hasMoreCombinations = true;
+    while (hasMoreCombinations) {
       if (combinationsProcessed === 0) {
         workChunks[workerIndex] = {
           startingPositions: [...positions],
-          combinationsToProcess: 0
+          combinationsToProcess: 0,
+          allCombinationsCount
         };
       }
 
-      let keepOriganizingPositions = true;
-      while (keepOriganizingPositions) {
-        positions[positionIndexForInc] += 1;
-        if (positions[positionIndexForInc] > sourceSaplingsCount - (crossbreedSaplingsCount - positionIndexForInc)) {
-          if (positionIndexForInc === 0) {
-            hasCombinations = false;
-            keepOriganizingPositions = false;
-          } else {
-            positionIndexForInc -= 1;
-          }
-        } else {
-          resetFollowingPositions(positions, positionIndexForInc);
-          positionIndexForInc = crossbreedSaplingsCount - 1;
-          keepOriganizingPositions = false;
-        }
-      }
+      const setNextPositionResult = setNextPosition(positions, positionIndexForInc, positionCount, sourceSaplingsCount);
+      hasMoreCombinations = setNextPositionResult.hasMoreCombinations;
+      positionIndexForInc = setNextPositionResult.nextPositionIndexForInc;
 
       combinationsProcessed++;
       workChunks[workerIndex].combinationsToProcess = combinationsProcessed;
-      if (hasCombinations && workerIndex !== numberOfWorkers - 1 && combinationsProcessed >= combinationsPerWorker) {
+      if (
+        hasMoreCombinations &&
+        workerIndex !== numberOfWorkers - 1 &&
+        combinationsProcessed >= combinationsPerWorker
+      ) {
         combinationsProcessed = 0;
         workerIndex++;
       }

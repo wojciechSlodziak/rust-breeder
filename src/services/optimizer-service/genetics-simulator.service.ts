@@ -1,9 +1,10 @@
 import GeneticsMap from '../../models/genetics-map.model';
 import Sapling from '../../models/sapling.model';
 import crossbreedingService from './crossbreeding.service';
-import { buildInitialSaplingPositions, resetFollowingPositions } from './optimizer.helper';
+import { buildInitialSaplingPositions, resetFollowingPositions, setNextPosition } from './optimizer.helper';
 import GeneEnum from '../../enums/gene.enum';
 import { SimulateOptions } from './models';
+import { MAX_CROSSBREEDING_SAPLINGS } from '@/const';
 
 class GeneticsSimulatorService {
   simulateCrossbreeding(
@@ -19,17 +20,15 @@ class GeneticsSimulatorService {
 
     let combinationsProcessed = 0;
     for (
-      let crossbreedSaplingsCount = startingPositions.length;
-      crossbreedSaplingsCount <= Math.min(sourceSaplings.length, 8);
-      crossbreedSaplingsCount++
+      let positionCount = startingPositions.length;
+      positionCount <= Math.min(sourceSaplings.length, MAX_CROSSBREEDING_SAPLINGS);
+      positionCount++
     ) {
       const positions =
-        crossbreedSaplingsCount === startingPositions.length
-          ? startingPositions
-          : buildInitialSaplingPositions(crossbreedSaplingsCount);
-      let positionIndexForInc = crossbreedSaplingsCount - 1;
-      let hasCombinations = true;
-      while (hasCombinations) {
+        positionCount === startingPositions.length ? startingPositions : buildInitialSaplingPositions(positionCount);
+      let positionIndexForInc = positionCount - 1;
+      let hasMoreCombinations = true;
+      while (hasMoreCombinations) {
         const crossbreedSaplings: Sapling[] = [];
         positions.forEach((position) => {
           crossbreedSaplings.push(sourceSaplings[position]);
@@ -44,25 +43,14 @@ class GeneticsSimulatorService {
           options.includeAllResults
         );
 
-        let keepOriganizingPositions = true;
-        while (keepOriganizingPositions) {
-          positions[positionIndexForInc] += 1;
-          if (
-            positions[positionIndexForInc] >
-            sourceSaplings.length - (crossbreedSaplingsCount - positionIndexForInc)
-          ) {
-            if (positionIndexForInc === 0) {
-              hasCombinations = false;
-              keepOriganizingPositions = false;
-            } else {
-              positionIndexForInc -= 1;
-            }
-          } else {
-            resetFollowingPositions(positions, positionIndexForInc);
-            positionIndexForInc = crossbreedSaplingsCount - 1;
-            keepOriganizingPositions = false;
-          }
-        }
+        const setNextPositionResult = setNextPosition(
+          positions,
+          positionIndexForInc,
+          positionCount,
+          sourceSaplings.length
+        );
+        hasMoreCombinations = setNextPositionResult.hasMoreCombinations;
+        positionIndexForInc = setNextPositionResult.nextPositionIndexForInc;
 
         combinationsProcessed++;
         if (options && combinationsProcessed % options.callProgressCallbackAfterCombinations === 0) {

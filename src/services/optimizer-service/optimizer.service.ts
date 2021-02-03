@@ -28,8 +28,6 @@ class OptimizerService {
       throw new NotEnoughSourceSaplingsError();
     }
 
-    const allCombinationsCount = getNumberOfCrossbreedCombinations(sourceGenes.length);
-
     const workChunks = getWorkChunks(sourceGenes.length);
     workChunks.forEach((workChunk, workerIndex) => {
       const worker = new Worker();
@@ -63,7 +61,9 @@ class OptimizerService {
               isDone: false,
               progressPercent:
                 Number(
-                  (this.workerProgress.reduce((acc, current) => acc + current, 0) / allCombinationsCount).toFixed(2)
+                  (
+                    this.workerProgress.reduce((acc, current) => acc + current, 0) / workChunk.allCombinationsCount
+                  ).toFixed(2)
                 ) * 100
             });
           });

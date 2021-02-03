@@ -1,12 +1,7 @@
 import Worker from 'worker-loader!./optimizer-service.worker';
 import GeneticsMap from '../../models/genetics-map.model';
 import ApplicationOptions from '@/interfaces/application-options';
-import {
-  getWorkChunks,
-  resultMapGroupsSortingFunction,
-  getNumberOfCrossbreedCombinations,
-  appendListToMapGroupsMap
-} from './optimizer.helper';
+import { getWorkChunks, resultMapGroupsSortingFunction, appendListToMapGroupsMap } from './optimizer.helper';
 import { MIN_CROSSBREEDING_SAPLINGS } from '@/const';
 import { EventListenerCallback, MapGroup, NotEnoughSourceSaplingsError } from './models';
 

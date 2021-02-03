@@ -188,6 +188,8 @@ export default class CrossbreedingSimulator extends Vue {
       'Control'
     ];
     if (
+      event.key &&
+      event.key !== 'Unidentified' &&
       !(event.altKey || event.ctrlKey) &&
       allowedKeys.indexOf(event.key) === -1 &&
       allowedKeys.indexOf(event.key.toUpperCase()) === -1

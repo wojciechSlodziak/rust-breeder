@@ -56,7 +56,12 @@ class CrossbreedingService {
       partialGenes = newPartialGenes;
     }
 
-    if (involvedSaplings.length !== crossbreedSaplings.length) {
+    if (
+      !crossbreedSaplings.reduce(
+        (allInvolvedSoFar, crossbreedSapling) => allInvolvedSoFar && involvedSaplings.indexOf(crossbreedSapling) !== -1,
+        true
+      )
+    ) {
       throw new Error('Not all saplings were used for crossbreeding.');
     }
 

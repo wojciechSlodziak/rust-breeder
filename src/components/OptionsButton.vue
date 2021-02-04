@@ -21,12 +21,22 @@
                   type="number"
                   :label="geneScore.key"
                   :rules="geneScoreRules"
-                  v-model.number="newGeneScores[geneScore.key]"
+                  v-model.number="geneScores[geneScore.key]"
                   required
                 ></v-text-field>
               </v-col>
             </v-row>
             <v-row class="mt-0">
+              <v-checkbox
+                class="mx-2"
+                v-model="allowRepetitions"
+                hint="Aditionally checks combinations where one plant is used multiple times in one crossbreeding session. Heavily increases calculation time."
+                persistent-hint
+                label="Check combinations with repetitions (takes longer, may give better results)"
+              />
+            </v-row>
+
+            <v-row class="mt-3">
               <v-checkbox
                 class="mx-2"
                 v-model="includeAllResults"
@@ -65,6 +75,7 @@ export default class OptionsButton extends Vue {
   isFormValid = false;
 
   options: ApplicationOptions = {
+    allowRepetitions: false,
     includeAllResults: false,
     geneScores: {
       [GeneEnum.G]: 1,
@@ -76,15 +87,16 @@ export default class OptionsButton extends Vue {
     }
   };
 
+  allowRepetitions = false;
   includeAllResults = false;
 
-  newGeneScores: Record<GeneEnum, number> | null = null;
+  geneScores: Record<GeneEnum, number> | null = null;
 
   geneScoreRules = [(v: number) => (v >= -1 && v <= 1) || 'It has to be a number between -1 and 1.'];
 
   get scoreInputs() {
-    return Object.keys(this.newGeneScores || {})
-      .map((key) => ({ key, value: this.newGeneScores?.[key as GeneEnum] }))
+    return Object.keys(this.geneScores || {})
+      .map((key) => ({ key, value: this.geneScores?.[key as GeneEnum] }))
       .filter((item) => item.key !== GeneEnum.B);
   }
 
@@ -93,8 +105,9 @@ export default class OptionsButton extends Vue {
   }
 
   resetInputs() {
+    this.allowRepetitions = this.options.allowRepetitions;
     this.includeAllResults = this.options.includeAllResults;
-    this.newGeneScores = {
+    this.geneScores = {
       ...this.options.geneScores
     };
   }
@@ -110,9 +123,10 @@ export default class OptionsButton extends Vue {
 
   saveOptions() {
     this.isDialogOpen = false;
+    this.options.allowRepetitions = this.allowRepetitions;
     this.options.includeAllResults = this.includeAllResults;
-    Object.keys(this.newGeneScores || {}).forEach((key) => {
-      this.options.geneScores[key as GeneEnum] = this.newGeneScores?.[key as GeneEnum] || 0;
+    Object.keys(this.geneScores || {}).forEach((key) => {
+      this.options.geneScores[key as GeneEnum] = this.geneScores?.[key as GeneEnum] || 0;
     });
   }
 }

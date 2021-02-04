@@ -61,7 +61,7 @@ export default class SaplingInputHighlights extends Vue {
     saplingList.forEach((sapling) => {
       const saplingGeneString = sapling.genes.map((gene) => gene.type.toString()).join('');
       const position = inputSaplingStrings.indexOf(saplingGeneString);
-      if (position !== -1) {
+      if (position !== -1 && positions.map((positionObj) => positionObj.position).indexOf(position) === -1) {
         positions.push({ position, saplingGeneString: saplingGeneString });
       }
     });

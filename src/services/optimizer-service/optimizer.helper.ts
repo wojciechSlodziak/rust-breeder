@@ -25,18 +25,12 @@ export function resultMapGroupsSortingFunction(geneticsMapsGroup1: MapGroup, gen
   }
 }
 
-export function buildInitialSaplingPositions(positionCount: number): number[] {
+export function buildInitialSaplingPositions(positionCount: number, allowRepetitions: boolean): number[] {
   const positions = [];
   for (let i = 0; i < positionCount; i++) {
-    positions.push(i);
+    positions.push(allowRepetitions ? 0 : i);
   }
   return positions;
-}
-
-export function resetFollowingPositions(positions: number[], fromPosition: number): void {
-  for (let positionIndex = fromPosition + 1; positionIndex < positions.length; positionIndex++) {
-    positions[positionIndex] = positions[positionIndex - 1] + 1;
-  }
 }
 
 function rFact(num: number): number {
@@ -47,11 +41,19 @@ function rFact(num: number): number {
   }
 }
 
-export function getNumberOfCrossbreedCombinations(itemsCount: number) {
+export function getMaxPositionsCount(itemsCount: number, allowRepetitions: boolean) {
+  return allowRepetitions ? MAX_CROSSBREEDING_SAPLINGS : Math.min(itemsCount, MAX_CROSSBREEDING_SAPLINGS);
+}
+
+export function getNumberOfCrossbreedCombinations(itemsCount: number, allowRepetitions: boolean) {
   let numberOfAllCombinations = 0;
-  const maxItemsInVariation = Math.min(itemsCount, MAX_CROSSBREEDING_SAPLINGS);
-  for (let i = MIN_CROSSBREEDING_SAPLINGS; i <= maxItemsInVariation; i++) {
-    numberOfAllCombinations += rFact(itemsCount) / (rFact(i) * rFact(itemsCount - i));
+  const maxItemsInVariation = getMaxPositionsCount(itemsCount, allowRepetitions);
+  for (let k = MIN_CROSSBREEDING_SAPLINGS; k <= maxItemsInVariation; k++) {
+    if (allowRepetitions) {
+      numberOfAllCombinations += rFact(k + itemsCount - 1) / (rFact(k) * rFact(itemsCount - 1));
+    } else {
+      numberOfAllCombinations += rFact(itemsCount) / (rFact(k) * rFact(itemsCount - k));
+    }
   }
   return numberOfAllCombinations;
 }
@@ -64,18 +66,23 @@ export function setNextPosition(
   positions: number[],
   currentPositionIndexForInc: number,
   positionCount: number,
-  sourceSaplingsCount: number
+  sourceSaplingsCount: number,
+  allowRepetitions: boolean
 ): { nextPositionIndexForInc: number; hasMoreCombinations: boolean } {
   let hasMoreCombinations = true;
   let keepOriganizingPositions = true;
   while (keepOriganizingPositions) {
     positions[currentPositionIndexForInc] += 1;
-    // consider 3 possible positions and 8 source saplings
+
+    // for no repetitions consider 3 possible positions and 8 source saplings
     // last position is [5, 6, 7], following calculation has to be done:
     // - to calculate max on third position: 8 - (3 - 2)
     // - to calculate max on second position: 8 - (3 - 1)
     // - to calculate max on first position: 8 - (3 - 0)
-    const maxSaplingIndexOnCurrentPosition = sourceSaplingsCount - (positionCount - currentPositionIndexForInc);
+    const maxSaplingIndexOnCurrentPosition = allowRepetitions
+      ? sourceSaplingsCount - 1
+      : sourceSaplingsCount - (positionCount - currentPositionIndexForInc);
+
     // if maximum has been reached on a position, it's time to:
     // - increment previous position
     // - check if it didn't already pass maximum, if so run above step again
@@ -89,7 +96,9 @@ export function setNextPosition(
         currentPositionIndexForInc -= 1;
       }
     } else {
-      resetFollowingPositions(positions, currentPositionIndexForInc);
+      for (let positionIndex = currentPositionIndexForInc + 1; positionIndex < positions.length; positionIndex++) {
+        positions[positionIndex] = positions[positionIndex - 1] + (allowRepetitions ? 0 : 1);
+      }
       currentPositionIndexForInc = positionCount - 1;
       keepOriganizingPositions = false;
     }
@@ -101,8 +110,8 @@ export function setNextPosition(
   };
 }
 
-export function getWorkChunks(sourceSaplingsCount: number) {
-  const allCombinationsCount = getNumberOfCrossbreedCombinations(sourceSaplingsCount);
+export function getWorkChunks(sourceSaplingsCount: number, allowRepetitions: boolean) {
+  const allCombinationsCount = getNumberOfCrossbreedCombinations(sourceSaplingsCount, allowRepetitions);
   const numberOfWorkers = navigator.hardwareConcurrency;
   const combinationsPerWorker = Math.ceil(allCombinationsCount / numberOfWorkers);
   const workChunks = [];
@@ -111,10 +120,10 @@ export function getWorkChunks(sourceSaplingsCount: number) {
   let combinationsProcessed = 0;
   for (
     let positionCount = MIN_CROSSBREEDING_SAPLINGS;
-    positionCount <= Math.min(sourceSaplingsCount, MAX_CROSSBREEDING_SAPLINGS);
+    positionCount <= getMaxPositionsCount(sourceSaplingsCount, allowRepetitions);
     positionCount++
   ) {
-    const positions = buildInitialSaplingPositions(positionCount);
+    const positions = buildInitialSaplingPositions(positionCount, allowRepetitions);
 
     let positionIndexForInc = positionCount - 1;
     let hasMoreCombinations = true;
@@ -127,7 +136,13 @@ export function getWorkChunks(sourceSaplingsCount: number) {
         };
       }
 
-      const setNextPositionResult = setNextPosition(positions, positionIndexForInc, positionCount, sourceSaplingsCount);
+      const setNextPositionResult = setNextPosition(
+        positions,
+        positionIndexForInc,
+        positionCount,
+        sourceSaplingsCount,
+        allowRepetitions
+      );
       hasMoreCombinations = setNextPositionResult.hasMoreCombinations;
       positionIndexForInc = setNextPositionResult.nextPositionIndexForInc;
 

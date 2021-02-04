@@ -1,10 +1,9 @@
 import GeneticsMap from '../../models/genetics-map.model';
 import Sapling from '../../models/sapling.model';
 import crossbreedingService from './crossbreeding.service';
-import { buildInitialSaplingPositions, resetFollowingPositions, setNextPosition } from './optimizer.helper';
+import { buildInitialSaplingPositions, getMaxPositionsCount, setNextPosition } from './optimizer.helper';
 import GeneEnum from '../../enums/gene.enum';
 import { SimulateOptions } from './models';
-import { MAX_CROSSBREEDING_SAPLINGS } from '@/const';
 
 class GeneticsSimulatorService {
   simulateCrossbreeding(
@@ -21,11 +20,13 @@ class GeneticsSimulatorService {
     let combinationsProcessed = 0;
     for (
       let positionCount = startingPositions.length;
-      positionCount <= Math.min(sourceSaplings.length, MAX_CROSSBREEDING_SAPLINGS);
+      positionCount <= getMaxPositionsCount(sourceSaplings.length, options.allowRepetitions);
       positionCount++
     ) {
       const positions =
-        positionCount === startingPositions.length ? startingPositions : buildInitialSaplingPositions(positionCount);
+        positionCount === startingPositions.length
+          ? startingPositions
+          : buildInitialSaplingPositions(positionCount, options.allowRepetitions);
       let positionIndexForInc = positionCount - 1;
       let hasMoreCombinations = true;
       while (hasMoreCombinations) {
@@ -47,7 +48,8 @@ class GeneticsSimulatorService {
           positions,
           positionIndexForInc,
           positionCount,
-          sourceSaplings.length
+          sourceSaplings.length,
+          options.allowRepetitions
         );
         hasMoreCombinations = setNextPositionResult.hasMoreCombinations;
         positionIndexForInc = setNextPositionResult.nextPositionIndexForInc;
@@ -90,28 +92,24 @@ class GeneticsSimulatorService {
         otherSaplings.forEach((baseSapling) => {
           const rebreedTargetSapling = crossbreedingService.crossbreedTargetWithBase(targetSapling, baseSapling);
 
-          if (
-            rebreedTargetSapling.getScore(geneScores) >= originalBestScore ||
-            (includeAllResults === true && rebreedTargetSapling.hasGreenGenes())
-          ) {
+          const score = rebreedTargetSapling.getScore(geneScores);
+          if (score >= originalBestScore || (includeAllResults === true && rebreedTargetSapling.hasGreenGenes())) {
             result.push({
               crossbreedSaplings,
               baseSapling,
               targetSapling: rebreedTargetSapling,
-              score: rebreedTargetSapling.getScore(geneScores),
+              score: score,
               chancePercent: Number((100 / targetSaplings.length).toFixed(2))
             });
           }
         });
       } else if (numberOfBaseGenes === 0) {
-        if (
-          targetSapling.getScore(geneScores) >= originalBestScore ||
-          (includeAllResults === true && targetSapling.hasGreenGenes())
-        ) {
+        const score = targetSapling.getScore(geneScores);
+        if (score >= originalBestScore || (includeAllResults === true && targetSapling.hasGreenGenes())) {
           result.push({
             crossbreedSaplings,
             targetSapling,
-            score: targetSapling.getScore(geneScores),
+            score: score,
             chancePercent: Number((100 / targetSaplings.length).toFixed(2))
           });
         }

@@ -8,7 +8,7 @@ ctx.addEventListener('message', (event) => {
     event.data.startingPositions,
     event.data.combinationsToProcess,
     {
-      callProgressCallbackAfterCombinations: 2000,
+      callProgressCallbackAfterCombinations: 10000,
       progressCallback: (combinationsProcessed) => {
         ctx.postMessage({ combinationsProcessed });
       },

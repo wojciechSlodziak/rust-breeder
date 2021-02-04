@@ -23,10 +23,9 @@ class OptimizerService {
       throw new NotEnoughSourceSaplingsError();
     }
 
-    const workChunks = getWorkChunks(sourceGenes.length);
+    const workChunks = getWorkChunks(sourceGenes.length, options.allowRepetitions);
     workChunks.forEach((workChunk, workerIndex) => {
       const worker = new Worker();
-
       worker.postMessage({
         sourceGenes: sourceGenes,
         ...workChunk,

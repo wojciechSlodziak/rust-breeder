@@ -20,13 +20,13 @@ class GeneticsSimulatorService {
     let combinationsProcessed = 0;
     for (
       let positionCount = startingPositions.length;
-      positionCount <= getMaxPositionsCount(sourceSaplings.length, options.allowRepetitions);
+      positionCount <= getMaxPositionsCount(sourceSaplings.length, options.withRepetitions);
       positionCount++
     ) {
       const positions =
         positionCount === startingPositions.length
           ? startingPositions
-          : buildInitialSaplingPositions(positionCount, options.allowRepetitions);
+          : buildInitialSaplingPositions(positionCount, options.withRepetitions);
       let positionIndexForInc = positionCount - 1;
       let hasMoreCombinations = true;
       while (hasMoreCombinations) {
@@ -49,7 +49,7 @@ class GeneticsSimulatorService {
           positionIndexForInc,
           positionCount,
           sourceSaplings.length,
-          options.allowRepetitions
+          options.withRepetitions
         );
         hasMoreCombinations = setNextPositionResult.hasMoreCombinations;
         positionIndexForInc = setNextPositionResult.nextPositionIndexForInc;

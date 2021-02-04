@@ -5,11 +5,14 @@ import { MapGroup } from './models';
 export function resultMapsSortingFunction(geneticsMap1: GeneticsMap, geneticsMap2: GeneticsMap): number {
   if (
     geneticsMap1.score > geneticsMap2.score ||
-    (geneticsMap1.score === geneticsMap2.score && geneticsMap1.chancePercent > geneticsMap2.chancePercent)
+    (geneticsMap1.score === geneticsMap2.score && geneticsMap1.chancePercent > geneticsMap2.chancePercent) ||
+    (geneticsMap1.score === geneticsMap2.score &&
+      geneticsMap1.chancePercent === geneticsMap2.chancePercent &&
+      geneticsMap1.crossbreedSaplings.length < geneticsMap2.crossbreedSaplings.length)
   ) {
     return -1;
   } else {
-    return 1;
+    return 0;
   }
 }
 
@@ -25,10 +28,10 @@ export function resultMapGroupsSortingFunction(geneticsMapsGroup1: MapGroup, gen
   }
 }
 
-export function buildInitialSaplingPositions(positionCount: number, allowRepetitions: boolean): number[] {
+export function buildInitialSaplingPositions(positionCount: number, withRepetitions: boolean): number[] {
   const positions = [];
   for (let i = 0; i < positionCount; i++) {
-    positions.push(allowRepetitions ? 0 : i);
+    positions.push(withRepetitions ? 0 : i);
   }
   return positions;
 }
@@ -41,15 +44,15 @@ function rFact(num: number): number {
   }
 }
 
-export function getMaxPositionsCount(itemsCount: number, allowRepetitions: boolean) {
-  return allowRepetitions ? MAX_CROSSBREEDING_SAPLINGS : Math.min(itemsCount, MAX_CROSSBREEDING_SAPLINGS);
+export function getMaxPositionsCount(itemsCount: number, withRepetitions: boolean) {
+  return withRepetitions ? MAX_CROSSBREEDING_SAPLINGS : Math.min(itemsCount, MAX_CROSSBREEDING_SAPLINGS);
 }
 
-export function getNumberOfCrossbreedCombinations(itemsCount: number, allowRepetitions: boolean) {
+export function getNumberOfCrossbreedCombinations(itemsCount: number, withRepetitions: boolean) {
   let numberOfAllCombinations = 0;
-  const maxItemsInVariation = getMaxPositionsCount(itemsCount, allowRepetitions);
+  const maxItemsInVariation = getMaxPositionsCount(itemsCount, withRepetitions);
   for (let k = MIN_CROSSBREEDING_SAPLINGS; k <= maxItemsInVariation; k++) {
-    if (allowRepetitions) {
+    if (withRepetitions) {
       numberOfAllCombinations += rFact(k + itemsCount - 1) / (rFact(k) * rFact(itemsCount - 1));
     } else {
       numberOfAllCombinations += rFact(itemsCount) / (rFact(k) * rFact(itemsCount - k));
@@ -67,7 +70,7 @@ export function setNextPosition(
   currentPositionIndexForInc: number,
   positionCount: number,
   sourceSaplingsCount: number,
-  allowRepetitions: boolean
+  withRepetitions: boolean
 ): { nextPositionIndexForInc: number; hasMoreCombinations: boolean } {
   let hasMoreCombinations = true;
   let keepOriganizingPositions = true;
@@ -79,7 +82,7 @@ export function setNextPosition(
     // - to calculate max on third position: 8 - (3 - 2)
     // - to calculate max on second position: 8 - (3 - 1)
     // - to calculate max on first position: 8 - (3 - 0)
-    const maxSaplingIndexOnCurrentPosition = allowRepetitions
+    const maxSaplingIndexOnCurrentPosition = withRepetitions
       ? sourceSaplingsCount - 1
       : sourceSaplingsCount - (positionCount - currentPositionIndexForInc);
 
@@ -97,7 +100,7 @@ export function setNextPosition(
       }
     } else {
       for (let positionIndex = currentPositionIndexForInc + 1; positionIndex < positions.length; positionIndex++) {
-        positions[positionIndex] = positions[positionIndex - 1] + (allowRepetitions ? 0 : 1);
+        positions[positionIndex] = positions[positionIndex - 1] + (withRepetitions ? 0 : 1);
       }
       currentPositionIndexForInc = positionCount - 1;
       keepOriganizingPositions = false;
@@ -110,8 +113,8 @@ export function setNextPosition(
   };
 }
 
-export function getWorkChunks(sourceSaplingsCount: number, allowRepetitions: boolean) {
-  const allCombinationsCount = getNumberOfCrossbreedCombinations(sourceSaplingsCount, allowRepetitions);
+export function getWorkChunks(sourceSaplingsCount: number, withRepetitions: boolean) {
+  const allCombinationsCount = getNumberOfCrossbreedCombinations(sourceSaplingsCount, withRepetitions);
   const numberOfWorkers = navigator.hardwareConcurrency;
   const combinationsPerWorker = Math.ceil(allCombinationsCount / numberOfWorkers);
   const workChunks = [];
@@ -120,10 +123,10 @@ export function getWorkChunks(sourceSaplingsCount: number, allowRepetitions: boo
   let combinationsProcessed = 0;
   for (
     let positionCount = MIN_CROSSBREEDING_SAPLINGS;
-    positionCount <= getMaxPositionsCount(sourceSaplingsCount, allowRepetitions);
+    positionCount <= getMaxPositionsCount(sourceSaplingsCount, withRepetitions);
     positionCount++
   ) {
-    const positions = buildInitialSaplingPositions(positionCount, allowRepetitions);
+    const positions = buildInitialSaplingPositions(positionCount, withRepetitions);
 
     let positionIndexForInc = positionCount - 1;
     let hasMoreCombinations = true;
@@ -141,7 +144,7 @@ export function getWorkChunks(sourceSaplingsCount: number, allowRepetitions: boo
         positionIndexForInc,
         positionCount,
         sourceSaplingsCount,
-        allowRepetitions
+        withRepetitions
       );
       hasMoreCombinations = setNextPositionResult.hasMoreCombinations;
       positionIndexForInc = setNextPositionResult.nextPositionIndexForInc;

@@ -29,7 +29,7 @@
             <v-row class="mt-0">
               <v-checkbox
                 class="mx-2"
-                v-model="allowRepetitions"
+                v-model="withRepetitions"
                 hint="Aditionally checks combinations where one plant is used multiple times in one crossbreeding session. Heavily increases calculation time."
                 persistent-hint
                 label="Check combinations with repetitions (takes longer, may give better results)"
@@ -75,7 +75,7 @@ export default class OptionsButton extends Vue {
   isFormValid = false;
 
   options: ApplicationOptions = {
-    allowRepetitions: false,
+    withRepetitions: false,
     includeAllResults: false,
     geneScores: {
       [GeneEnum.G]: 1,
@@ -87,7 +87,7 @@ export default class OptionsButton extends Vue {
     }
   };
 
-  allowRepetitions = false;
+  withRepetitions = false;
   includeAllResults = false;
 
   geneScores: Record<GeneEnum, number> | null = null;
@@ -105,7 +105,7 @@ export default class OptionsButton extends Vue {
   }
 
   resetInputs() {
-    this.allowRepetitions = this.options.allowRepetitions;
+    this.withRepetitions = this.options.withRepetitions;
     this.includeAllResults = this.options.includeAllResults;
     this.geneScores = {
       ...this.options.geneScores
@@ -123,7 +123,7 @@ export default class OptionsButton extends Vue {
 
   saveOptions() {
     this.isDialogOpen = false;
-    this.options.allowRepetitions = this.allowRepetitions;
+    this.options.withRepetitions = this.withRepetitions;
     this.options.includeAllResults = this.includeAllResults;
     Object.keys(this.geneScores || {}).forEach((key) => {
       this.options.geneScores[key as GeneEnum] = this.geneScores?.[key as GeneEnum] || 0;

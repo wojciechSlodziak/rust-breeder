@@ -1,7 +1,7 @@
 import GeneEnum from '@/enums/gene.enum';
 
 export default interface ApplicationOptions {
-  allowRepetitions: boolean;
+  withRepetitions: boolean;
   includeAllResults: boolean;
   geneScores: Record<GeneEnum, number>;
 }

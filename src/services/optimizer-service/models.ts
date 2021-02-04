@@ -23,6 +23,6 @@ export interface SimulateOptions {
   progressCallback: (percentDone: number) => void;
   callProgressCallbackAfterCombinations: number;
   geneScores: Record<GeneEnum, number>;
-  allowRepetitions: boolean;
+  withRepetitions: boolean;
   includeAllResults: boolean;
 }

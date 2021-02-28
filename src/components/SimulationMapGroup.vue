@@ -118,6 +118,7 @@ export default class SimulationMapGroup extends Vue {
     cursor: pointer;
     &.group_map--dummy {
       position: absolute;
+      overflow: hidden;
       top: 0;
     }
     &.group_map--highlighted {

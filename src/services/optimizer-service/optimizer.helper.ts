@@ -3,6 +3,7 @@ import GeneticsMap from '../../models/genetics-map.model';
 import { MapGroup } from './models';
 
 export function resultMapsSortingFunction(geneticsMap1: GeneticsMap, geneticsMap2: GeneticsMap): number {
+  console.log;
   if (
     geneticsMap1.score > geneticsMap2.score ||
     (geneticsMap1.score === geneticsMap2.score && geneticsMap1.chancePercent > geneticsMap2.chancePercent) ||
@@ -12,7 +13,7 @@ export function resultMapsSortingFunction(geneticsMap1: GeneticsMap, geneticsMap
   ) {
     return -1;
   } else {
-    return 0;
+    return 1;
   }
 }
 
@@ -178,7 +179,7 @@ export function appendListToMapGroupsMap(mapGroupMap: { [key: string]: MapGroup 
     }
 
     mapGroupMap[targetSaplingGeneString].mapList.sort(resultMapsSortingFunction);
-    // discards results if there is more than 15 maps for the same targetSapling
+    // discards results if there is more than MAX_SAME_TARGET_RESULTS_IN_MAP maps for the same targetSapling
     mapGroupMap[targetSaplingGeneString].mapList = [
       ...mapGroupMap[targetSaplingGeneString].mapList.splice(0, MAX_SAME_TARGET_RESULTS_IN_MAP)
     ];

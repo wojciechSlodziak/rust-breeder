@@ -84,6 +84,11 @@ class GeneticsSimulatorService {
       // do nothing!
     }
 
+    // remove chances lower than 50% - results are unpredictable
+    if (targetSaplings.length > 2) {
+      return;
+    }
+
     targetSaplings.forEach((targetSapling) => {
       const numberOfBaseGenes = targetSapling.getNumberOfBaseGenes();
 

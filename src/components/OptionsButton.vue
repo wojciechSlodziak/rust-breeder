@@ -30,7 +30,7 @@
               <v-checkbox
                 class="mx-2"
                 v-model="withRepetitions"
-                hint="Aditionally checks combinations where one plant is used multiple times in one crossbreeding session. Heavily increases calculation time."
+                hint="Aditionally checks combinations where one plant is used multiple times in one crossbreeding session. Significantly increases calculation time."
                 persistent-hint
                 label="Check combinations with repetitions (takes longer, may give better results)"
               />
@@ -75,7 +75,7 @@ export default class OptionsButton extends Vue {
   isFormValid = false;
 
   options: ApplicationOptions = {
-    withRepetitions: false,
+    withRepetitions: true,
     includeAllResults: false,
     geneScores: {
       [GeneEnum.G]: 1,

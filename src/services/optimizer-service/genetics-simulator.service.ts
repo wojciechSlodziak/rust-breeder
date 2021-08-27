@@ -84,15 +84,10 @@ class GeneticsSimulatorService {
       // do nothing!
     }
 
-    // remove chances lower than 50% - results are unpredictable
-    if (targetSaplings.length > 2) {
-      return;
-    }
-
     targetSaplings.forEach((targetSapling) => {
       const numberOfBaseGenes = targetSapling.getNumberOfBaseGenes();
 
-      if (numberOfBaseGenes > 0 && numberOfBaseGenes < 6) {
+      if (numberOfBaseGenes > 0) {
         const otherSaplings: Sapling[] = sourceSaplings.filter((sapling) => crossbreedSaplings.indexOf(sapling) === -1);
         otherSaplings.forEach((baseSapling) => {
           const rebreedTargetSapling = crossbreedingService.crossbreedTargetWithBase(targetSapling, baseSapling);
@@ -108,11 +103,14 @@ class GeneticsSimulatorService {
             });
           }
         });
-      } else if (numberOfBaseGenes === 0) {
+      } else {
         const score = targetSapling.getScore(geneScores);
         if (score >= originalBestScore || (includeAllResults === true && targetSapling.hasGreenGenes())) {
           result.push({
             crossbreedSaplings,
+            baseSapling: targetSapling.hasRedGenesWithLowestWeight()
+              ? crossbreedingService.buildBaseSaplingWithMockGenes(targetSapling)
+              : undefined,
             targetSapling,
             score: score,
             chancePercent: Number((100 / targetSaplings.length).toFixed(2))

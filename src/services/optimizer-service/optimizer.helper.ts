@@ -3,7 +3,6 @@ import GeneticsMap from '../../models/genetics-map.model';
 import { MapGroup } from './models';
 
 export function resultMapsSortingFunction(geneticsMap1: GeneticsMap, geneticsMap2: GeneticsMap): number {
-  console.log;
   if (
     geneticsMap1.score > geneticsMap2.score ||
     (geneticsMap1.score === geneticsMap2.score && geneticsMap1.chancePercent > geneticsMap2.chancePercent) ||

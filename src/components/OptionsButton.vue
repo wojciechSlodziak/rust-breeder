@@ -83,7 +83,9 @@ export default class OptionsButton extends Vue {
       [GeneEnum.H]: 0.5,
       [GeneEnum.X]: 0,
       [GeneEnum.W]: -0.2,
-      [GeneEnum.B]: 0
+      [GeneEnum.B]: 0, // not used here but required by TS
+      [GeneEnum.MG]: 0, // not used here but required by TS
+      [GeneEnum.MA]: 0 // not used here but required by TS
     }
   };
 

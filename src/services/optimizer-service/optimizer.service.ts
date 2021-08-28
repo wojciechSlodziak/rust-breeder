@@ -23,20 +23,30 @@ class OptimizerService {
       throw new NotEnoughSourceSaplingsError();
     }
 
+    const workers: Worker[] = [];
+
     const workChunks = getWorkChunks(sourceGenes.length, options.withRepetitions);
     workChunks.forEach((workChunk, workerIndex) => {
       const worker = new Worker();
+      workers.push(worker);
+
       worker.postMessage({
         sourceGenes: sourceGenes,
         ...workChunk,
         options
       });
+
       worker.addEventListener('message', (event) => {
         if (event.data.mapList) {
           this.processedChunks += 1;
           appendListToMapGroupsMap(this.mapGroupMap, event.data.mapList);
 
           if (this.processedChunks === workChunks.length) {
+            // terminate all workers
+            workers.forEach((worker) => {
+              worker.terminate();
+            });
+
             let mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
             mapGroups = mapGroups.map((mapGroup, index) => ({ ...mapGroup, index }));
 

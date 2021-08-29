@@ -96,7 +96,7 @@ export default class SimulationResults extends Vue {
       if (this.geneCount[`${geneName.toLowerCase()}Count`]) {
         mapGroups = mapGroups.filter(
           (group) =>
-            group.mapList[0].targetSapling[`numberOf${geneName}s`] ===
+            (group.mapList[0].targetSapling[`numberOf${geneName}s`] as Function)() ===
             Number(this.geneCount[`${geneName.toLowerCase()}Count`])
         );
       }

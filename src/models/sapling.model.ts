@@ -31,6 +31,18 @@ export default class Sapling {
     }
   }
 
+  numberOfGs() {
+    return this.genes.reduce((acc, gene) => acc + (gene.type === GeneEnum.G ? 1 : 0), 0);
+  }
+
+  numberOfYs() {
+    return this.genes.reduce((acc, gene) => acc + (gene.type === GeneEnum.Y ? 1 : 0), 0);
+  }
+
+  numberOfHs() {
+    return this.genes.reduce((acc, gene) => acc + (gene.type === GeneEnum.H ? 1 : 0), 0);
+  }
+
   getScore(geneScores: Record<GeneEnum, number>): number {
     return Number(this.genes.reduce((acc, curr) => acc + geneScores[curr.type] || 0, 0).toFixed(2));
   }

@@ -38,9 +38,9 @@
               <v-checkbox
                 class="mx-2"
                 v-model="includeResultsWithMinimumScore"
-                hint="By default only results as good as the Source Saplings are included. If checked, all results with at least minimum score are returned. Can cause app crash due to insufficient memory."
+                hint="By default only results as good as the Source Saplings are included. If checked, all results with at least minimum score are returned. Can cause app crash due to insufficient memory if you set the value too low."
                 persistent-hint
-                label="Include results reaching minimum score (memory WARNING!)"
+                label="Include results reaching predefined Minimum Score (memory WARNING!)"
               />
             </v-row>
             <v-row class="mt-3">

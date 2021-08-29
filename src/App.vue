@@ -34,4 +34,8 @@ import AboutButton from './components/AboutButton.vue';
 export default class App extends Vue {}
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+body {
+  overflow: hidden;
+}
+</style>

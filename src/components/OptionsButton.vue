@@ -22,7 +22,6 @@
                   :label="geneScore.key"
                   :rules="geneScoreRules"
                   v-model.number="geneScores[geneScore.key]"
-                  required
                 ></v-text-field>
               </v-col>
             </v-row>
@@ -35,15 +34,24 @@
                 label="Check combinations with repetitions (takes longer, may give better results)"
               />
             </v-row>
-
             <v-row class="mt-3">
               <v-checkbox
                 class="mx-2"
-                v-model="includeAllResults"
-                hint="By default only results as good as the Source Saplings are included. If checked, even results with bad score are included. Can cause app crash due to insufficient memory."
+                v-model="includeResultsWithMinimumScore"
+                hint="By default only results as good as the Source Saplings are included. If checked, all results with at least minimum score are returned. Can cause app crash due to insufficient memory."
                 persistent-hint
-                label="Include all results (memory WARNING!)"
+                label="Include results reaching minimum score (memory WARNING!)"
               />
+            </v-row>
+            <v-row class="mt-3">
+              <v-text-field
+                v-if="includeResultsWithMinimumScore"
+                class="mx-2"
+                type="number"
+                label="Minimum Score"
+                v-model.number="minimumScore"
+                :rules="minimumScoreRules"
+              ></v-text-field>
             </v-row>
           </v-container>
         </v-card-text>
@@ -76,7 +84,8 @@ export default class OptionsButton extends Vue {
 
   options: ApplicationOptions = {
     withRepetitions: true,
-    includeAllResults: false,
+    includeResultsWithMinimumScore: false,
+    minimumScore: 2,
     geneScores: {
       [GeneEnum.G]: 1,
       [GeneEnum.Y]: 1,
@@ -89,12 +98,15 @@ export default class OptionsButton extends Vue {
     }
   };
 
-  withRepetitions = false;
-  includeAllResults = false;
-
+  withRepetitions = true;
+  includeResultsWithMinimumScore = true;
+  minimumScore = 2;
   geneScores: Record<GeneEnum, number> | null = null;
 
-  geneScoreRules = [(v: number) => (v >= -1 && v <= 1) || 'It has to be a number between -1 and 1.'];
+  geneScoreRules = [
+    (v: number | string) => (v !== '' && v >= -1 && v <= 1) || 'It has to be a number between -1 and 1.'
+  ];
+  minimumScoreRules = [(v: number | string) => v !== '' || 'Value is required.'];
 
   get scoreInputs() {
     return Object.keys(this.geneScores || {})
@@ -108,7 +120,8 @@ export default class OptionsButton extends Vue {
 
   resetInputs() {
     this.withRepetitions = this.options.withRepetitions;
-    this.includeAllResults = this.options.includeAllResults;
+    this.includeResultsWithMinimumScore = this.options.includeResultsWithMinimumScore;
+    this.minimumScore = this.options.minimumScore;
     this.geneScores = {
       ...this.options.geneScores
     };
@@ -126,7 +139,8 @@ export default class OptionsButton extends Vue {
   saveOptions() {
     this.isDialogOpen = false;
     this.options.withRepetitions = this.withRepetitions;
-    this.options.includeAllResults = this.includeAllResults;
+    this.options.includeResultsWithMinimumScore = this.includeResultsWithMinimumScore;
+    this.options.minimumScore = this.minimumScore;
     Object.keys(this.geneScores || {}).forEach((key) => {
       this.options.geneScores[key as GeneEnum] = this.geneScores?.[key as GeneEnum] || 0;
     });

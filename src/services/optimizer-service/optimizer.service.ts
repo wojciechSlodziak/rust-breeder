@@ -73,7 +73,6 @@ class OptimizerService {
           // process final results
           let mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
           mapGroups = mapGroups.map((mapGroup, index) => ({ ...mapGroup, index }));
-          console.log('total', mapGroups.length);
 
           this.listeners.forEach((listenerCallback) => {
             listenerCallback('DONE', { isDone: true, mapGroups: mapGroups });

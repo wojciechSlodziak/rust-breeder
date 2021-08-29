@@ -22,7 +22,9 @@ export interface EventListenerCallbackData {
 export interface SimulateOptions {
   progressCallback: (combinationsProcessed: number, partialResultMapList: GeneticsMap[]) => void;
   callProgressCallbackAfterCombinations: number;
+  callProgressCallbackAfterNumberOfResultsReached: number;
   geneScores: Record<GeneEnum, number>;
   withRepetitions: boolean;
-  includeAllResults: boolean;
+  includeResultsWithMinimumScore: boolean;
+  minimumScore: number;
 }

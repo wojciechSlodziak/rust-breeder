@@ -9,6 +9,7 @@ ctx.addEventListener('message', (event) => {
     event.data.combinationsToProcess,
     {
       callProgressCallbackAfterCombinations: 10000,
+      callProgressCallbackAfterNumberOfResultsReached: 5000,
       progressCallback: (combinationsProcessed, partialResultMapList) => {
         ctx.postMessage({ combinationsProcessed, partialResultMapList });
       },

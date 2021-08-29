@@ -18,19 +18,21 @@ class GeneticsSimulatorService {
     const originalBestScore = this.getOriginalBestScore(sourceSaplings, options.geneScores);
 
     let combinationsProcessed = 0;
+    let positions: number[];
     for (
       let positionCount = startingPositions.length;
       positionCount <= getMaxPositionsCount(sourceSaplings.length, options.withRepetitions);
       positionCount++
     ) {
-      const positions =
+      positions =
         positionCount === startingPositions.length
           ? startingPositions
           : buildInitialSaplingPositions(positionCount, options.withRepetitions);
       let positionIndexForInc = positionCount - 1;
       let hasMoreCombinations = true;
+      let crossbreedSaplings: Sapling[];
       while (hasMoreCombinations) {
-        const crossbreedSaplings: Sapling[] = [];
+        crossbreedSaplings = [];
         positions.forEach((position) => {
           crossbreedSaplings.push(sourceSaplings[position]);
         });
@@ -41,7 +43,8 @@ class GeneticsSimulatorService {
           crossbreedSaplings,
           originalBestScore,
           options.geneScores,
-          options.includeAllResults
+          options.includeResultsWithMinimumScore,
+          options.minimumScore
         );
         combinationsProcessed++;
 
@@ -57,11 +60,12 @@ class GeneticsSimulatorService {
 
         if (
           (options && combinationsProcessed % options.callProgressCallbackAfterCombinations === 0) ||
+          options.callProgressCallbackAfterNumberOfResultsReached < result.length ||
           combinationsProcessed === combinationsToProcess
         ) {
           options.progressCallback(
             combinationsProcessed,
-            // filter results that result in a sapling that we already have in sources
+            // filter results that result in a sapling that we already have in source
             result.filter((map) => sourceGenes.indexOf(map.targetSapling.toString()) === -1)
           );
           result = [];
@@ -76,7 +80,8 @@ class GeneticsSimulatorService {
     crossbreedSaplings: Sapling[],
     originalBestScore: number,
     geneScores: Record<GeneEnum, number>,
-    includeAllResults: boolean
+    includeResultsWithMinimumScore: boolean,
+    minimumScore: number
   ) {
     let targetSaplings: Sapling[] = [];
     try {
@@ -94,7 +99,7 @@ class GeneticsSimulatorService {
           const rebreedTargetSapling = crossbreedingService.crossbreedTargetWithBase(targetSapling, baseSapling);
 
           const score = rebreedTargetSapling.getScore(geneScores);
-          if (score >= originalBestScore || (includeAllResults === true && rebreedTargetSapling.hasGreenGenes())) {
+          if (includeResultsWithMinimumScore ? score >= minimumScore : score >= originalBestScore) {
             result.push({
               crossbreedSaplings,
               baseSapling,
@@ -106,7 +111,7 @@ class GeneticsSimulatorService {
         });
       } else {
         const score = targetSapling.getScore(geneScores);
-        if (score >= originalBestScore || (includeAllResults === true && targetSapling.hasGreenGenes())) {
+        if (includeResultsWithMinimumScore ? score >= minimumScore : score >= originalBestScore) {
           result.push({
             crossbreedSaplings,
             baseSapling: targetSapling.hasRedGenesWithLowestWeight()

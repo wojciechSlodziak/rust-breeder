@@ -16,7 +16,7 @@
               </span>
             </v-row>
 
-            <v-row class="d-flex mx-1 pt-3">
+            <v-row class="d-flex mx-1 pt-3 pb-3">
               <div class="flex-grow-1 mx-3 simulator_sapling-input-container">
                 <v-textarea
                   full-width

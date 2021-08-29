@@ -59,10 +59,6 @@ export default class Sapling {
     return this.genes.map((gene) => gene.type).join('');
   }
 
-  hasGreenGenes() {
-    return this.genes.reduce((acc, gene) => acc || gene.isGreen(), false);
-  }
-
   clone(): Sapling {
     const cloneSapling = new Sapling();
     cloneSapling.genes = [...this.genes];

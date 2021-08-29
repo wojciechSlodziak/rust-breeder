@@ -1,5 +1,6 @@
 import { MAX_CROSSBREEDING_SAPLINGS, MAX_SAME_TARGET_RESULTS_IN_MAP, MIN_CROSSBREEDING_SAPLINGS } from '@/const';
 import GeneticsMap from '../../models/genetics-map.model';
+import Gene from '../../models/gene.model';
 import { MapGroup } from './models';
 
 export function resultMapsSortingFunction(geneticsMap1: GeneticsMap, geneticsMap2: GeneticsMap): number {
@@ -182,5 +183,24 @@ export function appendListToMapGroupsMap(mapGroupMap: { [key: string]: MapGroup 
     mapGroupMap[targetSaplingGeneString].mapList = [
       ...mapGroupMap[targetSaplingGeneString].mapList.splice(0, MAX_SAME_TARGET_RESULTS_IN_MAP)
     ];
+  });
+}
+
+// fixes Prototype assignments after worker serialization to make sure that all the Class methods are accessible
+export function fixPrototypeAssignmentsAfterSerialization(mapList: GeneticsMap[]) {
+  mapList.forEach((map) => {
+    map.targetSapling.genes.forEach((gene) => {
+      Object.setPrototypeOf(gene, Gene.prototype);
+    });
+    map.crossbreedSaplings.forEach((crossbreedSapling) => {
+      crossbreedSapling.genes.forEach((gene) => {
+        Object.setPrototypeOf(gene, Gene.prototype);
+      });
+    });
+    if (map.baseSapling) {
+      map.baseSapling.genes.forEach((gene) => {
+        Object.setPrototypeOf(gene, Gene.prototype);
+      });
+    }
   });
 }

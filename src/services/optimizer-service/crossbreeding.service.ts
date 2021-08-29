@@ -24,7 +24,7 @@ class CrossbreedingService {
         geneToWeightMap[crossbreedSapling.genes[genePosition].type] =
           (geneToWeightMap[crossbreedSapling.genes[genePosition].type]
             ? geneToWeightMap[crossbreedSapling.genes[genePosition].type]
-            : 0) + crossbreedSapling.genes[genePosition].crossbreedingWeight;
+            : 0) + crossbreedSapling.genes[genePosition].crossbreedingWeight();
       });
 
       let highestGeneWeight = Number.MIN_VALUE;
@@ -94,7 +94,7 @@ class CrossbreedingService {
     targetSapling.genes.forEach((gene, index) => {
       if (
         gene.type === GeneEnum.B ||
-        targetSapling.crossbreedingWeights[index] <= baseSapling.genes[index].crossbreedingWeight
+        targetSapling.crossbreedingWeights[index] <= baseSapling.genes[index].crossbreedingWeight()
       ) {
         finalTargetSapling.addGene(baseSapling.genes[index]);
       } else {
@@ -107,7 +107,7 @@ class CrossbreedingService {
   buildBaseSaplingWithMockGenes(targetSapling: Sapling): Sapling {
     const baseSaplingMock = new Sapling();
     targetSapling.genes.forEach((gene, index) => {
-      if (!gene.isGreen && targetSapling.crossbreedingWeights[index] === 1) {
+      if (!gene.isGreen() && targetSapling.crossbreedingWeights[index] === 1) {
         baseSaplingMock.addGene(new Gene(GeneEnum.MG));
       } else {
         baseSaplingMock.addGene(new Gene(GeneEnum.MA));

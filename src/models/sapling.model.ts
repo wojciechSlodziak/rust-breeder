@@ -9,9 +9,6 @@ export default class Sapling {
    * required for rebreeding with base, and for indicating correct base for red gene outcomes (example: single X can't override W, but can override G)
    */
   crossbreedingWeights: number[];
-  numberOfGs: number;
-  numberOfYs: number;
-  numberOfHs: number;
   [key: string]: unknown;
 
   constructor(genes: Gene[] | string | null = null) {
@@ -21,10 +18,6 @@ export default class Sapling {
       this.genes = genes;
     } else {
       this.genes = [];
-    }
-
-    if (this.genes.length !== 0) {
-      this.setNumbersOfGenes();
     }
   }
 
@@ -36,16 +29,6 @@ export default class Sapling {
       }
       this.crossbreedingWeights.push(weight);
     }
-
-    if (this.genes.length === 6) {
-      this.setNumbersOfGenes();
-    }
-  }
-
-  setNumbersOfGenes() {
-    this.numberOfGs = this.genes.reduce((acc, gene) => acc + (gene.type === GeneEnum.G ? 1 : 0), 0);
-    this.numberOfYs = this.genes.reduce((acc, gene) => acc + (gene.type === GeneEnum.Y ? 1 : 0), 0);
-    this.numberOfHs = this.genes.reduce((acc, gene) => acc + (gene.type === GeneEnum.H ? 1 : 0), 0);
   }
 
   getScore(geneScores: Record<GeneEnum, number>): number {
@@ -57,7 +40,7 @@ export default class Sapling {
   }
 
   hasRedGenesWithLowestWeight() {
-    return this.genes.some((gene, index) => !gene.isGreen && this.crossbreedingWeights[index] === 1);
+    return this.genes.some((gene, index) => !gene.isGreen() && this.crossbreedingWeights[index] === 1);
   }
 
   toString() {
@@ -65,16 +48,13 @@ export default class Sapling {
   }
 
   hasGreenGenes() {
-    return this.genes.reduce((acc, gene) => acc || gene.isGreen, false);
+    return this.genes.reduce((acc, gene) => acc || gene.isGreen(), false);
   }
 
   clone(): Sapling {
     const cloneSapling = new Sapling();
     cloneSapling.genes = [...this.genes];
     cloneSapling.crossbreedingWeights = [...this.crossbreedingWeights];
-    if (cloneSapling.genes.length === 6) {
-      cloneSapling.setNumbersOfGenes();
-    }
     return cloneSapling;
   }
 

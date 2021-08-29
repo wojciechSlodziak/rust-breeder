@@ -3,9 +3,9 @@
     <template v-for="(gene, index) in sapling.genes">
       <span
         class="sapling-gene-repr_gene"
-        :class="{ 'sapling-gene-repr_gene--red': gene.isRed, 'sapling-gene-repr_gene--green': gene.isGreen }"
+        :class="{ 'sapling-gene-repr_gene--red': gene.isRed(), 'sapling-gene-repr_gene--green': gene.isGreen() }"
         :key="index"
-        ><span>{{ gene.text }}</span></span
+        ><span>{{ gene.toString() }}</span></span
       >
       <span class="sapling-gene-repr_separator" v-if="sapling.genes.length - 1 > index" :key="index + 'sep'">-</span>
     </template>

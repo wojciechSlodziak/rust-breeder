@@ -11,7 +11,7 @@ class GeneticsSimulatorService {
     startingPositions: number[],
     combinationsToProcess: number,
     options: SimulateOptions
-  ): GeneticsMap[] {
+  ) {
     const sourceSaplings: Sapling[] = sourceGenes.map((singleGenes) => new Sapling(singleGenes));
     let result: GeneticsMap[] = [];
 
@@ -43,6 +43,7 @@ class GeneticsSimulatorService {
           options.geneScores,
           options.includeAllResults
         );
+        combinationsProcessed++;
 
         const setNextPositionResult = setNextPosition(
           positions,
@@ -54,19 +55,19 @@ class GeneticsSimulatorService {
         hasMoreCombinations = setNextPositionResult.hasMoreCombinations;
         positionIndexForInc = setNextPositionResult.nextPositionIndexForInc;
 
-        combinationsProcessed++;
-        if (options && combinationsProcessed % options.callProgressCallbackAfterCombinations === 0) {
-          options.progressCallback(combinationsProcessed);
-        }
-
-        if (combinationsProcessed === combinationsToProcess) {
-          result = result.filter((map) => sourceGenes.indexOf(map.targetSapling.toString()) === -1);
-          return result;
+        if (
+          (options && combinationsProcessed % options.callProgressCallbackAfterCombinations === 0) ||
+          combinationsProcessed === combinationsToProcess
+        ) {
+          options.progressCallback(
+            combinationsProcessed,
+            // filter results that result in a sapling that we already have in sources
+            result.filter((map) => sourceGenes.indexOf(map.targetSapling.toString()) === -1)
+          );
+          result = [];
         }
       }
     }
-
-    return [];
   }
 
   private performCrossbreedingAndScoring(

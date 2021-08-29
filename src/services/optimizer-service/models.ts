@@ -20,7 +20,7 @@ export interface EventListenerCallbackData {
 }
 
 export interface SimulateOptions {
-  progressCallback: (percentDone: number) => void;
+  progressCallback: (combinationsProcessed: number, partialResultMapList: GeneticsMap[]) => void;
   callProgressCallbackAfterCombinations: number;
   geneScores: Record<GeneEnum, number>;
   withRepetitions: boolean;

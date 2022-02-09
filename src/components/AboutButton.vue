@@ -30,7 +30,7 @@
             <li>Reddit - <a target="_blank" href="https://www.reddit.com/user/Diffrnt">/user/Diffrnt</a></li>
           </ul>
           <p class="mt-3">
-            I am planning to maintain and improve this app in future.
+            I am planning to maintain and improve this app in the future.
           </p>
           <p class="mb-0">
             If you want to appreciate my work and help me pay for the hosting you can

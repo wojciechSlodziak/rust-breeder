@@ -22,17 +22,14 @@
             I also like to have some fun with fancy Front-End
             <a target="_blank" href="https://vuetifyjs.com/en/">frameworks</a>.
           </p>
-          <p class="mb-0">
-            If you have some feedback you can reach me on:
+          <p>
+            If you have some feedback you can reach me on my
+            <a target="_blank" href="https://discord.gg/Va5475pqFw">Discord</a> server.
           </p>
-          <ul>
-            <li>Discord - <strong>Diff#0911</strong></li>
-            <li>Reddit - <a target="_blank" href="https://www.reddit.com/user/Diffrnt">/user/Diffrnt</a></li>
-          </ul>
-          <p class="mt-3">
+          <p>
             I am planning to maintain and improve this app in the future.
           </p>
-          <p class="mb-0">
+          <p>
             If you want to appreciate my work and help me pay for the hosting you can
             <a target="_blank" href="https://donorbox.org/rust-crossbreeding-optimizer?default_interval=o">donate</a>.
           </p>

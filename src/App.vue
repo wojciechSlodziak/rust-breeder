@@ -3,18 +3,11 @@
     <v-app-bar app>
       <img src="https://files.facepunch.com/s/c0444ba57c9a.svg" alt="Rust" width="112" height="28" class="mr-4" />
       <v-toolbar-title>Breeder</v-toolbar-title>
-      <div class="ml-auto">
-        <AboutButton />
-        <v-btn
-          href="https://donorbox.org/rust-crossbreeding-optimizer?default_interval=o"
-          target="_blank"
-          class="teal darken-2 ml-2"
-          >Donate</v-btn
-        >
-      </div>
+      <InfoButtons class="ml-auto d-none d-sm-flex" />
     </v-app-bar>
     <v-main>
       <CrossbreedingSimulator />
+      <InfoButtons class="d-flex justify-center d-xs-flex d-sm-none mb-3" />
     </v-main>
   </v-app>
 </template>
@@ -22,12 +15,12 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import CrossbreedingSimulator from './components/CrossbreedingSimulator.vue';
-import AboutButton from './components/AboutButton.vue';
+import InfoButtons from './components/InfoButtons.vue';
 
 @Component({
   components: {
     CrossbreedingSimulator,
-    AboutButton
+    InfoButtons
   }
 })
 export default class App extends Vue {}

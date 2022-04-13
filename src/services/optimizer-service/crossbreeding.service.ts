@@ -2,9 +2,6 @@ import Sapling from '../../models/sapling.model';
 import GeneEnum from '../../enums/gene.enum';
 import Gene from '@/models/gene.model';
 
-// TODO:
-// objectify the crossbreeding process to maintain the crossbreeding weighting in the target sapling genes
-// this needs to be used to know if the crossbreeding with base will override the red base gene and maybe also in future to improve base sapling information
 class CrossbreedingService {
   crossbreed(crossbreedSaplings: Sapling[]): Sapling[] {
     let targetSaplings: Sapling[] = [new Sapling()];
@@ -16,9 +13,9 @@ class CrossbreedingService {
         [GeneEnum.H]: 0,
         [GeneEnum.X]: 0,
         [GeneEnum.W]: 0,
-        [GeneEnum.B]: 0, // not in this context, but required by TS
-        [GeneEnum.MG]: 0, // not in this context, but required by TS
-        [GeneEnum.MA]: 0 // not in this context, but required by TS
+        [GeneEnum.B]: 0, // not used in this context, but required by TS
+        [GeneEnum.MG]: 0, // not used in this context, but required by TS
+        [GeneEnum.MA]: 0 // not used in this context, but required by TS
       };
       crossbreedSaplings.forEach((crossbreedSapling) => {
         geneToWeightMap[crossbreedSapling.genes[genePosition].type] =
@@ -53,7 +50,8 @@ class CrossbreedingService {
         });
       });
 
-      // ignore resulst where there is more then 2 results saplings
+      // Ignore resulst where there is more then 2 results saplings.
+      // Rust behaves unexpectedly for those scenarios and the results are not deterministic.
       if (targetSaplings.length > 1 && winnerGeneTypes.length > 1) {
         throw new Error('Ignore result set due to unexpected game behavior for saplings with < 50% chance.');
       }
@@ -88,7 +86,10 @@ class CrossbreedingService {
     return targetSaplings.filter((sapling) => sapling.getNumberOfBaseGenes() < 6);
   }
 
-  // used for overriding target sapling's B type genes with the base
+  /**
+   * Method is used for overriding target sapling's B (non-dominant) type genes with the base plant's original gene.
+   * This can happen if crosbreeding saplings don't reach a weight sum higher on a given position than the base plant's weight.
+   */
   crossbreedTargetWithBase(targetSapling: Sapling, baseSapling: Sapling) {
     const finalTargetSapling = new Sapling();
     targetSapling.genes.forEach((gene, index) => {
@@ -104,6 +105,12 @@ class CrossbreedingService {
     return finalTargetSapling;
   }
 
+  /**
+   * Method builds a mock sapling which shows if the gene on a given base sapling's position can be *ANY* or has to be green,
+   * to the achieve the red gene in target sapling.
+   * Example: If on a first position of target sapling W is dominant with a weight of 1, but base gene has an X there - W will not be swapped as they both have same weights.
+   * @returns A mock representation of base sapling.
+   */
   buildBaseSaplingWithMockGenes(targetSapling: Sapling): Sapling {
     const baseSaplingMock = new Sapling();
     targetSapling.genes.forEach((gene, index) => {

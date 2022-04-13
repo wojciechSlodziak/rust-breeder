@@ -65,7 +65,7 @@ class GeneticsSimulatorService {
         ) {
           options.progressCallback(
             combinationsProcessed,
-            // filter results that result in a sapling that we already have in source
+            // Filter out result saplings that we already have provided by the User.
             result.filter((map) => sourceGenes.indexOf(map.targetSapling.toString()) === -1)
           );
           result = [];

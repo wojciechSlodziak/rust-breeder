@@ -4,9 +4,17 @@ enum GeneEnum {
   Y = 'Y',
   W = 'W',
   X = 'X',
-  B = 'B', // base gene - the one that is present on the breeding base
-  MG = 'MG', // mock green - represents a base gene that has to by of any green kind, to allow some red gene outcomes
-  MA = 'MA' // mock any - represents a base gene that has to by of any kind
+
+  // BASE GENE - Non-dominant gene on a target sapling - in crosbreeding process base plant's gene will remain.
+  B = 'B',
+
+  // MOCK GREEN - Represents a base gene that has to by of any green type.
+  // This can be required when specific red gene is expected, and crossbreeding will not work for base sapling with another red gene on the same position.
+  // Example: single W will not replace X on base sapling.
+  MG = 'MG',
+
+  // MOCK ANY - Represents a base gene that can be of any type.
+  MA = 'MA'
 }
 
 export default GeneEnum;

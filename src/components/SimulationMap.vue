@@ -26,17 +26,24 @@
       <v-tooltip bottom open-delay="250">
         <template v-slot:activator="{ on, attrs }">
           <div v-bind="attrs" v-on="on" class="mb-4">
-            <div class="mb-1">Base Sapling:<span class="white--text" v-if="!map.baseSapling"> any</span></div>
+            <div class="mb-1">
+              Center Sapling:<span class="white--text" v-if="!map.baseSapling"><br />any extra random plant</span>
+            </div>
             <SaplingGeneRepresentation :sapling="map.baseSapling" v-if="map.baseSapling" />
           </div>
         </template>
-        <span>Sapling that should be used as a center plant.</span>
+        <span
+          >Sapling that should be placed in the middle of the Surrounding Saplings. It has to reach Crossbreeding stage
+          <strong>before</strong> the Surrounding Saplings reach it. As a rule of thumb let it grow alone until it
+          reaches about 50% progress in <strong>Sapling</strong> stage. After that, plant the Surrounding
+          Saplings.</span
+        >
       </v-tooltip>
       <v-divider class="mb-5"></v-divider>
       <v-tooltip bottom open-delay="250">
         <template v-slot:activator="{ on, attrs }">
           <div v-bind="attrs" v-on="on">
-            <div class="mb-1">Crossbreeding Saplings:</div>
+            <div class="mb-1">Surrounding Saplings:</div>
             <SaplingGeneRepresentation
               :sapling="crossbreedSapling"
               v-for="(crossbreedSapling, index) in map.crossbreedSaplings"
@@ -45,8 +52,8 @@
           </div>
         </template>
         <span
-          >Saplings that should be planted around the Base Sapling, just before it goes into
-          <strong>crossbreeding</strong> stage.</span
+          >Saplings that should be planted around the Center Sapling before it goes into
+          <strong>Crossbreeding</strong> stage. All Saplings have to be of the same type!</span
         >
       </v-tooltip>
     </v-card-text>

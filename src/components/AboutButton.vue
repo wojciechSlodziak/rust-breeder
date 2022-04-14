@@ -15,8 +15,7 @@
         <article class="mt-2">
           <p>Hi. I hope you're enjoying the app :).</p>
           <p>
-            I made it, because I prefer to make my brain hurt once than multiple times, and crossbreeding every wipe
-            without an app was exhausting.
+            I made it, because crossbreeding every wipe without an app was exhausting.
           </p>
           <p>
             I also like to have some fun with fancy Front-End

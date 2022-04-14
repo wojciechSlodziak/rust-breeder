@@ -4,33 +4,52 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <meta name="description" content="App that will help you crossbreed your plants in Rust easily. Works for hemp and berries! The app calculates all possible genes for the set of plants that you provide."/>
-    <meta name="keywords" content="rust, breeder, crossbreed, hemp, berries, gene, genetic, farm, calculator, clone">
-    <meta name="author" content="Diff">
+    <meta
+      name="description"
+      content="App that will help you crossbreed your plants in Rust easily. Works for hemp and berries! The app calculates all possible genes for the set of plants that you provide."
+    />
+    <meta name="keywords" content="rust, breeder, crossbreed, hemp, berries, gene, genetic, farm, calculator, clone" />
+    <meta name="author" content="Diff" />
     <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
     <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet" />
     <title>Rust Breeder - Crossbreeding Optimizer</title>
-    
+
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-QEH9HYCB5Q"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+      function gtag() {
+        dataLayer.push(arguments);
+      }
 
+      // Default ad_storage to 'denied'.
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        analytics_storage: 'denied'
+      });
+
+      gtag('js', new Date());
       gtag('config', 'G-QEH9HYCB5Q');
+
+      function enableGtag() {
+        gtag('consent', 'update', {
+          ad_storage: 'granted',
+          analytics_storage: 'granted'
+        });
+      }
     </script>
   </head>
   <body>
     <noscript>
       <strong
-        >App that will help you crossbreed your plants in Rust easily. Works for hemp and berries! The app calculates all possible genes for the set of plants that you provide. Requires JavaScript to be enabled.</strong
+        >App that will help you crossbreed your plants in Rust easily. Works for hemp and berries! The app calculates
+        all possible genes for the set of plants that you provide. Requires JavaScript to be enabled.</strong
       >
     </noscript>
     <div id="app"></div>
     <audio id="headshotAudio" src="<%= BASE_URL %>headshot.mp3" />
-      <!-- built files will be auto injected -->
+    <!-- built files will be auto injected -->
   </body>
 </html>

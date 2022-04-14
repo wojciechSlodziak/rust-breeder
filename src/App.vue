@@ -9,6 +9,7 @@
       <CrossbreedingSimulator />
       <InfoButtons class="d-flex justify-center d-xs-flex d-sm-none mb-3" />
     </v-main>
+    <CookieConsent v-on:cookies-accepted="handleCookiesAccepted" />
   </v-app>
 </template>
 
@@ -16,14 +17,22 @@
 import { Component, Vue } from 'vue-property-decorator';
 import CrossbreedingSimulator from './components/CrossbreedingSimulator.vue';
 import InfoButtons from './components/InfoButtons.vue';
+import CookieConsent from './components/CookieConsent.vue';
+import 'cookie-store';
 
 @Component({
   components: {
     CrossbreedingSimulator,
-    InfoButtons
+    InfoButtons,
+    CookieConsent
   }
 })
-export default class App extends Vue {}
+export default class App extends Vue {
+  handleCookiesAccepted() {
+    // eslint-disable-next-line no-undef
+    enableGtag();
+  }
+}
 </script>
 
 <style lang="scss">

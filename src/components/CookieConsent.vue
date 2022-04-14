@@ -27,7 +27,7 @@ export default class CookieConsent extends Vue {
   }
 
   acceptCookies() {
-    setCookie('ca', true);
+    setCookie('ca', true, { expires: 356 });
     this.fireAcceptedEvent();
     this.isOpen = false;
   }

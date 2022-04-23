@@ -1,13 +1,13 @@
 <template>
   <v-app>
     <v-app-bar app>
-      <a href="/" title="RustBreeder">
+      <a href="/" title="RustBreeder" class="mr-4">
         <img
           src="https://files.facepunch.com/s/c0444ba57c9a.svg"
           alt="Rust Logo"
           width="112"
           height="28"
-          class="mr-4"
+          class="d-block"
         />
       </a>
       <v-toolbar-title>Breeder</v-toolbar-title>

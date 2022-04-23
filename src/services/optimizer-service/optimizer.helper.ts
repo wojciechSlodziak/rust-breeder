@@ -65,7 +65,7 @@ export function getNumberOfCrossbreedCombinations(itemsCount: number, withRepeti
 
 /**
  * Sets next position for crossbreeding.
- * @return true if there's more combinations to go through
+ * @return True if there's more combinations to go through.
  */
 export function setNextPosition(
   positions: number[],
@@ -79,8 +79,9 @@ export function setNextPosition(
   while (keepOriganizingPositions) {
     positions[currentPositionIndexForInc] += 1;
 
-    // for no repetitions consider 3 possible positions and 8 source saplings
-    // last position is [5, 6, 7], following calculation has to be done:
+    // Example:
+    // For no repetitions consider 3 possible positions and 8 source saplings.
+    // Last position is [5, 6, 7], and following calculation has to be done:
     // - to calculate max on third position: 8 - (3 - 2)
     // - to calculate max on second position: 8 - (3 - 1)
     // - to calculate max on first position: 8 - (3 - 0)
@@ -88,11 +89,11 @@ export function setNextPosition(
       ? sourceSaplingsCount - 1
       : sourceSaplingsCount - (positionCount - currentPositionIndexForInc);
 
-    // if maximum has been reached on a position, it's time to:
-    // - increment previous position
-    // - check if it didn't already pass maximum, if so run above step again
+    // If maximum has been reached on a position, it's time to:
+    // - increment previous position,
+    // - check if it didn't already pass maximum, if so run above step again,
     // - reset following positions,
-    // - start incrementing again at the last position
+    // - start incrementing again at the last position.
     if (positions[currentPositionIndexForInc] > maxSaplingIndexOnCurrentPosition) {
       if (currentPositionIndexForInc === 0) {
         hasMoreCombinations = false;
@@ -115,6 +116,12 @@ export function setNextPosition(
   };
 }
 
+/**
+ * Method calculates chunks of work which should be split between workers.
+ * @param sourceSaplingsCount Number of sourceSaplings provided by User.
+ * @param withRepetitions Option defining if process should consider repetitions.
+ * @returns List of objects which represent chunks of work.
+ */
 export function getWorkChunks(sourceSaplingsCount: number, withRepetitions: boolean) {
   const allCombinationsCount = getNumberOfCrossbreedCombinations(sourceSaplingsCount, withRepetitions);
   const numberOfWorkers = navigator.hardwareConcurrency;
@@ -187,7 +194,10 @@ export function appendListToMapGroupsMap(mapGroupMap: { [key: string]: MapGroup 
   });
 }
 
-// fixes Prototype assignments after worker serialization to make sure that all the Class methods are accessible
+/**
+ * Fixes Prototype assignments after worker serialization to make sure that all the Class methods are accessible.
+ * @param mapList List of results, that require prototype fixes.
+ */
 export function fixPrototypeAssignmentsAfterSerialization(mapList: GeneticsMap[]) {
   mapList.forEach((map) => {
     Object.setPrototypeOf(map.targetSapling, Sapling.prototype);

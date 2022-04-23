@@ -17,6 +17,11 @@ class OptimizerService {
   resultMapLists: GeneticsMap[][] = [];
   mapGroupMap: { [key: string]: MapGroup } = {};
 
+  /**
+   * Entry point in the application where dispatching work and maintaining progress updates happenn.
+   * @param sourceGenes List of raw String representations of saplings provided by the User.
+   * @param options Options provided from the UI, selected by the User.
+   */
   simulateBestGenetics(sourceGenes: string[], options: ApplicationOptions) {
     this.workerProgress = [];
     this.resultMapLists = [];
@@ -42,13 +47,13 @@ class OptimizerService {
       worker.addEventListener('message', (event) => {
         fixPrototypeAssignmentsAfterSerialization(event.data.partialResultMapList);
 
-        // handling partial results
+        // Handling partial results.
         appendListToMapGroupsMap(this.mapGroupMap, event.data.partialResultMapList);
 
-        // progress tracking
+        // Progress tracking.
         this.workerProgress[workerIndex] = event.data.combinationsProcessed;
 
-        // progress updates notfication
+        // Progress updates notfication.
         this.listeners.forEach((listenerCallback) => {
           listenerCallback('PROGRESS_UPDATE', {
             isDone: false,
@@ -65,12 +70,12 @@ class OptimizerService {
           worker.terminate();
         }
 
-        // handling complete results
+        // Handling complete results.
         if (
           this.workerProgress.reduce((acc, singleWorkerProgress) => acc + singleWorkerProgress, 0) ===
           workChunk.allCombinationsCount
         ) {
-          // process final results
+          // Processing final results.
           let mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
           mapGroups = mapGroups.map((mapGroup, index) => ({ ...mapGroup, index }));
 
@@ -78,7 +83,7 @@ class OptimizerService {
             listenerCallback('DONE', { isDone: true, mapGroups: mapGroups });
           });
 
-          // cleanup
+          // Cleanup.
           this.resultMapLists = [];
           this.workerProgress = [];
           this.mapGroupMap = {};

@@ -1,7 +1,15 @@
 <template>
   <v-app>
     <v-app-bar app>
-      <img src="https://files.facepunch.com/s/c0444ba57c9a.svg" alt="Rust" width="112" height="28" class="mr-4" />
+      <a href="/" title="RustBreeder">
+        <img
+          src="https://files.facepunch.com/s/c0444ba57c9a.svg"
+          alt="Rust Logo"
+          width="112"
+          height="28"
+          class="mr-4"
+        />
+      </a>
       <v-toolbar-title>Breeder</v-toolbar-title>
       <InfoButtons class="ml-auto d-none d-sm-flex" />
     </v-app-bar>

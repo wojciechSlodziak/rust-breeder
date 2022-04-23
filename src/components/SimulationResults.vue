@@ -96,7 +96,7 @@ export default class SimulationResults extends Vue {
       if (this.geneCount[`${geneName.toLowerCase()}Count`]) {
         mapGroups = mapGroups.filter(
           (group) =>
-            (group.mapList[0].targetSapling[`numberOf${geneName}s`] as Function)() ===
+            (group.mapList[0].resultSapling[`numberOf${geneName}s`] as Function)() ===
             Number(this.geneCount[`${geneName.toLowerCase()}Count`])
         );
       }
@@ -118,7 +118,7 @@ export default class SimulationResults extends Vue {
             !(this.filteringGenes[`gene${i}`] || '')
               .toUpperCase()
               .split('/')
-              .includes(group.mapList[0].targetSapling.genes[i].type)
+              .includes(group.mapList[0].resultSapling.genes[i].type)
           ) {
             allGenesMatch = false;
           }

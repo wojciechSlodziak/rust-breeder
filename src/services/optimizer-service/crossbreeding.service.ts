@@ -10,7 +10,7 @@ class CrossbreedingService {
    * @returns A list of results that are possible outcomes for the given crossbreedSaplings.
    */
   crossbreed(crossbreedSaplings: Sapling[]): Sapling[] {
-    let targetSaplings: Sapling[] = [new Sapling()];
+    let resultSaplings: Sapling[] = [new Sapling()];
     const involvedSaplings: Sapling[] = [];
     for (let genePosition = 0; genePosition < 6; genePosition++) {
       const geneToWeightMap: Record<GeneEnum, number> = {
@@ -62,7 +62,7 @@ class CrossbreedingService {
       // Ignore results where there is more than one non dominant gene position.
       // Rust behaves unexpectedly for those scenarios and the results are not deterministic.
       // Note: 33.(3)% chances are still ok if 3 different genes had the same weight on a given position.
-      if (targetSaplings.length > 1 && winnerGeneTypes.length > 1) {
+      if (resultSaplings.length > 1 && winnerGeneTypes.length > 1) {
         throw new Error('Ignore result set due to unexpected game behavior for results with more than one non dominant gene positions.');
       }
 
@@ -70,21 +70,21 @@ class CrossbreedingService {
       // Each gene position in result sapling(s) is filled one by one for each main iteration.
       // It is possible that more than one Result sapling can be created if on a given 
       // position two or three different genes have the same weight.
-      const targetSaplingsToAppend: Sapling[] = [];
+      const resultSaplingsToAppend: Sapling[] = [];
       for (let winnerGeneTypeIndex = winnerGeneTypes.length - 1; winnerGeneTypeIndex >= 0; winnerGeneTypeIndex -= 1) {
-        targetSaplings.forEach((targetSapling) => {
+        resultSaplings.forEach((resultSapling) => {
           if (winnerGeneTypeIndex !== 0) {
-            const additionalTargetSapling = targetSapling.clone();
-            additionalTargetSapling.addGene(new Gene(winnerGeneTypes[winnerGeneTypeIndex]), highestGeneWeight);
-            targetSaplingsToAppend.push(additionalTargetSapling);
+            const additionalresultSapling = resultSapling.clone();
+            additionalresultSapling.addGene(new Gene(winnerGeneTypes[winnerGeneTypeIndex]), highestGeneWeight);
+            resultSaplingsToAppend.push(additionalresultSapling);
           } else {
-            targetSapling.addGene(new Gene(winnerGeneTypes[winnerGeneTypeIndex]), highestGeneWeight);
+            resultSapling.addGene(new Gene(winnerGeneTypes[winnerGeneTypeIndex]), highestGeneWeight);
           }
         });
       }
 
-      if (targetSaplingsToAppend.length > 0) {
-        targetSaplings = [...targetSaplings, ...targetSaplingsToAppend];
+      if (resultSaplingsToAppend.length > 0) {
+        resultSaplings = [...resultSaplings, ...resultSaplingsToAppend];
       }
     }
 
@@ -99,48 +99,48 @@ class CrossbreedingService {
       throw new Error('Not all saplings were used for crossbreeding.');
     }
 
-    return targetSaplings.filter((sapling) => sapling.getNumberOfBaseGenes() < 6);
+    return resultSaplings.filter((sapling) => sapling.getNumberOfBaseGenes() < 6);
   }
 
   /**
-   * Method is used for overriding target sapling's B (non-dominant) type genes with the base plant's original gene.
+   * Method is used for overriding result sapling's B (non-dominant) type genes with the base plant's original gene.
    * This can happen if crosbreeding saplings don't reach a weight sum higher on a given position than the base plant's weight.
    * At this stage it's not decided whether the outcome of this crossbreeding will be anything useful, as it might end up
    * being a result with low score.
-   * @param targetSapling The sapling that resulted from crosbreeding process, and which needs to be crossbreeded 
+   * @param resultSapling The sapling that resulted from crosbreeding process, and which needs to be crossbreeded 
    * with base sapling due to it's genes being not fully dominant.
    * @param baseSapling One of the saplings provided to the corssbreeding process, which need to be checked for outcome.
-   * @returns Result sapling after merging targetSapling and baseSapling.
+   * @returns Result sapling after merging resultSapling and baseSapling.
    */
-  crossbreedTargetWithBase(targetSapling: Sapling, baseSapling: Sapling) {
-    const finalTargetSapling = new Sapling();
-    targetSapling.genes.forEach((gene, index) => {
+  crossbreedResultWithBase(resultSapling: Sapling, baseSapling: Sapling) {
+    const finalresultSapling = new Sapling();
+    resultSapling.genes.forEach((gene, index) => {
       if (
         gene.type === GeneEnum.B ||
-        targetSapling.crossbreedingWeights[index] <= baseSapling.genes[index].crossbreedingWeight()
+        resultSapling.crossbreedingWeights[index] <= baseSapling.genes[index].crossbreedingWeight()
       ) {
-        finalTargetSapling.addGene(baseSapling.genes[index]);
+        finalresultSapling.addGene(baseSapling.genes[index]);
       } else {
-        finalTargetSapling.addGene(gene);
+        finalresultSapling.addGene(gene);
       }
     });
-    return finalTargetSapling;
+    return finalresultSapling;
   }
 
   /**
    * Method builds a mock sapling which shows if the gene on a given base sapling's position can be *ANY* or has to be green,
-   * to achieve the red gene in target sapling.
+   * to achieve the red gene in result sapling.
    * This method is used to verify if it is actually allowed to have random sapling as a base.
    * 
-   * Example: If on a first position of target sapling W is dominant with a weight of 1, but base gene 
+   * Example: If on a first position of result sapling W is dominant with a weight of 1, but base gene 
    * has an X there - W will not be swapped as they both have same weights.
    * 
    * @returns A mock representation of base sapling.
    */
-  buildBaseSaplingWithMockGenes(targetSapling: Sapling): Sapling {
+  buildBaseSaplingWithMockGenes(resultSapling: Sapling): Sapling {
     const baseSaplingMock = new Sapling();
-    targetSapling.genes.forEach((gene, index) => {
-      if (!gene.isGreen() && targetSapling.crossbreedingWeights[index] === 1) {
+    resultSapling.genes.forEach((gene, index) => {
+      if (!gene.isGreen() && resultSapling.crossbreedingWeights[index] === 1) {
         baseSaplingMock.addGene(new Gene(GeneEnum.MG));
       } else {
         baseSaplingMock.addGene(new Gene(GeneEnum.MA));

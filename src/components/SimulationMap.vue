@@ -9,7 +9,7 @@
     <v-list-item class="map_header">
       <v-list-item-content>
         <v-list-item-title class="headline">
-          <SaplingGeneRepresentation :sapling="map.targetSapling" class="map_target-sapling" />
+          <SaplingGeneRepresentation :sapling="map.resultSapling" class="map_result-sapling" />
         </v-list-item-title>
         <v-list-item-subtitle class="mt-2">
           <span class="map_score"
@@ -121,7 +121,7 @@ export default class SimulationMap extends Vue {
       visibility: hidden;
     }
   }
-  .map_target-sapling {
+  .map_result-sapling {
     background-color: #191919;
   }
 }

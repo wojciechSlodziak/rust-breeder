@@ -8,7 +8,7 @@ export interface EventListenerCallback {
 export class NotEnoughSourceSaplingsError extends Error {}
 
 export class MapGroup {
-  targetSaplingGeneString: string;
+  resultSaplingGeneString: string;
   mapList: GeneticsMap[];
   index?: number;
 }

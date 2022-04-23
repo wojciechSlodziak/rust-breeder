@@ -75,7 +75,7 @@ class GeneticsSimulatorService {
             combinationsProcessed,
             // Filter out result saplings that were already provided by the User.
             // We don't need to make something that we already have.
-            result.filter((map) => sourceGenes.indexOf(map.targetSapling.toString()) === -1)
+            result.filter((map) => sourceGenes.indexOf(map.resultSapling.toString()) === -1)
           );
           result = [];
         }
@@ -103,43 +103,43 @@ class GeneticsSimulatorService {
     includeResultsWithMinimumScore: boolean,
     minimumScore: number
   ) {
-    let targetSaplings: Sapling[] = [];
+    let resultSaplings: Sapling[] = [];
     try {
-      targetSaplings = crossbreedingService.crossbreed(crossbreedSaplings);
+      resultSaplings = crossbreedingService.crossbreed(crossbreedSaplings);
     } catch (e) {
       // Do nothing! In case of exceptions the process should go on.
     }
 
-    targetSaplings.forEach((targetSapling) => {
-      const numberOfBaseGenes = targetSapling.getNumberOfBaseGenes();
+    resultSaplings.forEach((resultSapling) => {
+      const numberOfBaseGenes = resultSapling.getNumberOfBaseGenes();
 
       if (numberOfBaseGenes > 0) {
         const otherSaplings: Sapling[] = sourceSaplings.filter((sapling) => crossbreedSaplings.indexOf(sapling) === -1);
         otherSaplings.forEach((baseSapling) => {
-          const rebreedTargetSapling = crossbreedingService.crossbreedTargetWithBase(targetSapling, baseSapling);
+          const rebreedresultSapling = crossbreedingService.crossbreedResultWithBase(resultSapling, baseSapling);
 
-          const score = rebreedTargetSapling.getScore(geneScores);
+          const score = rebreedresultSapling.getScore(geneScores);
           if (includeResultsWithMinimumScore ? score >= minimumScore : score >= originalBestScore) {
             result.push({
               crossbreedSaplings,
               baseSapling,
-              targetSapling: rebreedTargetSapling,
+              resultSapling: rebreedresultSapling,
               score: score,
-              chancePercent: Number((100 / targetSaplings.length).toFixed(2))
+              chancePercent: Number((100 / resultSaplings.length).toFixed(2))
             });
           }
         });
       } else {
-        const score = targetSapling.getScore(geneScores);
+        const score = resultSapling.getScore(geneScores);
         if (includeResultsWithMinimumScore ? score >= minimumScore : score >= originalBestScore) {
           result.push({
             crossbreedSaplings,
-            baseSapling: targetSapling.hasRedGenesWithLowestWeight()
-              ? crossbreedingService.buildBaseSaplingWithMockGenes(targetSapling)
+            baseSapling: resultSapling.hasRedGenesWithLowestWeight()
+              ? crossbreedingService.buildBaseSaplingWithMockGenes(resultSapling)
               : undefined,
-            targetSapling,
+            resultSapling,
             score: score,
-            chancePercent: Number((100 / targetSaplings.length).toFixed(2))
+            chancePercent: Number((100 / resultSaplings.length).toFixed(2))
           });
         }
       }

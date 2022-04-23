@@ -31,7 +31,7 @@
 </template>
 
 <script lang="ts">
-import { MAX_SAME_TARGET_RESULTS_IN_MAP } from '../const';
+import { MAX_SAME_RESULT_VARIANTS_IN_MAP } from '../const';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import SimulationMap from './SimulationMap.vue';
 import { MapGroup } from '@/services/optimizer-service/models';
@@ -45,7 +45,7 @@ export default class SimulationMapGroup extends Vue {
   @Prop({ type: Object }) readonly highlightedMap: GeneticsMap;
 
   dummyHeight = 0;
-  maxDisplayedMaps = MAX_SAME_TARGET_RESULTS_IN_MAP;
+  maxDisplayedMaps = MAX_SAME_RESULT_VARIANTS_IN_MAP;
 
   isGroupBrowsingMode = false;
   isMouseHoveringDummy = false;

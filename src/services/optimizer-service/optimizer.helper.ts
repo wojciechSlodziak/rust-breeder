@@ -1,4 +1,4 @@
-import { MAX_CROSSBREEDING_SAPLINGS, MAX_SAME_TARGET_RESULTS_IN_MAP, MIN_CROSSBREEDING_SAPLINGS } from '@/const';
+import { MAX_CROSSBREEDING_SAPLINGS, MAX_SAME_RESULT_VARIANTS_IN_MAP, MIN_CROSSBREEDING_SAPLINGS } from '@/const';
 import GeneticsMap from '../../models/genetics-map.model';
 import Gene from '../../models/gene.model';
 import Sapling from '../../models/sapling.model';
@@ -176,20 +176,20 @@ export function getWorkChunks(sourceSaplingsCount: number, withRepetitions: bool
 
 export function appendListToMapGroupsMap(mapGroupMap: { [key: string]: MapGroup }, mapList: GeneticsMap[]): void {
   mapList.forEach((geneticsMap) => {
-    const targetSaplingGeneString = geneticsMap.targetSapling.genes.map((gene) => gene.type.toString()).join('');
-    if (mapGroupMap[targetSaplingGeneString] === undefined) {
-      mapGroupMap[targetSaplingGeneString] = {
-        targetSaplingGeneString,
+    const resultSaplingGeneString = geneticsMap.resultSapling.genes.map((gene) => gene.type.toString()).join('');
+    if (mapGroupMap[resultSaplingGeneString] === undefined) {
+      mapGroupMap[resultSaplingGeneString] = {
+        resultSaplingGeneString,
         mapList: [geneticsMap]
       };
     } else {
-      mapGroupMap[targetSaplingGeneString].mapList.push(geneticsMap);
+      mapGroupMap[resultSaplingGeneString].mapList.push(geneticsMap);
     }
 
-    mapGroupMap[targetSaplingGeneString].mapList.sort(resultMapsSortingFunction);
-    // discards results if there is more than MAX_SAME_TARGET_RESULTS_IN_MAP maps for the same targetSapling
-    mapGroupMap[targetSaplingGeneString].mapList = [
-      ...mapGroupMap[targetSaplingGeneString].mapList.splice(0, MAX_SAME_TARGET_RESULTS_IN_MAP)
+    mapGroupMap[resultSaplingGeneString].mapList.sort(resultMapsSortingFunction);
+    // discards results if there is more than MAX_SAME_RESULT_VARIANTS_IN_MAP maps for the same resultSapling
+    mapGroupMap[resultSaplingGeneString].mapList = [
+      ...mapGroupMap[resultSaplingGeneString].mapList.splice(0, MAX_SAME_RESULT_VARIANTS_IN_MAP)
     ];
   });
 }
@@ -200,8 +200,8 @@ export function appendListToMapGroupsMap(mapGroupMap: { [key: string]: MapGroup 
  */
 export function fixPrototypeAssignmentsAfterSerialization(mapList: GeneticsMap[]) {
   mapList.forEach((map) => {
-    Object.setPrototypeOf(map.targetSapling, Sapling.prototype);
-    map.targetSapling.genes.forEach((gene) => {
+    Object.setPrototypeOf(map.resultSapling, Sapling.prototype);
+    map.resultSapling.genes.forEach((gene) => {
       Object.setPrototypeOf(gene, Gene.prototype);
     });
     map.crossbreedSaplings.forEach((crossbreedSapling) => {

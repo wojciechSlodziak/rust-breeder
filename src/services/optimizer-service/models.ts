@@ -6,6 +6,7 @@ export interface EventListenerCallback {
 }
 
 export class NotEnoughSourceSaplingsError extends Error {}
+export class ImpracticalResultError extends Error {}
 
 export class MapGroup {
   resultSaplingGeneString: string;

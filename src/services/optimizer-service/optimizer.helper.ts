@@ -60,7 +60,8 @@ export function getNumberOfCrossbreedCombinations(itemsCount: number, withRepeti
       numberOfAllCombinations += rFact(itemsCount) / (rFact(k) * rFact(itemsCount - k));
     }
   }
-  return numberOfAllCombinations;
+  // Math.round is needed because division can end up being a very close approximation of a Integer due to floating-point system.
+  return Math.round(numberOfAllCombinations);
 }
 
 /**

@@ -3,10 +3,9 @@ import Sapling from '../../models/sapling.model';
 import crossbreedingService from './crossbreeding.service';
 import { buildInitialSaplingPositions, getMaxPositionsCount, setNextPosition } from './optimizer.helper';
 import GeneEnum from '../../enums/gene.enum';
-import { SimulateOptions } from './models';
+import { SimulateOptions, ImpracticalResultError } from './models';
 
 class GeneticsSimulatorService {
-
   /**
    * Method performs multiple crossbreedings for all sapling combinations that were designated by the application.
    * @param sourceGenes List of raw String representations of saplings.
@@ -90,7 +89,7 @@ class GeneticsSimulatorService {
    * @param crossbreedSaplings A combination of Saplings that should be crossbreeded with each other.
    * @param originalBestScore Best score from the source Saplings, used for discarding bad results.
    * @param geneScores Score for gene provided from the app options, which help in scoring the completed Sapling.
-   * @param includeResultsWithMinimumScore Boolean value provided from options, which if true allows app to ignore originalBestScore 
+   * @param includeResultsWithMinimumScore Boolean value provided from options, which if true allows app to ignore originalBestScore
    * and to to return worse results which are above the minimumScore.
    * @param minimumScore The minimumScore used for discarding results if includeResultsWithMinimumScore is true.
    */
@@ -107,7 +106,11 @@ class GeneticsSimulatorService {
     try {
       resultSaplings = crossbreedingService.crossbreed(crossbreedSaplings);
     } catch (e) {
-      // Do nothing! In case of exceptions the process should go on.
+      if (e instanceof ImpracticalResultError) {
+        // Do nothing! In case of exceptions the process should go on.
+      } else {
+        throw e;
+      }
     }
 
     resultSaplings.forEach((resultSapling) => {

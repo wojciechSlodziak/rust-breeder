@@ -154,6 +154,8 @@ export default class CrossbreedingSimulator extends Vue {
     } catch (e) {
       if (e instanceof NotEnoughSourceSaplingsError) {
         this.showNotEnoughSaplingsError = true;
+      } else {
+        throw e;
       }
     }
   }

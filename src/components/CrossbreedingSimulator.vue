@@ -7,16 +7,26 @@
       <v-row>
         <v-col cols="12" :md="showHighlight ? 12 : 4" :lg="showHighlight ? 5 : 3" class="pa-1">
           <v-form ref="form" v-model="isFormValid" spellcheck="false">
-            <v-row class="d-flex justify-center mt-1">
-              <v-btn color="primary" @click="handleSimulateClick" :disabled="isSimulating || !isFormValid"
+            <v-row class="d-flex justify-center mt-1 px-3">
+              <v-btn
+                class="mt-2"
+                color="primary"
+                @click="handleSimulateClick"
+                :disabled="isSimulating || !isFormValid || isScreenScanning"
                 >Simulate</v-btn
               >
-              <span class="ml-2">
+              <span class="ml-2 mt-2">
+                <SaplingScreenCapture
+                  @sapling-scanned="handleSaplingScannedEvent"
+                  @started-scanning="isScreenScanning = true"
+                  @stopped-scanning="isScreenScanning = false"
+                />
+              </span>
+              <span class="ml-2 mt-2">
                 <OptionsButton ref="optionsButton" />
               </span>
             </v-row>
-
-            <v-row class="d-flex mx-1 pt-3 pb-3">
+            <v-row class="d-flex mx-1 pt-3 pb-3 mt-5">
               <div class="flex-grow-1 mx-3 simulator_sapling-input-container">
                 <v-textarea
                   full-width
@@ -74,18 +84,20 @@ import SimulationResults from './SimulationResults.vue';
 import SimulationMap from './SimulationMap.vue';
 import SaplingInputHighlights from './SaplingInputHighlights.vue';
 import OptionsButton from './OptionsButton.vue';
+import SaplingScreenCapture from './SaplingScreenCapture.vue';
 import { EventListenerCallbackData, MapGroup, NotEnoughSourceSaplingsError } from '@/services/optimizer-service/models';
 import GeneticsMap from '@/models/genetics-map.model';
 import goTo from 'vuetify/lib/services/goto';
 
 @Component({
-  components: { SimulationResults, SimulationMap, SaplingInputHighlights, OptionsButton }
+  components: { SimulationResults, SimulationMap, SaplingInputHighlights, OptionsButton, SaplingScreenCapture }
 })
 export default class CrossbreedingSimulator extends Vue {
   saplingGenes = 'YYYWYX\nGGHGHY\nHHGGGY';
   progressPercent = 0;
   isSimulating = false;
   isFormValid = false;
+  isScreenScanning = false;
   showNotEnoughSaplingsError = false;
   highlightedMap: GeneticsMap | null = null;
   resultMapGroups: readonly MapGroup[] | null = null;
@@ -116,6 +128,17 @@ export default class CrossbreedingSimulator extends Vue {
           textarea.selectionEnd = caretPosition + (this.saplingGenes.length - value.length);
         });
       });
+    }
+  }
+
+  handleSaplingScannedEvent(value: string) {
+    console.log(value);
+    if (this.saplingGenes.indexOf(value) === -1) {
+      if (!this.saplingGenes.charAt(this.saplingGenes.length - 1).match(/\r\n|\n|\r/)) {
+        this.saplingGenes += '\n';
+      }
+      this.saplingGenes += value + '\n';
+      // TODO: show toast??
     }
   }
 

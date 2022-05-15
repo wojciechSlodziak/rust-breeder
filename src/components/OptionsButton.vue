@@ -1,22 +1,27 @@
 <template>
-  <v-dialog v-model="isDialogOpen" width="500" @click:outside="resetInputs">
+  <v-dialog v-model="isDialogOpen" width="600" @click:outside="resetInputs">
     <template v-slot:activator="{ on, attrs }">
       <v-btn v-bind="attrs" v-on="on">
         Options
+        <v-icon right>
+          mdi-cog
+        </v-icon>
       </v-btn>
     </template>
 
     <v-card>
       <v-form v-model="isFormValid">
         <v-card-title class="headline" primary-title>
-          <h3>Options</h3>
+          <h2 class="text-h5">Options</h2>
         </v-card-title>
 
         <v-card-text>
           <v-container>
-            <h3>Gene Scores</h3>
             <v-row>
-              <v-col v-for="geneScore in scoreInputs" :key="geneScore.key">
+              <h3>Gene Scores</h3>
+            </v-row>
+            <v-row>
+              <v-col class="pl-1 pr-1" v-for="geneScore in scoreInputs" :key="geneScore.key">
                 <v-text-field
                   type="number"
                   :label="geneScore.key"
@@ -101,7 +106,7 @@ export default class OptionsButton extends Vue {
   withRepetitions = true;
   includeResultsWithMinimumScore = true;
   minimumScore = 2;
-  geneScores: Record<GeneEnum, number> | null = null;
+  geneScores: Record<string, number> = {};
 
   geneScoreRules = [
     (v: number | string) => (v !== '' && v >= -1 && v <= 1) || 'It has to be a number between -1 and 1.'
@@ -111,7 +116,7 @@ export default class OptionsButton extends Vue {
   get scoreInputs() {
     return Object.keys(this.geneScores || {})
       .map((key) => ({ key, value: this.geneScores?.[key as GeneEnum] }))
-      .filter((item) => item.key !== GeneEnum.B);
+      .filter((item, index) => index < 5);
   }
 
   created() {

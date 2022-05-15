@@ -132,7 +132,6 @@ export default class CrossbreedingSimulator extends Vue {
   }
 
   handleSaplingScannedEvent(value: string) {
-    console.log(value);
     if (this.saplingGenes.indexOf(value) === -1) {
       if (!this.saplingGenes.charAt(this.saplingGenes.length - 1).match(/\r\n|\n|\r/)) {
         this.saplingGenes += '\n';

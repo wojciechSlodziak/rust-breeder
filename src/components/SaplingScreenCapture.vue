@@ -20,19 +20,32 @@
           <v-container>
             <ol>
               <li>
-                Make sure your <v-chip outlined>USER INTERFACE SCALE</v-chip> setting is set to <strong>1.0</strong> in
-                Rust.
+                <p>
+                  Make sure your <v-chip outlined>USER INTERFACE SCALE</v-chip> setting is set to
+                  <strong>1.0</strong> in Rust.
+                </p>
               </li>
-              <li>Click <strong>SCAN</strong> and select Rust window.</li>
               <li>
-                Click on a Saplings in your inventory or storage, so that the genes are displayed on the screen. It
-                takes about a second to capture each Sapling.
+                <p>
+                  Make sure you run game in <v-chip outlined>16:9</v-chip> aspect ratio resolution (1920x1080 or
+                  2560x1440 or 4K) and borderless mode. If you have a different resolution on your monitor set Rust to
+                  <strong>windowed</strong> mode and select a 16:9 ratio resolution.
+                </p>
               </li>
+              <li>
+                <p>Click <strong>SCAN</strong> and select Rust window.</p>
+              </li>
+              <li>
+                <p>
+                  Click on a Saplings in your inventory or storage, so that the genes are displayed on the screen. It
+                  takes about a second to capture each Sapling.
+                </p>
+              </li>
+              <li><p>Enjoy! If it doesn't work let me know on Discord!</p></li>
             </ol>
           </v-container>
         </v-card-text>
         <v-divider></v-divider>
-
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="primary" text @click="isDialogOpen = false">
@@ -41,7 +54,6 @@
 
           <v-btn
             color="primary"
-            text
             @click="
               isDialogOpen = false;
               startCapturing();
@@ -57,13 +69,11 @@
 
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
-// eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-// @ts-ignore
 import Resemble, { compare } from 'resemblejs';
 
 const SCANNING_INTERVAL = 500;
 
-const MIN_RESEMBLENCE_THRESHOLD = 50;
+const MIN_RESEMBLENCE_THRESHOLD = 80;
 const GENE_IMG_MODELS: { [key: string]: string } = {
   W:
     'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAQCAYAAAAbBi9cAAAAAXNSR0IArs4c6QAAA7FJREFUOE8tk+tPFFcchp+zMzvssuxyK0gQFIlaRdAqLWAxguXmBamGBW2DkUiatkn/iaZf2y9NmqbagrFKUrXYmOCtaBGVegmCNxqq1CpVF4FSC3ubnZnTzND5eE7Oc37ve54Rn37ysaypqiI9Jwe3ZfLi3gjD164gpaSkrJyCDWXY38TIEPduXnfW17xVztLSMnSXwqupSX6+eAnxWXubrKisJKuoBIFk/o8xBi+cdw68XdeAf/kqJBB5/JDB82cREspqagmsLEIimBl7wODAAOKLtha5vLiEZZuqsYRAvnzBuZ6TzhTbmlsgK8cBiZlJzp08gQBqdr6LmpuPC3jy61XGRoYRX723S/pzF7NhdysJl4I294qe7u8RwkVw336iXp8DSo5H+PHoETBMmlr3YqRnolomd0+fYnbiCeLgnkYZS/JS3fERhjsJn6HT092NL+CnbmcTEUXDHsNj6PxytpfZyZe07ttHWPOgGQn6Ow+iRcOIztbtcl5NoqKtHTUtA49pcLmvj+RAgPXlG9EVxYmpWSZ3bt3g71CI+h07iCpurH//YfBIJylGHHHYAbkpbmomdUkBqmUxNDSEP5BG4esrMYQLKS3cdh/j48xMhiivqCDhcjH3bIK7p47jS+iIwy1bZVjVKKiuJa94nXP72MNHBNLSyVqUTSQcxrRM/P4AM1PTDmhN0Wqnt+ej9xm/eI4UM7EAiqgaGSXrKdlcTUIoTIRCpKZn4PN6mH72DMsyyc5fQjSuMxUKsSw/D1VajA5eYer2TZINHdEVrJdxVUMuWsyW5lZiisZsNEpySgpuy+LpvTsYpkHhG6VOnPDcHBm+ZJLMBAM/9WD+9SdeU0d0BuulrqjMack07u8g7k0hrqi2OXjMBA8uXcBIGKxr2E5MsZuSaJaBNx7ldNchAvEwmmkgvg3WSdOlMu/28E5wLyI71zlgW26rMHC0C13XqT3wIXaXts32NLagfT8cw2/EHJ/EoWC9tDejmofS+u34VxQRU1QH5J6bpf+7b5wH2Nz+AWZa5v8gg8jjMa73nibFjmWvft26VSqWdOKs2LiJ3DcrialuXNIk/vwpt48fc0Brd+/Bt7QQSyhO5MnhG4xe7cdrGRh2EV++3yi1RAJLuHhtxSqKtu1yZFOlyeSDOzzq63VABVUN5K2zC18A/d53htBvd1GkSUxREJ93tEg1EnZEdPtTqWs7gO5SHdD9awO8GLnlgDJXr6V0S93C/2gZXD7RTXj6JaYiSHi9/Ae+1qvV39LmIgAAAABJRU5ErkJggg==',
@@ -83,6 +93,8 @@ const SCREEN_GENE_X_POSITION = 0.4166;
 const SCREEN_GENE_Y_POSITION = 0.281;
 const SCREEN_DISTANCE_BETWEEN_GENES = 0.0141;
 
+const ASPECT_RATIO_169 = 16 / 9;
+
 @Component
 export default class SaplingScreenCapture extends Vue {
   isDialogOpen = false;
@@ -96,10 +108,11 @@ export default class SaplingScreenCapture extends Vue {
 
   startCapturing() {
     navigator.mediaDevices
+      // TODO: what about windowed mode and the bar at the top?
       .getDisplayMedia({
         video: {
-          width: { ideal: 2560 },
-          height: { ideal: 1440 }
+          width: { ideal: 3840 },
+          height: { ideal: 2160 }
         },
         audio: false
       })
@@ -196,6 +209,7 @@ export default class SaplingScreenCapture extends Vue {
         const mostResemblingGeneResult = resultList.sort((a, b) =>
           a.rawMisMatchPercentage > b.rawMisMatchPercentage ? 1 : -1
         )[0];
+        console.log('mostResemblingGeneResult', mostResemblingGeneResult.rawMisMatchPercentage);
         if (mostResemblingGeneResult.rawMisMatchPercentage <= MIN_RESEMBLENCE_THRESHOLD) {
           mainResolve(mostResemblingGeneResult.key);
         } else {
@@ -209,17 +223,37 @@ export default class SaplingScreenCapture extends Vue {
 
   getSaplingGenesScans(): string[] {
     const geneScans = [];
-    this.videoCanvas.height = this.video.videoHeight;
+    const aspectRatio = this.video.videoWidth / this.video.videoHeight;
+    let yOffset = 0;
+    if (aspectRatio !== ASPECT_RATIO_169) {
+      const expectedHeight = Math.round(this.video.videoWidth / ASPECT_RATIO_169);
+      // If ratio is not 16:9 it means user should use windowed mode and that there is Application Bar at the top.
+      yOffset = -(this.video.videoHeight - expectedHeight);
+      // console.log(yOffset);
+      this.videoCanvas.height = expectedHeight;
+    } else {
+      this.videoCanvas.height = this.video.videoHeight;
+    }
     this.videoCanvas.width = this.video.videoWidth;
+
     const videoCanvasCtx = this.videoCanvas.getContext('2d');
     if (videoCanvasCtx) {
-      videoCanvasCtx.drawImage(this.video, 0, 0, this.videoCanvas.width, this.videoCanvas.height);
+      videoCanvasCtx.drawImage(this.video, 0, yOffset, this.videoCanvas.width, this.videoCanvas.height - yOffset);
       for (let genePosition = 0; genePosition < 6; genePosition++) {
         const saplingGenesXPixelsStart =
           this.videoCanvas.width * (SCREEN_GENE_X_POSITION + SCREEN_DISTANCE_BETWEEN_GENES * genePosition);
         const saplingGenesXPixelsWidth = this.videoCanvas.width * SCREEN_GENE_WIDTH;
+        // console.log(this.videoCanvas.height);
         const saplingGenesYPixelsStart = this.videoCanvas.height * SCREEN_GENE_Y_POSITION;
         const saplingGenesYPixelsWidth = this.videoCanvas.height * SCREEN_GENE_HEIGHT;
+        // console.log(
+        //   this.videoCanvas.width,
+        //   this.videoCanvas.height,
+        //   saplingGenesXPixelsStart,
+        //   saplingGenesYPixelsStart,
+        //   saplingGenesXPixelsWidth,
+        //   saplingGenesYPixelsWidth
+        // );
         const imgData = videoCanvasCtx.getImageData(
           saplingGenesXPixelsStart,
           saplingGenesYPixelsStart,
@@ -231,6 +265,7 @@ export default class SaplingScreenCapture extends Vue {
         this.geneCanvas.width = imgData.width;
         if (geneCanvasCtx) {
           geneCanvasCtx.putImageData(imgData, 0, 0);
+          // console.log(this.geneCanvas.toDataURL());
           geneScans.push(this.geneCanvas.toDataURL());
         }
       }

@@ -67,8 +67,7 @@
           <v-btn color="primary" text @click="closeDialog">
             Close
           </v-btn>
-
-          <v-btn color="primary" text @click="saveOptions" :disabled="!isFormValid">
+          <v-btn color="primary" @click="saveOptions" :disabled="!isFormValid">
             Save
           </v-btn>
         </v-card-actions>

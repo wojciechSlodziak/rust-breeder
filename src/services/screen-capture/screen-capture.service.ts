@@ -35,7 +35,6 @@ class ScreenCaptureService {
 
   startCapturing() {
     navigator.mediaDevices
-      // TODO: what about windowed mode and the bar at the top?
       .getDisplayMedia({
         video: {
           width: { ideal: 1920 },

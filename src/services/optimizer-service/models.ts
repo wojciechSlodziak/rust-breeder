@@ -24,6 +24,7 @@ export interface SimulateOptions {
   progressCallback: (combinationsProcessed: number, partialResultMapList: GeneticsMap[]) => void;
   callProgressCallbackAfterCombinations: number;
   callProgressCallbackAfterNumberOfResultsReached: number;
+  maxCrossbreedingSaplings: number;
   geneScores: Record<GeneEnum, number>;
   withRepetitions: boolean;
   includeResultsWithMinimumScore: boolean;

@@ -108,7 +108,6 @@ class ScreenCaptureService {
     return Promise.all(promises)
       .then((results) => {
         const totalMismatchPercentage = results.reduce((acc, result) => acc + result.rawMisMatchPercentage, 0);
-        console.log(totalMismatchPercentage, results.map((result) => result.key).join(''));
         if (totalMismatchPercentage < MIN_RESEMBLENCE_THRESHOLD) {
           const saplingGenesString = results.map((result) => result.key).join('');
           this.listeners.forEach((listenerCallback) => {
@@ -159,14 +158,11 @@ class ScreenCaptureService {
   private getSaplingGenesScans(): string[] {
     const geneScans = [];
     const aspectRatio = this.video.videoWidth / this.video.videoHeight;
-    // console.log(this.video.videoWidth, this.video.videoHeight, aspectRatio);
     let yPXOffset = 0;
     if (aspectRatio !== ASPECT_RATIO_169) {
       const expectedHeight = Math.round(this.video.videoWidth / ASPECT_RATIO_169);
       // If ratio is not 16:9 it means user should use windowed mode and that there is Application Bar at the top.
-      //   console.log('expectedHeight', expectedHeight);
       yPXOffset = -(this.video.videoHeight - expectedHeight);
-      //   console.log('yPXOffset', yPXOffset);
       this.videoCanvas.height = expectedHeight;
     } else {
       this.videoCanvas.height = this.video.videoHeight;
@@ -181,11 +177,6 @@ class ScreenCaptureService {
           this.videoCanvas.width *
             (SCREEN_GENE_X_POSITION_CENTER - SCREEN_GENE_WIDTH / 2 + SCREEN_DISTANCE_BETWEEN_GENES * genePosition)
         );
-        // console.log(
-        //   this.videoCanvas.width * (SCREEN_GENE_X_POSITION + SCREEN_DISTANCE_BETWEEN_GENES * genePosition),
-        //   saplingGenesXPixelsStart,
-        //   Math.floor(this.videoCanvas.width * (SCREEN_GENE_X_POSITION + SCREEN_DISTANCE_BETWEEN_GENES * genePosition))
-        // );
         const saplingGenesXPixelsWidth = Math.round(this.videoCanvas.width * SCREEN_GENE_WIDTH);
         const saplingGenesYPixelsStart = Math.round(
           this.videoCanvas.height * (SCREEN_GENE_Y_POSITION_CENTER - SCREEN_GENE_HEIGHT / 2)
@@ -202,7 +193,6 @@ class ScreenCaptureService {
         this.geneCanvas.width = imgData.width;
         if (geneCanvasCtx) {
           geneCanvasCtx.putImageData(imgData, 0, 0);
-          console.log(this.geneCanvas.toDataURL());
           geneScans.push(this.geneCanvas.toDataURL());
         }
       }

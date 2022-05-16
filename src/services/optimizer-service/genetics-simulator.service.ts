@@ -28,7 +28,8 @@ class GeneticsSimulatorService {
     let positions: number[];
     for (
       let positionCount = startingPositions.length;
-      positionCount <= getMaxPositionsCount(sourceSaplings.length, options.withRepetitions);
+      positionCount <=
+      getMaxPositionsCount(sourceSaplings.length, options.withRepetitions, options.maxCrossbreedingSaplings);
       positionCount++
     ) {
       positions =

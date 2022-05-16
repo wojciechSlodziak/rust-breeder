@@ -1,11 +1,12 @@
 import GeneEnum from '@/enums/gene.enum';
 import GeneticsMap from '@/models/genetics-map.model';
 
-export interface EventListenerCallback {
-  (eventType: 'PROGRESS_UPDATE' | 'DONE', data: EventListenerCallbackData): void;
+export interface OptimizerServiceEventListenerCallback {
+  (eventType: 'PROGRESS_UPDATE' | 'DONE', data: OptimizerServiceEventListenerCallbackData): void;
 }
 
 export class NotEnoughSourceSaplingsError extends Error {}
+export class ImpracticalResultError extends Error {}
 
 export class MapGroup {
   resultSaplingGeneString: string;
@@ -13,7 +14,7 @@ export class MapGroup {
   index?: number;
 }
 
-export interface EventListenerCallbackData {
+export interface OptimizerServiceEventListenerCallbackData {
   isDone?: boolean;
   progressPercent?: number;
   mapGroups?: MapGroup[];

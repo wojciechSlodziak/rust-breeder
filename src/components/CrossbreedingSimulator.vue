@@ -5,29 +5,41 @@
     </div>
     <v-container fluid>
       <v-row>
-        <v-col cols="12" :md="showHighlight ? 12 : 4" :lg="showHighlight ? 5 : 3" class="pa-1">
+        <v-col cols="12" :md="showHighlight ? 12 : 4" :lg="showHighlight ? 6 : 3" class="pa-1">
           <v-form ref="form" v-model="isFormValid" spellcheck="false">
-            <v-row class="d-flex justify-center mt-1">
-              <v-btn color="primary" @click="handleSimulateClick" :disabled="isSimulating || !isFormValid"
+            <v-row class="d-flex justify-center mt-1 px-3">
+              <v-btn
+                class="mt-2"
+                color="primary"
+                @click="handleSimulateClick"
+                :disabled="isSimulating || !isFormValid || isScreenScanning"
                 >Simulate</v-btn
               >
-              <span class="ml-2">
+              <span class="ml-2 mt-2">
+                <SaplingScreenCapture
+                  @sapling-scanned="handleSaplingScannedEvent"
+                  @started-scanning="isScreenScanning = true"
+                  @stopped-scanning="isScreenScanning = false"
+                />
+              </span>
+              <span class="ml-2 mt-2">
                 <OptionsButton ref="optionsButton" />
               </span>
             </v-row>
-
-            <v-row class="d-flex mx-1 pt-3 pb-3">
+            <v-row class="d-flex mx-1 pt-3 pb-3 mt-5">
               <div class="flex-grow-1 mx-3 simulator_sapling-input-container">
                 <v-textarea
                   full-width
                   ref="saplingGenesInput"
                   class="simulator_sapling-input"
-                  label="Source Saplings"
+                  :placeholder="placeholder"
+                  label="Sapling List"
                   :value="saplingGenes"
                   @input="handleSaplingGenesInput($event)"
                   @blur="handleSaplingGenesInputBlur"
                   @keydown="handleSaplingGenesInputKeyDown($event)"
                   outlined
+                  :disabled="isScreenScanning"
                   auto-grow
                   validate-on-blur
                   :rules="sourceSaplingRules"
@@ -35,6 +47,7 @@
                   hint="Enter each Sapling's genes in new line using 'XXYWGH' format."
                 ></v-textarea>
                 <SaplingInputHighlights :inputString="saplingGenes" :highlightedMap="highlightedMap" />
+                <SaplingListPreview :saplingGeneList="saplingGeneList" ref="saplingListPreview"></SaplingListPreview>
               </div>
 
               <div v-if="showHighlight" class="d-flex flex-column align-center" style="flex: 1 0 0">
@@ -45,7 +58,7 @@
           </v-form>
         </v-col>
 
-        <v-col cols="12" :md="showHighlight ? 12 : 8" :lg="showHighlight ? 7 : 9">
+        <v-col cols="12" :md="showHighlight ? 12 : 8" :lg="showHighlight ? 6 : 9">
           <SimulationResults
             v-if="resultMapGroups !== null && resultMapGroups.length !== 0 && !isSimulating"
             :mapGroups="resultMapGroups"
@@ -74,18 +87,33 @@ import SimulationResults from './SimulationResults.vue';
 import SimulationMap from './SimulationMap.vue';
 import SaplingInputHighlights from './SaplingInputHighlights.vue';
 import OptionsButton from './OptionsButton.vue';
-import { EventListenerCallbackData, MapGroup, NotEnoughSourceSaplingsError } from '@/services/optimizer-service/models';
+import SaplingListPreview from './SaplingListPreview.vue';
+import SaplingScreenCapture from './SaplingScreenCapture.vue';
+import {
+  OptimizerServiceEventListenerCallbackData,
+  MapGroup,
+  NotEnoughSourceSaplingsError
+} from '@/services/optimizer-service/models';
 import GeneticsMap from '@/models/genetics-map.model';
 import goTo from 'vuetify/lib/services/goto';
 
 @Component({
-  components: { SimulationResults, SimulationMap, SaplingInputHighlights, OptionsButton }
+  components: {
+    SimulationResults,
+    SimulationMap,
+    SaplingInputHighlights,
+    OptionsButton,
+    SaplingScreenCapture,
+    SaplingListPreview
+  }
 })
 export default class CrossbreedingSimulator extends Vue {
-  saplingGenes = 'YYYWYX\nGGHGHY\nHHGGGY';
+  placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`;
+  saplingGenes = '';
   progressPercent = 0;
   isSimulating = false;
   isFormValid = false;
+  isScreenScanning = false;
   showNotEnoughSaplingsError = false;
   highlightedMap: GeneticsMap | null = null;
   resultMapGroups: readonly MapGroup[] | null = null;
@@ -97,6 +125,10 @@ export default class CrossbreedingSimulator extends Vue {
 
   get showHighlight() {
     return this.highlightedMap !== null;
+  }
+
+  get saplingGeneList() {
+    return this.saplingGenes === '' ? [] : this.saplingGenes.trim().split(/\r?\n/);
   }
 
   constructor() {
@@ -112,6 +144,9 @@ export default class CrossbreedingSimulator extends Vue {
       this.saplingGenes = value;
       this.$nextTick(() => {
         this.saplingGenes = value.toUpperCase().replace(/[^GHWYX\n]/g, '');
+        if (this.saplingGenes.length !== 0 && this.saplingGenes.charAt(0).match(/\r?\n/)) {
+          this.saplingGenes = this.saplingGenes.slice(1);
+        }
         this.$nextTick(() => {
           textarea.selectionEnd = caretPosition + (this.saplingGenes.length - value.length);
         });
@@ -119,7 +154,25 @@ export default class CrossbreedingSimulator extends Vue {
     }
   }
 
-  onOptimizerServiceEvent(type: string, data: EventListenerCallbackData) {
+  getDeduplicatedSaplingGeneList() {
+    const splitSaplingGenes: string[] = this.saplingGeneList;
+    const deduplicatedSaplingGenes: string[] = splitSaplingGenes.filter(
+      (genes, index, self) => index === self.findIndex((otherGenes) => otherGenes === genes)
+    );
+    return deduplicatedSaplingGenes;
+  }
+
+  handleSaplingScannedEvent(value: string) {
+    if (this.saplingGenes.indexOf(value) === -1) {
+      if (!this.saplingGenes.charAt(this.saplingGenes.length - 1).match(/\r?\n/) && this.saplingGenes.length !== 0) {
+        this.saplingGenes += '\n';
+      }
+      this.saplingGenes += value;
+      (this.$refs.saplingListPreview as SaplingListPreview)?.animateLastSapling();
+    }
+  }
+
+  onOptimizerServiceEvent(type: string, data: OptimizerServiceEventListenerCallbackData) {
     if (type === 'PROGRESS_UPDATE') {
       this.progressPercent = data.progressPercent || 0;
     }
@@ -137,29 +190,29 @@ export default class CrossbreedingSimulator extends Vue {
 
   handleSimulateClick() {
     this.clearHighlight();
-    const splitSaplingGenes: string[] = this.saplingGenes.trim().split(/\r?\n/);
-    const deduplicatedSaplingGenes: string[] = splitSaplingGenes.filter(
-      (genes, index, self) => index === self.findIndex((otherGenes) => otherGenes === genes)
-    );
-    this.saplingGenes = deduplicatedSaplingGenes.join('\n');
+    const deduplicatedSaplingGeneList = this.getDeduplicatedSaplingGeneList();
+    this.saplingGenes = deduplicatedSaplingGeneList.join('\n');
 
     this.progressPercent = 0;
     this.resultMapGroups = null;
     try {
       optimizerService.simulateBestGenetics(
-        deduplicatedSaplingGenes,
+        deduplicatedSaplingGeneList,
         (this.$refs.optionsButton as OptionsButton).getOptions()
       );
       this.isSimulating = true;
     } catch (e) {
       if (e instanceof NotEnoughSourceSaplingsError) {
         this.showNotEnoughSaplingsError = true;
+      } else {
+        throw e;
       }
     }
   }
 
   handleSaplingGenesInputBlur() {
     this.saplingGenes = this.saplingGenes.replaceAll(/[\n]{2,}/g, '\n');
+    this.saplingGenes = this.getDeduplicatedSaplingGeneList().join('\n');
     this.$nextTick(() => {
       if ((this.$refs.form as Vue & { validate: () => boolean }).validate()) {
         (this.$refs.form as Vue & { resetValidation: () => boolean }).resetValidation();
@@ -233,6 +286,7 @@ export default class CrossbreedingSimulator extends Vue {
 }
 .simulator_sapling-input-container {
   position: relative;
+  min-width: 260px;
   .simulator_sapling-input {
     z-index: 1;
   }

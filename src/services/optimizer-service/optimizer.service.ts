@@ -8,10 +8,10 @@ import {
   fixPrototypeAssignmentsAfterSerialization
 } from './optimizer.helper';
 import { MIN_CROSSBREEDING_SAPLINGS } from '@/const';
-import { EventListenerCallback, MapGroup, NotEnoughSourceSaplingsError } from './models';
+import { OptimizerServiceEventListenerCallback, MapGroup, NotEnoughSourceSaplingsError } from './models';
 
 class OptimizerService {
-  listeners: EventListenerCallback[] = [];
+  listeners: OptimizerServiceEventListenerCallback[] = [];
 
   workerProgress: number[] = [];
   resultMapLists: GeneticsMap[][] = [];
@@ -92,7 +92,7 @@ class OptimizerService {
     });
   }
 
-  addEventListener(callback: EventListenerCallback) {
+  addEventListener(callback: OptimizerServiceEventListenerCallback) {
     this.listeners.push(callback);
   }
 }

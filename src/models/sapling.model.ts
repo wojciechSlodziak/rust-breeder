@@ -19,14 +19,12 @@ export default class Sapling {
     } else {
       this.genes = [];
     }
+    this.crossbreedingWeights = [];
   }
 
   addGene(gene: Gene, weight: number | undefined = undefined) {
     this.genes.push(gene);
     if (weight) {
-      if (!this.crossbreedingWeights) {
-        this.crossbreedingWeights = [];
-      }
       this.crossbreedingWeights.push(weight);
     }
   }

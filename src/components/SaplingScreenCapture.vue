@@ -46,7 +46,7 @@
                   takes about a second to capture each Sapling.
                 </p>
               </li>
-              <li><p>Enjoy! If it doesn't work let me know on Discord!</p></li>
+              <li><p class="mb-0">Enjoy! If it doesn't work let me know on Discord!</p></li>
             </ol>
           </v-container>
         </v-card-text>

@@ -56,7 +56,7 @@
                 label="Include results reaching predefined Minimum Score (memory WARNING!)"
               />
             </v-row>
-            <v-row class="mt-3">
+            <v-row class="mt-3 mb-3">
               <v-text-field
                 v-if="includeResultsWithMinimumScore"
                 class="mx-2"
@@ -76,7 +76,7 @@
             Close
           </v-btn>
           <v-btn color="primary" @click="saveOptions" :disabled="!isFormValid">
-            Save
+            Set
           </v-btn>
         </v-card-actions>
       </v-form>

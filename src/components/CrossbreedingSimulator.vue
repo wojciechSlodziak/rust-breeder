@@ -39,7 +39,7 @@
                   @blur="handleSaplingGenesInputBlur"
                   @keydown="handleSaplingGenesInputKeyDown($event)"
                   outlined
-                  :disabled="isScreenScanning"
+                  :disabled="isScreenScanning || isSimulating"
                   auto-grow
                   :rules="sourceSaplingRules"
                   autocomplete="off"

@@ -3,8 +3,8 @@
     <div class="group_container" :class="{ 'group_container--overflowed': applyOverflowInBrowsingMode }">
       <SimulationMap
         @click.native="handleMapClick(map, index !== 0 && !isGroupBrowsingMode)"
-        @mouseover.native="(e) => index !== 0 && !isGroupBrowsingMode && handleDummyMouseOver(e)"
-        @mouseout.native="(e) => index !== 0 && !isGroupBrowsingMode && handleDummyMouseOut(e)"
+        @mouseover.native="() => index !== 0 && !isGroupBrowsingMode && handleDummyMouseOver()"
+        @mouseout.native="() => index !== 0 && !isGroupBrowsingMode && handleDummyMouseOut()"
         ref="map"
         class="group_map"
         :class="{

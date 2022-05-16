@@ -5,7 +5,7 @@
     </div>
     <v-container fluid>
       <v-row>
-        <v-col cols="12" :md="showHighlight ? 12 : 4" :lg="showHighlight ? 5 : 3" class="pa-1">
+        <v-col cols="12" :md="showHighlight ? 12 : 4" :lg="showHighlight ? 6 : 3" class="pa-1">
           <v-form ref="form" v-model="isFormValid" spellcheck="false">
             <v-row class="d-flex justify-center mt-1 px-3">
               <v-btn
@@ -47,6 +47,7 @@
                   hint="Enter each Sapling's genes in new line using 'XXYWGH' format."
                 ></v-textarea>
                 <SaplingInputHighlights :inputString="saplingGenes" :highlightedMap="highlightedMap" />
+                <SaplingListPreview :saplingGeneList="saplingGeneList" ref="saplingListPreview"></SaplingListPreview>
               </div>
 
               <div v-if="showHighlight" class="d-flex flex-column align-center" style="flex: 1 0 0">
@@ -57,7 +58,7 @@
           </v-form>
         </v-col>
 
-        <v-col cols="12" :md="showHighlight ? 12 : 8" :lg="showHighlight ? 7 : 9">
+        <v-col cols="12" :md="showHighlight ? 12 : 8" :lg="showHighlight ? 6 : 9">
           <SimulationResults
             v-if="resultMapGroups !== null && resultMapGroups.length !== 0 && !isSimulating"
             :mapGroups="resultMapGroups"
@@ -86,13 +87,25 @@ import SimulationResults from './SimulationResults.vue';
 import SimulationMap from './SimulationMap.vue';
 import SaplingInputHighlights from './SaplingInputHighlights.vue';
 import OptionsButton from './OptionsButton.vue';
+import SaplingListPreview from './SaplingListPreview.vue';
 import SaplingScreenCapture from './SaplingScreenCapture.vue';
-import { EventListenerCallbackData, MapGroup, NotEnoughSourceSaplingsError } from '@/services/optimizer-service/models';
+import {
+  OptimizerServiceEventListenerCallbackData,
+  MapGroup,
+  NotEnoughSourceSaplingsError
+} from '@/services/optimizer-service/models';
 import GeneticsMap from '@/models/genetics-map.model';
 import goTo from 'vuetify/lib/services/goto';
 
 @Component({
-  components: { SimulationResults, SimulationMap, SaplingInputHighlights, OptionsButton, SaplingScreenCapture }
+  components: {
+    SimulationResults,
+    SimulationMap,
+    SaplingInputHighlights,
+    OptionsButton,
+    SaplingScreenCapture,
+    SaplingListPreview
+  }
 })
 export default class CrossbreedingSimulator extends Vue {
   placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`;
@@ -114,6 +127,10 @@ export default class CrossbreedingSimulator extends Vue {
     return this.highlightedMap !== null;
   }
 
+  get saplingGeneList() {
+    return this.saplingGenes === '' ? [] : this.saplingGenes.trim().split(/\r?\n/);
+  }
+
   constructor() {
     super();
     optimizerService.addEventListener(this.onOptimizerServiceEvent);
@@ -127,6 +144,9 @@ export default class CrossbreedingSimulator extends Vue {
       this.saplingGenes = value;
       this.$nextTick(() => {
         this.saplingGenes = value.toUpperCase().replace(/[^GHWYX\n]/g, '');
+        if (this.saplingGenes.length !== 0 && this.saplingGenes.charAt(0).match(/\r?\n/)) {
+          this.saplingGenes = this.saplingGenes.slice(1);
+        }
         this.$nextTick(() => {
           textarea.selectionEnd = caretPosition + (this.saplingGenes.length - value.length);
         });
@@ -134,17 +154,25 @@ export default class CrossbreedingSimulator extends Vue {
     }
   }
 
+  getDeduplicatedSaplingGeneList() {
+    const splitSaplingGenes: string[] = this.saplingGeneList;
+    const deduplicatedSaplingGenes: string[] = splitSaplingGenes.filter(
+      (genes, index, self) => index === self.findIndex((otherGenes) => otherGenes === genes)
+    );
+    return deduplicatedSaplingGenes;
+  }
+
   handleSaplingScannedEvent(value: string) {
     if (this.saplingGenes.indexOf(value) === -1) {
-      if (!this.saplingGenes.charAt(this.saplingGenes.length - 1).match(/\r\n|\n|\r/)) {
+      if (!this.saplingGenes.charAt(this.saplingGenes.length - 1).match(/\r?\n/) && this.saplingGenes.length !== 0) {
         this.saplingGenes += '\n';
       }
-      this.saplingGenes += value + '\n';
-      // TODO: show toast??
+      this.saplingGenes += value;
+      (this.$refs.saplingListPreview as SaplingListPreview)?.animateLastSapling();
     }
   }
 
-  onOptimizerServiceEvent(type: string, data: EventListenerCallbackData) {
+  onOptimizerServiceEvent(type: string, data: OptimizerServiceEventListenerCallbackData) {
     if (type === 'PROGRESS_UPDATE') {
       this.progressPercent = data.progressPercent || 0;
     }
@@ -162,17 +190,14 @@ export default class CrossbreedingSimulator extends Vue {
 
   handleSimulateClick() {
     this.clearHighlight();
-    const splitSaplingGenes: string[] = this.saplingGenes.trim().split(/\r?\n/);
-    const deduplicatedSaplingGenes: string[] = splitSaplingGenes.filter(
-      (genes, index, self) => index === self.findIndex((otherGenes) => otherGenes === genes)
-    );
-    this.saplingGenes = deduplicatedSaplingGenes.join('\n');
+    const deduplicatedSaplingGeneList = this.getDeduplicatedSaplingGeneList();
+    this.saplingGenes = deduplicatedSaplingGeneList.join('\n');
 
     this.progressPercent = 0;
     this.resultMapGroups = null;
     try {
       optimizerService.simulateBestGenetics(
-        deduplicatedSaplingGenes,
+        deduplicatedSaplingGeneList,
         (this.$refs.optionsButton as OptionsButton).getOptions()
       );
       this.isSimulating = true;
@@ -187,6 +212,7 @@ export default class CrossbreedingSimulator extends Vue {
 
   handleSaplingGenesInputBlur() {
     this.saplingGenes = this.saplingGenes.replaceAll(/[\n]{2,}/g, '\n');
+    this.saplingGenes = this.getDeduplicatedSaplingGeneList().join('\n');
     this.$nextTick(() => {
       if ((this.$refs.form as Vue & { validate: () => boolean }).validate()) {
         (this.$refs.form as Vue & { resetValidation: () => boolean }).resetValidation();
@@ -260,6 +286,7 @@ export default class CrossbreedingSimulator extends Vue {
 }
 .simulator_sapling-input-container {
   position: relative;
+  min-width: 260px;
   .simulator_sapling-input {
     z-index: 1;
   }

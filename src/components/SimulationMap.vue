@@ -8,8 +8,8 @@
   >
     <v-list-item class="map_header">
       <v-list-item-content>
-        <v-list-item-title class="headline">
-          <SaplingGeneRepresentation :sapling="map.resultSapling" class="map_result-sapling" />
+        <v-list-item-title>
+          <SaplingGeneRepresentation :sapling="map.resultSapling" class="map_sapling map_result-sapling" />
         </v-list-item-title>
         <v-list-item-subtitle class="mt-2">
           <span class="map_score"
@@ -29,7 +29,7 @@
             <div class="mb-1">
               Center Sapling:<span class="white--text" v-if="!map.baseSapling"><br />any extra random plant</span>
             </div>
-            <SaplingGeneRepresentation :sapling="map.baseSapling" v-if="map.baseSapling" />
+            <SaplingGeneRepresentation class="map_sapling" :sapling="map.baseSapling" v-if="map.baseSapling" />
           </div>
         </template>
         <span
@@ -45,6 +45,7 @@
           <div v-bind="attrs" v-on="on">
             <div class="mb-1">Surrounding Saplings:</div>
             <SaplingGeneRepresentation
+              class="map_sapling"
               :sapling="crossbreedSapling"
               v-for="(crossbreedSapling, index) in map.crossbreedSaplings"
               :key="index"
@@ -114,6 +115,9 @@ export default class SimulationMap extends Vue {
         color: rgb(31, 196, 31);
       }
     }
+  }
+  .map_sapling {
+    font-size: 1rem;
   }
   &.map--hidden {
     .map_header,

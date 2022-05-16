@@ -33,7 +33,7 @@ class OptimizerService {
 
     const workers: Worker[] = [];
 
-    const workChunks = getWorkChunks(sourceGenes.length, options.withRepetitions);
+    const workChunks = getWorkChunks(sourceGenes.length, options.withRepetitions, options.maxCrossbreedingSaplings);
     workChunks.forEach((workChunk, workerIndex) => {
       const worker = new Worker();
       workers.push(worker);

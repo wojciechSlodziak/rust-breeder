@@ -41,7 +41,6 @@
                   outlined
                   :disabled="isScreenScanning"
                   auto-grow
-                  validate-on-blur
                   :rules="sourceSaplingRules"
                   autocomplete="off"
                   hint="Enter each Sapling's genes in new line using 'XXYWGH' format."
@@ -120,7 +119,7 @@ export default class CrossbreedingSimulator extends Vue {
 
   sourceSaplingRules = [
     (v: string) => v !== '' || 'Give me some plants to work with!',
-    (v: string) => /^([GHWYX]{6}\n{1})*([GHWYX]{6}\n{0})*\n*$/.test(v) || 'The format is wrong...'
+    (v: string) => /^([GHWYX]{6}\n{1})*([GHWYX]{6}\n{0})*\n*$/.test(v) || 'You are almost there...'
   ];
 
   get showHighlight() {

@@ -1,4 +1,4 @@
-import { MAX_CROSSBREEDING_SAPLINGS, MAX_SAME_RESULT_VARIANTS_IN_MAP, MIN_CROSSBREEDING_SAPLINGS } from '@/const';
+import { MAX_SAME_RESULT_VARIANTS_IN_MAP, MIN_CROSSBREEDING_SAPLINGS } from '@/const';
 import GeneticsMap from '../../models/genetics-map.model';
 import Gene from '../../models/gene.model';
 import Sapling from '../../models/sapling.model';
@@ -46,13 +46,17 @@ function rFact(num: number): number {
   }
 }
 
-export function getMaxPositionsCount(itemsCount: number, withRepetitions: boolean) {
-  return withRepetitions ? MAX_CROSSBREEDING_SAPLINGS : Math.min(itemsCount, MAX_CROSSBREEDING_SAPLINGS);
+export function getMaxPositionsCount(itemsCount: number, withRepetitions: boolean, maxCrossbreedingSaplings: number) {
+  return withRepetitions ? maxCrossbreedingSaplings : Math.min(itemsCount, maxCrossbreedingSaplings);
 }
 
-export function getNumberOfCrossbreedCombinations(itemsCount: number, withRepetitions: boolean) {
+export function getNumberOfCrossbreedCombinations(
+  itemsCount: number,
+  withRepetitions: boolean,
+  maxCrossbreedingSaplings: number
+) {
   let numberOfAllCombinations = 0;
-  const maxItemsInVariation = getMaxPositionsCount(itemsCount, withRepetitions);
+  const maxItemsInVariation = getMaxPositionsCount(itemsCount, withRepetitions, maxCrossbreedingSaplings);
   for (let k = MIN_CROSSBREEDING_SAPLINGS; k <= maxItemsInVariation; k++) {
     if (withRepetitions) {
       numberOfAllCombinations += rFact(k + itemsCount - 1) / (rFact(k) * rFact(itemsCount - 1));
@@ -123,8 +127,12 @@ export function setNextPosition(
  * @param withRepetitions Option defining if process should consider repetitions.
  * @returns List of objects which represent chunks of work.
  */
-export function getWorkChunks(sourceSaplingsCount: number, withRepetitions: boolean) {
-  const allCombinationsCount = getNumberOfCrossbreedCombinations(sourceSaplingsCount, withRepetitions);
+export function getWorkChunks(sourceSaplingsCount: number, withRepetitions: boolean, maxCrossbreedingSaplings: number) {
+  const allCombinationsCount = getNumberOfCrossbreedCombinations(
+    sourceSaplingsCount,
+    withRepetitions,
+    maxCrossbreedingSaplings
+  );
   const numberOfWorkers = navigator.hardwareConcurrency;
   const combinationsPerWorker = Math.ceil(allCombinationsCount / numberOfWorkers);
   const workChunks = [];
@@ -133,7 +141,7 @@ export function getWorkChunks(sourceSaplingsCount: number, withRepetitions: bool
   let combinationsProcessed = 0;
   for (
     let positionCount = MIN_CROSSBREEDING_SAPLINGS;
-    positionCount <= getMaxPositionsCount(sourceSaplingsCount, withRepetitions);
+    positionCount <= getMaxPositionsCount(sourceSaplingsCount, withRepetitions, maxCrossbreedingSaplings);
     positionCount++
   ) {
     const positions = buildInitialSaplingPositions(positionCount, withRepetitions);

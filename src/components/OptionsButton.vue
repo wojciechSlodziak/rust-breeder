@@ -17,11 +17,9 @@
 
         <v-card-text>
           <v-container>
-            <v-row>
-              <h3>Gene Scores</h3>
-            </v-row>
-            <v-row>
-              <v-col class="pl-1 pr-1" v-for="geneScore in scoreInputs" :key="geneScore.key">
+            <h3>Gene Scores</h3>
+            <v-row class="mt-0 mx-0">
+              <v-col class="pl-1 pr-1 " v-for="geneScore in scoreInputs" :key="geneScore.key">
                 <v-text-field
                   type="number"
                   :label="geneScore.key"
@@ -30,7 +28,17 @@
                 ></v-text-field>
               </v-col>
             </v-row>
-            <v-row class="mt-0">
+            <v-row class="mt-3 mx-0">
+              <v-text-field
+                type="number"
+                label="Max Saplings used for Crossbreeding"
+                hint="It is possible that we are missing some results if this value is not set to max (8). Setting it to a lower value speeds the process up extremely though."
+                persistent-hint
+                :rules="maxCrossbreedingSaplingsRules"
+                v-model.number="maxCrossbreedingSaplings"
+              ></v-text-field>
+            </v-row>
+            <v-row class="mt-5">
               <v-checkbox
                 class="mx-2"
                 v-model="withRepetitions"
@@ -39,7 +47,7 @@
                 label="Check combinations with repetitions (takes longer, may give better results)"
               />
             </v-row>
-            <v-row class="mt-3">
+            <v-row class="mt-5">
               <v-checkbox
                 class="mx-2"
                 v-model="includeResultsWithMinimumScore"
@@ -77,6 +85,7 @@
 </template>
 
 <script lang="ts">
+import { MIN_CROSSBREEDING_SAPLINGS, MAX_CROSSBREEDING_SAPLINGS } from '@/const';
 import { Component, Vue } from 'vue-property-decorator';
 import GeneEnum from '../enums/gene.enum';
 import ApplicationOptions from '../interfaces/application-options';
@@ -89,6 +98,7 @@ export default class OptionsButton extends Vue {
   options: ApplicationOptions = {
     withRepetitions: true,
     includeResultsWithMinimumScore: false,
+    maxCrossbreedingSaplings: 5,
     minimumScore: 2,
     geneScores: {
       [GeneEnum.G]: 1,
@@ -104,11 +114,17 @@ export default class OptionsButton extends Vue {
 
   withRepetitions = true;
   includeResultsWithMinimumScore = true;
+  maxCrossbreedingSaplings = 5;
   minimumScore = 2;
   geneScores: Record<string, number> = {};
 
   geneScoreRules = [
     (v: number | string) => (v !== '' && v >= -1 && v <= 1) || 'It has to be a number between -1 and 1.'
+  ];
+  maxCrossbreedingSaplingsRules = [
+    (v: number) =>
+      (v >= MIN_CROSSBREEDING_SAPLINGS && v <= MAX_CROSSBREEDING_SAPLINGS) ||
+      `It has to be a number between ${MIN_CROSSBREEDING_SAPLINGS} and ${MAX_CROSSBREEDING_SAPLINGS}.`
   ];
   minimumScoreRules = [(v: number | string) => v !== '' || 'Value is required.'];
 
@@ -125,6 +141,7 @@ export default class OptionsButton extends Vue {
   resetInputs() {
     this.withRepetitions = this.options.withRepetitions;
     this.includeResultsWithMinimumScore = this.options.includeResultsWithMinimumScore;
+    this.maxCrossbreedingSaplings = this.options.maxCrossbreedingSaplings;
     this.minimumScore = this.options.minimumScore;
     this.geneScores = {
       ...this.options.geneScores
@@ -144,6 +161,7 @@ export default class OptionsButton extends Vue {
     this.isDialogOpen = false;
     this.options.withRepetitions = this.withRepetitions;
     this.options.includeResultsWithMinimumScore = this.includeResultsWithMinimumScore;
+    this.options.maxCrossbreedingSaplings = this.maxCrossbreedingSaplings;
     this.options.minimumScore = this.minimumScore;
     Object.keys(this.geneScores || {}).forEach((key) => {
       this.options.geneScores[key as GeneEnum] = this.geneScores?.[key as GeneEnum] || 0;

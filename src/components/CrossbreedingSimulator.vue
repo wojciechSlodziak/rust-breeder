@@ -32,12 +32,14 @@
                   full-width
                   ref="saplingGenesInput"
                   class="simulator_sapling-input"
-                  label="Source Saplings"
+                  :placeholder="placeholder"
+                  label="Sapling List"
                   :value="saplingGenes"
                   @input="handleSaplingGenesInput($event)"
                   @blur="handleSaplingGenesInputBlur"
                   @keydown="handleSaplingGenesInputKeyDown($event)"
                   outlined
+                  :disabled="isScreenScanning"
                   auto-grow
                   validate-on-blur
                   :rules="sourceSaplingRules"
@@ -93,7 +95,8 @@ import goTo from 'vuetify/lib/services/goto';
   components: { SimulationResults, SimulationMap, SaplingInputHighlights, OptionsButton, SaplingScreenCapture }
 })
 export default class CrossbreedingSimulator extends Vue {
-  saplingGenes = 'YYYWYX\nGGHGHY\nHHGGGY';
+  placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`;
+  saplingGenes = '';
   progressPercent = 0;
   isSimulating = false;
   isFormValid = false;

@@ -6,7 +6,7 @@
         mdi-monitor-screenshot
       </v-icon>
     </v-btn>
-    <v-btn @click="stopCapturing" v-if="isScanning" color="error">
+    <v-btn @click="stopCapturing" v-if="isScanning" color="red">
       Stop Scanning
       <v-progress-circular class="ml-2" indeterminate color="primary" size="20"></v-progress-circular>
     </v-btn>
@@ -22,14 +22,14 @@
               <li>
                 <p>
                   Make sure your <v-chip outlined>USER INTERFACE SCALE</v-chip> setting is set to
-                  <strong>1.0</strong> in Rust.
+                  <v-chip outlined>1.0</v-chip> in Rust.
                 </p>
               </li>
               <li>
                 <p>
                   Make sure you run game in <v-chip outlined>16:9</v-chip> aspect ratio resolution (1920x1080 or
-                  2560x1440 or 4K) and borderless mode. If you have a different resolution on your monitor set Rust to
-                  <strong>windowed</strong> mode and select a 16:9 ratio resolution.
+                  2560x1440 or 4K) and <strong>borderless</strong> mode. If you have a different resolution on your
+                  monitor set Rust to <strong>windowed</strong> mode and select a 16:9 ratio resolution.
                 </p>
               </li>
               <li>

@@ -188,7 +188,7 @@ export function appendListToMapGroupsMap(mapGroupMap: { [key: string]: MapGroup 
     }
 
     mapGroupMap[resultSaplingGeneString].mapList.sort(resultMapsSortingFunction);
-    // discards results if there is more than MAX_SAME_RESULT_VARIANTS_IN_MAP maps for the same resultSapling
+    // Discards results if there is more than MAX_SAME_RESULT_VARIANTS_IN_MAP maps for the same resultSapling.
     mapGroupMap[resultSaplingGeneString].mapList = [
       ...mapGroupMap[resultSaplingGeneString].mapList.splice(0, MAX_SAME_RESULT_VARIANTS_IN_MAP)
     ];

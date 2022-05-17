@@ -19,7 +19,7 @@
               <v-btn class="ma-1" color="red" v-if="isSimulating" @click="handleStopSimulationClick"
                 >Cancel
                 <v-icon right>
-                  mdi-close-octagon
+                  mdi-cancel
                 </v-icon></v-btn
               >
               <span class="ma-1">
@@ -72,12 +72,14 @@
             v-on:select:map="handleSelectMapEvent"
           />
           <div
-            class="text-center py-md-6"
+            class="text-center py-md-6 mb-10"
             v-if="resultMapGroups !== null && resultMapGroups.length === 0 && !isSimulating"
           >
             You'll need to find more plants. Try to pick the <strong>good</strong> ones!
           </div>
-          <div class="text-center py-md-6" v-if="showNotEnoughSaplingsError">More plants are needed to crossbreed!</div>
+          <div class="text-center py-md-6 mb-10" v-if="showNotEnoughSaplingsError">
+            More plants are needed to crossbreed!
+          </div>
         </v-col>
       </v-row>
     </v-container>

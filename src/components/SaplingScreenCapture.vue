@@ -33,7 +33,7 @@
               </li>
               <li>
                 <p>
-                  Make sure you run game in <v-chip outlined>16:9</v-chip> aspect ratio resolution (1920x1080 or
+                  Make sure you run the game in <v-chip outlined>16:9</v-chip> aspect ratio resolution (1920x1080 or
                   2560x1440 or 4K) and <strong>borderless</strong> mode. If you have a different resolution on your
                   monitor set Rust to <strong>windowed</strong> mode and select a 16:9 ratio resolution.
                 </p>
@@ -43,7 +43,7 @@
               </li>
               <li>
                 <p>
-                  Click on a Sapling in your inventory or storage, so that the genes are displayed on the screen. It
+                  Click on a Sapling in your inventory or storage so that the genes are displayed on the screen. It
                   takes about a second to capture each Sapling.
                 </p>
               </li>

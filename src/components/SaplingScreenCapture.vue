@@ -43,7 +43,7 @@
               </li>
               <li>
                 <p>
-                  Click on a Saplings in your inventory or storage, so that the genes are displayed on the screen. It
+                  Click on a Sapling in your inventory or storage, so that the genes are displayed on the screen. It
                   takes about a second to capture each Sapling.
                 </p>
               </li>

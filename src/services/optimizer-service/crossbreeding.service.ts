@@ -137,8 +137,15 @@ class CrossbreedingService {
    * Example: If on a first position of result sapling W is dominant with a weight of 1, but base gene
    * has an X there - W will not be swapped as they both have same weights.
    *
+   * Sample:
+   * XYYHGW
+   * WYGHYH
+   * YGWWGX
+   * YXYXHY
+   *
    * @returns A mock representation of base sapling.
    */
+
   buildBaseSaplingWithMockGenes(resultSapling: Sapling): Sapling {
     const baseSaplingMock = new Sapling();
     resultSapling.genes.forEach((gene, index) => {

@@ -51,7 +51,7 @@ export default class SimulationMapGroup extends Vue {
   isMouseHoveringDummy = false;
   applyOverflowInBrowsingMode = false;
 
-  mounted() {
+  updated() {
     if (this.$refs.map) {
       this.$nextTick(() => {
         this.dummyHeight = (this.$refs.map as Vue[])[0].$el.getBoundingClientRect().height;

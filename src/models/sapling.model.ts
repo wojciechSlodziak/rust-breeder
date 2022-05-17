@@ -5,7 +5,7 @@ import GeneEnum from '../enums/gene.enum';
 export default class Sapling {
   genes: Gene[];
   /**
-   * property used for keeping the track of weight of the genes after crossbreeding,
+   * Property used for keeping the track of weight of the genes after crossbreeding,
    * required for rebreeding with base, and for indicating correct base for red gene outcomes (example: single X can't override W, but can override G)
    */
   crossbreedingWeights: number[];

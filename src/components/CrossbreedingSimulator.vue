@@ -7,22 +7,30 @@
       <v-row>
         <v-col cols="12" :md="showHighlight ? 12 : 4" :lg="showHighlight ? 6 : 3" class="pa-1">
           <v-form ref="form" v-model="isFormValid" spellcheck="false">
-            <v-row class="d-flex justify-center mt-1 px-3">
+            <v-row class="d-flex justify-center mt-2 px-3">
               <v-btn
-                class="mt-2"
+                class="ma-1"
                 color="primary"
                 @click="handleSimulateClick"
-                :disabled="isSimulating || !isFormValid || isScreenScanning"
-                >Simulate</v-btn
+                v-if="!isSimulating"
+                :disabled="!isFormValid || isScreenScanning"
+                >Calculate
+              </v-btn>
+              <v-btn class="ma-1" color="red" v-if="isSimulating" @click="handleStopSimulationClick"
+                >Cancel
+                <v-icon right>
+                  mdi-close-octagon
+                </v-icon></v-btn
               >
-              <span class="ml-2 mt-2">
+              <span class="ma-1">
                 <SaplingScreenCapture
                   @sapling-scanned="handleSaplingScannedEvent"
+                  :is-disabled="isSimulating"
                   @started-scanning="isScreenScanning = true"
                   @stopped-scanning="isScreenScanning = false"
                 />
               </span>
-              <span class="ml-2 mt-2">
+              <span class="ma-1">
                 <OptionsButton ref="optionsButton" />
               </span>
             </v-row>
@@ -33,7 +41,7 @@
                   ref="saplingGenesInput"
                   class="simulator_sapling-input"
                   :placeholder="placeholder"
-                  label="Sapling List"
+                  label="Add your genes here..."
                   :value="saplingGenes"
                   @input="handleSaplingGenesInput($event)"
                   @blur="handleSaplingGenesInputBlur"
@@ -43,7 +51,6 @@
                   auto-grow
                   :rules="sourceSaplingRules"
                   autocomplete="off"
-                  hint="Enter each Sapling's genes in new line using 'XXYWGH' format."
                 ></v-textarea>
                 <SaplingInputHighlights :inputString="saplingGenes" :highlightedMap="highlightedMap" />
                 <SaplingListPreview :saplingGeneList="saplingGeneList" ref="saplingListPreview"></SaplingListPreview>
@@ -59,7 +66,7 @@
 
         <v-col cols="12" :md="showHighlight ? 12 : 8" :lg="showHighlight ? 6 : 9">
           <SimulationResults
-            v-if="resultMapGroups !== null && resultMapGroups.length !== 0 && !isSimulating"
+            v-if="resultMapGroups !== null && resultMapGroups.length !== 0"
             :mapGroups="resultMapGroups"
             :highlightedMap="highlightedMap"
             v-on:select:map="handleSelectMapEvent"
@@ -68,11 +75,9 @@
             class="text-center py-md-6"
             v-if="resultMapGroups !== null && resultMapGroups.length === 0 && !isSimulating"
           >
-            No bueno! You'll need to find more source plants. Try to pick the <strong>good</strong> ones!
+            You'll need to find more plants. Try to pick the <strong>good</strong> ones!
           </div>
-          <div class="text-center py-md-6" v-if="showNotEnoughSaplingsError">
-            No bueno! More plants are needed to crossbreed!
-          </div>
+          <div class="text-center py-md-6" v-if="showNotEnoughSaplingsError">More plants are needed to crossbreed!</div>
         </v-col>
       </v-row>
     </v-container>
@@ -174,6 +179,7 @@ export default class CrossbreedingSimulator extends Vue {
   onOptimizerServiceEvent(type: string, data: OptimizerServiceEventListenerCallbackData) {
     if (type === 'PROGRESS_UPDATE') {
       this.progressPercent = data.progressPercent || 0;
+      this.resultMapGroups = Object.freeze(data.mapGroups || null);
     }
     if (type === 'DONE') {
       this.progressPercent = 100;
@@ -207,6 +213,11 @@ export default class CrossbreedingSimulator extends Vue {
         throw e;
       }
     }
+  }
+
+  handleStopSimulationClick() {
+    this.isSimulating = false;
+    optimizerService.cancelSimulation();
   }
 
   handleSaplingGenesInputBlur() {

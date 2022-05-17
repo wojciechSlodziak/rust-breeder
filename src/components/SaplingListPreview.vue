@@ -42,7 +42,7 @@ export default class SaplingListPreview extends Vue {
   font-size: 0.72rem;
   position: absolute;
   top: 0px;
-  left: 100px;
+  right: 10px;
 }
 .sapling-list-preview_sapling--animate {
   animation: sapling-animation 0.4s ease-in;

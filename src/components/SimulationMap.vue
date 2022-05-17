@@ -14,9 +14,8 @@
         <v-list-item-subtitle class="mt-2">
           <span class="map_score"
             >Score: <span>{{ map.score }}</span></span
-          >&nbsp;&middot;&nbsp;
-          <span class="map_chance" :class="chanceClass">
-            Chance: <span>{{ map.chancePercent }}%</span>
+          >&nbsp;&middot;&nbsp;<span class="map_chance" :class="chanceClass"
+            >Chance: <span>{{ map.chancePercent }}%</span>
           </span>
         </v-list-item-subtitle>
       </v-list-item-content>

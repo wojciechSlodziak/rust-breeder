@@ -43,12 +43,16 @@
         </v-col>
       </v-row>
     </v-container>
-    <ul class="mt-3" :class="{ 'simulation-results--visible': addAnimationClass }">
+    <ul class="mt-3 mb-12">
       <li v-for="group in visibleMapGroups" :key="group.index">
         <SimulationMapGroup :group="group" v-on:select:map="handleSelectMapEvent" :highlightedMap="highlightedMap" />
+        <InViewAnchor
+          :key="group.index"
+          v-if="hasMore && group.index === visibleMapGroups.length - 2"
+          @in-view="showMore"
+        ></InViewAnchor>
       </li>
     </ul>
-    <v-btn @click="showMore" v-if="hasMore" class="mt-2">Show more</v-btn>
   </div>
 </template>
 
@@ -57,16 +61,15 @@ import GeneEnum from '@/enums/gene.enum';
 import GeneticsMap from '@/models/genetics-map.model';
 import { MapGroup } from '@/services/optimizer-service/models';
 import { Component, Vue, Prop } from 'vue-property-decorator';
+import InViewAnchor from './InViewAnchor.vue';
 import SimulationMapGroup from './SimulationMapGroup.vue';
 
 @Component({
-  components: { SimulationMapGroup }
+  components: { SimulationMapGroup, InViewAnchor }
 })
 export default class SimulationResults extends Vue {
   @Prop({ type: Array, required: true }) readonly mapGroups!: MapGroup[];
   @Prop({ type: Object }) readonly highlightedMap: GeneticsMap;
-
-  addAnimationClass = false;
 
   filteringGenes: { [key: string]: string | null } = {
     gene0: '',
@@ -139,9 +142,6 @@ export default class SimulationResults extends Vue {
 
   created() {
     this.page = 1;
-    setTimeout(() => {
-      this.addAnimationClass = true;
-    });
   }
 
   handleSelectMapEvent(map: GeneticsMap) {
@@ -160,13 +160,8 @@ ul {
   position: relative;
   margin: 0;
   padding: 0 !important;
-  opacity: 0;
   top: 25px;
   transition: 0.2s ease-out;
-  &.simulation-results--visible {
-    opacity: 1;
-    top: 0px;
-  }
   li {
     display: block;
     &:not(:first-child) {

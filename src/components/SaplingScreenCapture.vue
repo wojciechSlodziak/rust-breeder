@@ -1,6 +1,6 @@
 <template>
   <span>
-    <v-btn @click="isDialogOpen = true" v-if="!isScanning">
+    <v-btn @click="isDialogOpen = true" :disabled="isDisabled" v-if="!isScanning">
       Scan Rust
       <v-icon right>
         mdi-monitor-screenshot
@@ -21,7 +21,8 @@
             <ol>
               <li>
                 <p>
-                  For best results use Chrome or Edge. Other browsers might now work correctly.
+                  For best results use <strong>Chrome</strong> or <strong>Edge</strong>. Other browsers might not work
+                  correctly.
                 </p>
               </li>
               <li>
@@ -56,7 +57,6 @@
           <v-btn color="primary" text @click="isDialogOpen = false">
             Close
           </v-btn>
-
           <v-btn
             color="primary"
             @click="
@@ -73,11 +73,13 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue, Prop } from 'vue-property-decorator';
 import screenCaptureService from '../services/screen-capture/screen-capture.service';
 
 @Component
 export default class SaplingScreenCapture extends Vue {
+  @Prop({ type: Boolean }) isDisabled: boolean;
+
   isDialogOpen = false;
   isScanning = false;
 

@@ -13,6 +13,7 @@ import { OptimizerServiceEventListenerCallback, MapGroup, NotEnoughSourceSapling
 class OptimizerService {
   listeners: OptimizerServiceEventListenerCallback[] = [];
 
+  workers: Worker[];
   workerProgress: number[] = [];
   resultMapLists: GeneticsMap[][] = [];
   mapGroupMap: { [key: string]: MapGroup } = {};
@@ -31,12 +32,12 @@ class OptimizerService {
       throw new NotEnoughSourceSaplingsError();
     }
 
-    const workers: Worker[] = [];
+    this.workers = [];
 
     const workChunks = getWorkChunks(sourceGenes.length, options.withRepetitions, options.maxCrossbreedingSaplings);
     workChunks.forEach((workChunk, workerIndex) => {
       const worker = new Worker();
-      workers.push(worker);
+      this.workers.push(worker);
 
       worker.postMessage({
         sourceGenes: sourceGenes,
@@ -49,6 +50,8 @@ class OptimizerService {
 
         // Handling partial results.
         appendListToMapGroupsMap(this.mapGroupMap, event.data.partialResultMapList);
+        let mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
+        mapGroups = mapGroups.map((mapGroup, index) => ({ ...mapGroup, index }));
 
         // Progress tracking.
         this.workerProgress[workerIndex] = event.data.combinationsProcessed;
@@ -57,6 +60,7 @@ class OptimizerService {
         this.listeners.forEach((listenerCallback) => {
           listenerCallback('PROGRESS_UPDATE', {
             isDone: false,
+            mapGroups,
             progressPercent:
               Number(
                 (
@@ -75,12 +79,8 @@ class OptimizerService {
           this.workerProgress.reduce((acc, singleWorkerProgress) => acc + singleWorkerProgress, 0) ===
           workChunk.allCombinationsCount
         ) {
-          // Processing final results.
-          let mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
-          mapGroups = mapGroups.map((mapGroup, index) => ({ ...mapGroup, index }));
-
           this.listeners.forEach((listenerCallback) => {
-            listenerCallback('DONE', { isDone: true, mapGroups: mapGroups });
+            listenerCallback('DONE', { isDone: true, mapGroups });
           });
 
           // Cleanup.
@@ -89,6 +89,12 @@ class OptimizerService {
           this.mapGroupMap = {};
         }
       });
+    });
+  }
+
+  cancelSimulation() {
+    this.workers.forEach((worker) => {
+      worker.terminate();
     });
   }
 

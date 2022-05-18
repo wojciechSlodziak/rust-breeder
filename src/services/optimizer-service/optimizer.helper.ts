@@ -1,15 +1,30 @@
-import { MAX_SAME_RESULT_VARIANTS_IN_MAP, MIN_CROSSBREEDING_SAPLINGS } from '@/const';
-import GeneticsMap from '../../models/genetics-map.model';
+import { MAX_SAME_RESULT_VARIANTS_IN_MAP } from '@/const';
 import Gene from '../../models/gene.model';
 import Sapling from '../../models/sapling.model';
-import { MapGroup } from './models';
+import { GeneticsMap, GeneticsMapGroup } from './models';
 
+/**
+ * Used for sorting Maps that yield the same result Sapling.
+ */
 export function resultMapsSortingFunction(geneticsMap1: GeneticsMap, geneticsMap2: GeneticsMap): number {
+  const sumOfCrossbreedingSaplingGenerations1 = geneticsMap1.crossbreedSaplings.reduce(
+    (acc, sapling) => acc + sapling.generationIndex,
+    0
+  );
+  const sumOfCrossbreedingSaplingGenerations2 = geneticsMap2.crossbreedSaplings.reduce(
+    (acc, sapling) => acc + sapling.generationIndex,
+    0
+  );
   if (
-    geneticsMap1.score > geneticsMap2.score ||
-    (geneticsMap1.score === geneticsMap2.score && geneticsMap1.chancePercent > geneticsMap2.chancePercent) ||
-    (geneticsMap1.score === geneticsMap2.score &&
+    geneticsMap1.resultSapling.generationIndex < geneticsMap2.resultSapling.generationIndex ||
+    (geneticsMap1.resultSapling.generationIndex === geneticsMap2.resultSapling.generationIndex &&
+      geneticsMap1.chancePercent > geneticsMap2.chancePercent) ||
+    (geneticsMap1.resultSapling.generationIndex === geneticsMap2.resultSapling.generationIndex &&
       geneticsMap1.chancePercent === geneticsMap2.chancePercent &&
+      sumOfCrossbreedingSaplingGenerations1 < sumOfCrossbreedingSaplingGenerations2) ||
+    (geneticsMap1.resultSapling.generationIndex === geneticsMap2.resultSapling.generationIndex &&
+      geneticsMap1.chancePercent === geneticsMap2.chancePercent &&
+      sumOfCrossbreedingSaplingGenerations1 === sumOfCrossbreedingSaplingGenerations2 &&
       geneticsMap1.crossbreedSaplings.length < geneticsMap2.crossbreedSaplings.length)
   ) {
     return -1;
@@ -18,11 +33,21 @@ export function resultMapsSortingFunction(geneticsMap1: GeneticsMap, geneticsMap
   }
 }
 
-export function resultMapGroupsSortingFunction(geneticsMapsGroup1: MapGroup, geneticsMapsGroup2: MapGroup): number {
+/**
+ * Used for sorting Map Groups that that each gives different result Sapling.
+ */
+export function resultMapGroupsSortingFunction(
+  geneticsMapsGroup1: GeneticsMapGroup,
+  geneticsMapsGroup2: GeneticsMapGroup
+): number {
   if (
     geneticsMapsGroup1.mapList[0].score > geneticsMapsGroup2.mapList[0].score ||
     (geneticsMapsGroup1.mapList[0].score === geneticsMapsGroup2.mapList[0].score &&
-      geneticsMapsGroup1.mapList[0].chancePercent > geneticsMapsGroup2.mapList[0].chancePercent)
+      geneticsMapsGroup1.mapList[0].chancePercent > geneticsMapsGroup2.mapList[0].chancePercent) ||
+    (geneticsMapsGroup1.mapList[0].score === geneticsMapsGroup2.mapList[0].score &&
+      geneticsMapsGroup1.mapList[0].chancePercent === geneticsMapsGroup2.mapList[0].chancePercent &&
+      geneticsMapsGroup1.mapList[0].resultSapling.generationIndex <
+        geneticsMapsGroup2.mapList[0].resultSapling.generationIndex)
   ) {
     return -1;
   } else {
@@ -50,14 +75,15 @@ export function getMaxPositionsCount(itemsCount: number, withRepetitions: boolea
   return withRepetitions ? maxCrossbreedingSaplings : Math.min(itemsCount, maxCrossbreedingSaplings);
 }
 
-export function getNumberOfCrossbreedCombinations(
+export function getNumberOfCrossbreedingCombinations(
   itemsCount: number,
   withRepetitions: boolean,
+  minCrossbreedingSaplings: number,
   maxCrossbreedingSaplings: number
 ) {
   let numberOfAllCombinations = 0;
   const maxItemsInVariation = getMaxPositionsCount(itemsCount, withRepetitions, maxCrossbreedingSaplings);
-  for (let k = MIN_CROSSBREEDING_SAPLINGS; k <= maxItemsInVariation; k++) {
+  for (let k = minCrossbreedingSaplings; k <= maxItemsInVariation; k++) {
     if (withRepetitions) {
       numberOfAllCombinations += rFact(k + itemsCount - 1) / (rFact(k) * rFact(itemsCount - 1));
     } else {
@@ -77,22 +103,32 @@ export function setNextPosition(
   currentPositionIndexForInc: number,
   positionCount: number,
   sourceSaplingsCount: number,
-  withRepetitions: boolean
+  withRepetitions: boolean,
+  mandatorySaplingsCount?: number
 ): { nextPositionIndexForInc: number; hasMoreCombinations: boolean } {
   let hasMoreCombinations = true;
   let keepOriganizingPositions = true;
   while (keepOriganizingPositions) {
     positions[currentPositionIndexForInc] += 1;
 
-    // Example:
-    // For no repetitions consider 3 possible positions and 8 source saplings.
-    // Last position is [5, 6, 7], and following calculation has to be done:
-    // - to calculate max on third position: 8 - (3 - 2)
-    // - to calculate max on second position: 8 - (3 - 1)
-    // - to calculate max on first position: 8 - (3 - 0)
-    const maxSaplingIndexOnCurrentPosition = withRepetitions
-      ? sourceSaplingsCount - 1
-      : sourceSaplingsCount - (positionCount - currentPositionIndexForInc);
+    let maxSaplingIndexOnCurrentPosition;
+    // If we are get mandatorySaplingsCount it means that it's not the first generation,
+    // and that every combination that we consider includes at least one of the saplings added from the results from previous generation.
+    // By limiting the possible saplings on first (0) position we fulfill that requirement
+    // and also prevent checking combinations which were already handled in the previous generation.
+    if (mandatorySaplingsCount && currentPositionIndexForInc === 0) {
+      maxSaplingIndexOnCurrentPosition = mandatorySaplingsCount - 1;
+    } else {
+      // Example:
+      // For no repetitions consider 3 possible positions and 8 source saplings.
+      // Last position is [5, 6, 7], and following calculation has to be done:
+      // - to calculate max on third position: 8 - (3 - 2)
+      // - to calculate max on second position: 8 - (3 - 1)
+      // - to calculate max on first position: 8 - (3 - 0)
+      maxSaplingIndexOnCurrentPosition = withRepetitions
+        ? sourceSaplingsCount - 1
+        : sourceSaplingsCount - (positionCount - currentPositionIndexForInc);
+    }
 
     // If maximum has been reached on a position, it's time to:
     // - increment previous position,
@@ -125,14 +161,47 @@ export function setNextPosition(
  * Method calculates chunks of work which should be split between workers.
  * @param sourceSaplingsCount Number of sourceSaplings provided by User.
  * @param withRepetitions Option defining if process should consider repetitions.
+ * @param minCrossbreedingSaplings Option defining how many crossbreeding saplings can be used in the process at minimum.
+ * @param maxCrossbreedingSaplings Option defining how many crossbreeding saplings can be used in the process at maximum.
+ * @param mandatorySaplingsCount Number of sourceSaplings that need to be present in all considered combinations. This value comes from
+ * muli-generation crossbreeding, and reflects the number of saplings taken from previous generation to execute next generation crossbreeding.
  * @returns List of objects which represent chunks of work.
  */
-export function getWorkChunks(sourceSaplingsCount: number, withRepetitions: boolean, maxCrossbreedingSaplings: number) {
-  const allCombinationsCount = getNumberOfCrossbreedCombinations(
+export function getWorkChunks(
+  sourceSaplingsCount: number,
+  withRepetitions: boolean,
+  minCrossbreedingSaplings: number,
+  maxCrossbreedingSaplings: number,
+  mandatorySaplingsCount?: number
+) {
+  let allCombinationsCount = getNumberOfCrossbreedingCombinations(
     sourceSaplingsCount,
     withRepetitions,
+    minCrossbreedingSaplings,
     maxCrossbreedingSaplings
   );
+
+  if (mandatorySaplingsCount) {
+    const combinationsToIgnore = getNumberOfCrossbreedingCombinations(
+      sourceSaplingsCount - mandatorySaplingsCount,
+      withRepetitions,
+      minCrossbreedingSaplings,
+      maxCrossbreedingSaplings
+    );
+    allCombinationsCount -= combinationsToIgnore;
+  }
+
+  console.log(
+    'getWorkChunks',
+    sourceSaplingsCount,
+    withRepetitions,
+    minCrossbreedingSaplings,
+    maxCrossbreedingSaplings,
+    mandatorySaplingsCount
+  );
+
+  console.log('allCombinationsCount', allCombinationsCount);
+
   const numberOfWorkers = navigator.hardwareConcurrency;
   const combinationsPerWorker = Math.ceil(allCombinationsCount / numberOfWorkers);
   const workChunks = [];
@@ -140,7 +209,7 @@ export function getWorkChunks(sourceSaplingsCount: number, withRepetitions: bool
   let workerIndex = 0;
   let combinationsProcessed = 0;
   for (
-    let positionCount = MIN_CROSSBREEDING_SAPLINGS;
+    let positionCount = minCrossbreedingSaplings;
     positionCount <= getMaxPositionsCount(sourceSaplingsCount, withRepetitions, maxCrossbreedingSaplings);
     positionCount++
   ) {
@@ -157,17 +226,20 @@ export function getWorkChunks(sourceSaplingsCount: number, withRepetitions: bool
         };
       }
 
+      // console.log(positions);
       const setNextPositionResult = setNextPosition(
         positions,
         positionIndexForInc,
         positionCount,
         sourceSaplingsCount,
-        withRepetitions
+        withRepetitions,
+        mandatorySaplingsCount
       );
       hasMoreCombinations = setNextPositionResult.hasMoreCombinations;
       positionIndexForInc = setNextPositionResult.nextPositionIndexForInc;
 
       combinationsProcessed++;
+      // console.log(setNextPositionResult.hasMoreCombinations, combinationsProcessed);
       workChunks[workerIndex].combinationsToProcess = combinationsProcessed;
       if (
         hasMoreCombinations &&
@@ -179,11 +251,20 @@ export function getWorkChunks(sourceSaplingsCount: number, withRepetitions: bool
       }
     }
   }
+  console.log('workChunks', workChunks);
 
   return workChunks;
 }
 
-export function appendListToMapGroupsMap(mapGroupMap: { [key: string]: MapGroup }, mapList: GeneticsMap[]): void {
+/**
+ * Appends partial results to the total list of results.
+ * @param mapGroupMap Total results so far.
+ * @param mapList Partial results.
+ */
+export function appendListToMapGroupsMap(
+  mapGroupMap: { [key: string]: GeneticsMapGroup },
+  mapList: GeneticsMap[]
+): void {
   mapList.forEach((geneticsMap) => {
     const resultSaplingGeneString = geneticsMap.resultSapling.genes.map((gene) => gene.type.toString()).join('');
     if (mapGroupMap[resultSaplingGeneString] === undefined) {
@@ -201,6 +282,25 @@ export function appendListToMapGroupsMap(mapGroupMap: { [key: string]: MapGroup 
       ...mapGroupMap[resultSaplingGeneString].mapList.splice(0, MAX_SAME_RESULT_VARIANTS_IN_MAP)
     ];
   });
+}
+
+/**
+ * Returns best genes to use for next generation on top of genes from previous generation.
+ * Choice is based on identifying what is missing in the source genes from previous generation and by filling the gaps.
+ * @param sourceSaplings TODO:
+ * @param resultsFromPreviousGeneration TODO:
+ */
+export function getBestSaplingsForNextGeneration(
+  sourceSaplings: Sapling[],
+  allResults: GeneticsMapGroup[],
+  currentGenerationIndex: number,
+  numberOfSaplingsAddedBetweenGenerations: number
+): Sapling[] {
+  // TODO: actual logic
+  return allResults
+    .filter((map) => map.mapList[0].resultSapling.generationIndex === currentGenerationIndex)
+    .slice(0, numberOfSaplingsAddedBetweenGenerations)
+    .map((map) => map.mapList[0].resultSapling);
 }
 
 /**
@@ -225,5 +325,37 @@ export function fixPrototypeAssignmentsAfterSerialization(mapList: GeneticsMap[]
         Object.setPrototypeOf(gene, Gene.prototype);
       });
     }
+  });
+}
+
+/**
+ * Fixes Prototype assignments after worker serialization to make sure that all the Class methods are accessible.
+ * @param rawSapling Fixed Sapling object.
+ */
+export function fixSaplingPrototypeAssignments(rawSapling: Sapling): Sapling {
+  Object.setPrototypeOf(rawSapling, Sapling.prototype);
+  rawSapling.genes.forEach((gene) => {
+    Object.setPrototypeOf(gene, Gene.prototype);
+  });
+  return rawSapling;
+}
+
+/**
+ * Method links Saplings required to crossbreed with their crossbreeding variants for younger generations.
+ * @param mapGroupMap Total results so far.
+ */
+export function linkGenerationTree(mapGroupMap: { [key: string]: GeneticsMapGroup }) {
+  Object.values(mapGroupMap).forEach((mapGroup) => {
+    mapGroup.mapList.forEach((map) => {
+      map.crossbreedSaplingsVariants = new Array(map.crossbreedSaplings.length);
+      map.crossbreedSaplings.forEach((crossbreedSapling, crossbreedSaplingIndex) => {
+        if (crossbreedSapling.generationIndex > 0) {
+          const mapGroup = mapGroupMap[crossbreedSapling.toString()];
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          map.crossbreedSaplingsVariants![crossbreedSaplingIndex] = mapGroup;
+          map.crossbreedSaplings[crossbreedSaplingIndex] = mapGroup.mapList[0].resultSapling;
+        }
+      });
+    });
   });
 }

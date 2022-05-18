@@ -44,8 +44,21 @@ export default class App extends Vue {
 </script>
 
 <style lang="scss">
-$body-font-family: monospace;
+@import '~vuetify/src/styles/styles.sass';
+
 body {
   overflow: hidden;
+}
+@media #{map-get($display-breakpoints, 'sm-and-down')} {
+  .v-input__slider {
+    .v-input__slot {
+      display: block !important;
+    }
+  }
+}
+.v-input__slider {
+  .v-messages__message {
+    margin-top: 10px;
+  }
 }
 </style>

@@ -1,35 +1,33 @@
-import GeneticsMap from '../../models/genetics-map.model';
 import Sapling from '../../models/sapling.model';
 import crossbreedingService from './crossbreeding.service';
 import { buildInitialSaplingPositions, getMaxPositionsCount, setNextPosition } from './optimizer.helper';
 import GeneEnum from '../../enums/gene.enum';
-import { SimulateOptions, ImpracticalResultError } from './models';
+import { SimulateOptions, ImpracticalResultError, GenerationInfo, GeneticsMap } from './models';
 
 class GeneticsSimulatorService {
   /**
    * Method performs multiple crossbreedings for all sapling combinations that were designated by the application.
-   * @param sourceGenes List of raw String representations of saplings.
+   * @param sourceSaplings List of source Saplings for given generation.
    * @param startingPositions Positions of sourceGenes saplings that the process should start from.
    * @param combinationsToProcess Number of combination this process has to calculate. Depends on the split between workers.
    * @param options Options provided from the UI.
    */
   simulateCrossbreeding(
-    sourceGenes: string[],
+    sourceSaplings: Sapling[],
     startingPositions: number[],
     combinationsToProcess: number,
+    generationInfo: GenerationInfo,
     options: SimulateOptions
   ) {
-    const sourceSaplings: Sapling[] = sourceGenes.map((singleGenes) => new Sapling(singleGenes));
     let result: GeneticsMap[] = [];
-
-    const originalBestScore = this.getOriginalBestScore(sourceSaplings, options.geneScores);
+    const sourceGenes = sourceSaplings.map((sourceSapling) => sourceSapling.toString());
 
     let combinationsProcessed = 0;
     let positions: number[];
     for (
       let positionCount = startingPositions.length;
       positionCount <=
-      getMaxPositionsCount(sourceSaplings.length, options.withRepetitions, options.maxCrossbreedingSaplings);
+      getMaxPositionsCount(sourceSaplings.length, options.withRepetitions, options.maxCrossbreedingSaplingsNumber);
       positionCount++
     ) {
       positions =
@@ -40,6 +38,7 @@ class GeneticsSimulatorService {
       let hasMoreCombinations = true;
       let crossbreedSaplings: Sapling[];
       while (hasMoreCombinations) {
+        // console.log(positions);
         crossbreedSaplings = [];
         positions.forEach((position) => {
           crossbreedSaplings.push(sourceSaplings[position]);
@@ -49,10 +48,9 @@ class GeneticsSimulatorService {
           result,
           sourceSaplings,
           crossbreedSaplings,
-          originalBestScore,
           options.geneScores,
-          options.includeResultsWithMinimumScore,
-          options.minimumScore
+          options.minimumTrackedScore,
+          generationInfo.index
         );
         combinationsProcessed++;
 
@@ -61,7 +59,8 @@ class GeneticsSimulatorService {
           positionIndexForInc,
           positionCount,
           sourceSaplings.length,
-          options.withRepetitions
+          options.withRepetitions,
+          generationInfo.addedSaplings
         );
         hasMoreCombinations = setNextPositionResult.hasMoreCombinations;
         positionIndexForInc = setNextPositionResult.nextPositionIndexForInc;
@@ -88,24 +87,20 @@ class GeneticsSimulatorService {
    * @param result Map of results. Passed as a reference.
    * @param sourceSaplings List of source Saplings built from the genes provided by the User.
    * @param crossbreedSaplings A combination of Saplings that should be crossbreeded with each other.
-   * @param originalBestScore Best score from the source Saplings, used for discarding bad results.
    * @param geneScores Score for gene provided from the app options, which help in scoring the completed Sapling.
-   * @param includeResultsWithMinimumScore Boolean value provided from options, which if true allows app to ignore originalBestScore
-   * and to to return worse results which are above the minimumScore.
-   * @param minimumScore The minimumScore used for discarding results if includeResultsWithMinimumScore is true.
+   * @param minimumTrackedScore The minimumTrackedScore used for discarding results.
    */
   private performCrossbreedingAndScoring(
     result: GeneticsMap[],
     sourceSaplings: Sapling[],
     crossbreedSaplings: Sapling[],
-    originalBestScore: number,
     geneScores: Record<GeneEnum, number>,
-    includeResultsWithMinimumScore: boolean,
-    minimumScore: number
+    minimumTrackedScore: number,
+    generationIndex: number
   ) {
     let resultSaplings: Sapling[] = [];
     try {
-      resultSaplings = crossbreedingService.crossbreed(crossbreedSaplings);
+      resultSaplings = crossbreedingService.crossbreed(crossbreedSaplings, generationIndex);
     } catch (e) {
       if (e instanceof ImpracticalResultError) {
         // Do nothing! In case of exceptions the process should go on.
@@ -120,10 +115,14 @@ class GeneticsSimulatorService {
       if (numberOfBaseGenes > 0) {
         const otherSaplings: Sapling[] = sourceSaplings.filter((sapling) => crossbreedSaplings.indexOf(sapling) === -1);
         otherSaplings.forEach((baseSapling) => {
-          const rebreedresultSapling = crossbreedingService.crossbreedResultWithBase(resultSapling, baseSapling);
+          const rebreedresultSapling = crossbreedingService.crossbreedResultWithBase(
+            resultSapling,
+            baseSapling,
+            generationIndex
+          );
 
           const score = rebreedresultSapling.getScore(geneScores);
-          if (includeResultsWithMinimumScore ? score >= minimumScore : score >= originalBestScore) {
+          if (score >= minimumTrackedScore) {
             result.push({
               crossbreedSaplings,
               baseSapling,
@@ -135,7 +134,7 @@ class GeneticsSimulatorService {
         });
       } else {
         const score = resultSapling.getScore(geneScores);
-        if (includeResultsWithMinimumScore ? score >= minimumScore : score >= originalBestScore) {
+        if (score >= minimumTrackedScore) {
           result.push({
             crossbreedSaplings,
             baseSapling: resultSapling.hasRedGenesWithLowestWeight()
@@ -148,21 +147,6 @@ class GeneticsSimulatorService {
         }
       }
     });
-  }
-
-  /**
-   * Calculates scores for all Saplings provided by User, and returns the best one.
-   * @param sourceSaplings List of source Saplings built from the genes provided by the User.
-   * @param geneScores Score for gene provided from the app options, which help in scoring the completed Sapling.
-   * @returns A number score for the best Sapling in the sourceSaplings.
-   */
-  private getOriginalBestScore(sourceSaplings: Sapling[], geneScores: Record<GeneEnum, number>) {
-    let currentScore = Number.MIN_VALUE;
-    sourceSaplings.forEach((sapling) => {
-      const saplingScore = sapling.getScore(geneScores);
-      currentScore = saplingScore > currentScore ? saplingScore : currentScore;
-    });
-    return currentScore;
   }
 }
 

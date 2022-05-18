@@ -1,32 +1,50 @@
 import GeneEnum from '@/enums/gene.enum';
-import GeneticsMap from '@/models/genetics-map.model';
+import Sapling from '@/models/sapling.model';
 
 export interface OptimizerServiceEventListenerCallback {
-  (eventType: 'PROGRESS_UPDATE' | 'DONE', data: OptimizerServiceEventListenerCallbackData): void;
+  (eventType: 'PROGRESS_UPDATE' | 'DONE_GENERATION' | 'DONE', data: OptimizerServiceEventListenerCallbackData): void;
 }
 
 export class NotEnoughSourceSaplingsError extends Error {}
 export class ImpracticalResultError extends Error {}
 
-export class MapGroup {
+export class GeneticsMap {
+  crossbreedSaplings!: Sapling[];
+  /**
+   * This property holds crossbreeding variants for crossbreedSaplings.
+   * Only used for younger generations.
+   */
+  crossbreedSaplingsVariants?: GeneticsMapGroup[];
+  resultSapling!: Sapling;
+  baseSapling?: Sapling;
+  score!: number;
+  chancePercent!: number;
+}
+
+export class GeneticsMapGroup {
   resultSaplingGeneString: string;
   mapList: GeneticsMap[];
-  index?: number;
+}
+
+export class GenerationInfo {
+  index: number;
+  addedSaplings?: number;
 }
 
 export interface OptimizerServiceEventListenerCallbackData {
-  isDone?: boolean;
   progressPercent?: number;
-  mapGroups?: MapGroup[];
+  generationIndex: number;
+  mapGroups?: GeneticsMapGroup[];
 }
 
 export interface SimulateOptions {
   progressCallback: (combinationsProcessed: number, partialResultMapList: GeneticsMap[]) => void;
   callProgressCallbackAfterCombinations: number;
   callProgressCallbackAfterNumberOfResultsReached: number;
-  maxCrossbreedingSaplings: number;
+  minCrossbreedingSaplingsNumber: number;
+  maxCrossbreedingSaplingsNumber: number;
+  numberOfSaplingsAddedBetweenGenerations: number;
   geneScores: Record<GeneEnum, number>;
   withRepetitions: boolean;
-  includeResultsWithMinimumScore: boolean;
-  minimumScore: number;
+  minimumTrackedScore: number;
 }

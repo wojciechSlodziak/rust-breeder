@@ -1,11 +1,10 @@
 <template>
   <div class="sapling-list-preview">
-    <SaplingGeneRepresentation
-      class="sapling-list-preview_sapling"
-      v-for="(sapling, index) in saplingList"
-      :key="index"
-      :sapling="sapling"
-    />
+    <ul>
+      <li v-for="(sapling, index) in saplingList" :key="index">
+        <SaplingGeneRepresentation class="sapling-list-preview_sapling" :sapling="sapling" />
+      </li>
+    </ul>
   </div>
 </template>
 
@@ -43,6 +42,14 @@ export default class SaplingListPreview extends Vue {
   position: absolute;
   top: 0px;
   right: 10px;
+}
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  li {
+    padding: 5px 0;
+  }
 }
 .sapling-list-preview_sapling--animate {
   animation: sapling-animation 0.4s ease-in;

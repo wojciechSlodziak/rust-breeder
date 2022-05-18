@@ -43,12 +43,18 @@
         </v-col>
       </v-row>
     </v-container>
+    <div class="mt-5">Click on a Card to see more details about generations and crossbreeding!</div>
     <ul class="mt-3 mb-12">
-      <li v-for="group in visibleMapGroups" :key="group.index">
-        <SimulationMapGroup :group="group" v-on:select:map="handleSelectMapEvent" :highlightedMap="highlightedMap" />
+      <li v-for="(group, index) in visibleMapGroups" :key="index">
+        <SimulationMapGroup
+          :group="group"
+          v-on:select:map="handleSelectMapEvent"
+          :highlightedMap="highlightedMap"
+          enable-selection
+        />
         <InViewAnchor
-          :key="group.index"
-          v-if="hasMore && group.index === visibleMapGroups.length - 2"
+          :key="index"
+          v-if="hasMore && index === visibleMapGroups.length - 2"
           @in-view="showMore"
         ></InViewAnchor>
       </li>
@@ -58,8 +64,7 @@
 
 <script lang="ts">
 import GeneEnum from '@/enums/gene.enum';
-import GeneticsMap from '@/models/genetics-map.model';
-import { MapGroup } from '@/services/optimizer-service/models';
+import { GeneticsMap, GeneticsMapGroup } from '@/services/optimizer-service/models';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import InViewAnchor from './InViewAnchor.vue';
 import SimulationMapGroup from './SimulationMapGroup.vue';
@@ -68,7 +73,7 @@ import SimulationMapGroup from './SimulationMapGroup.vue';
   components: { SimulationMapGroup, InViewAnchor }
 })
 export default class SimulationResults extends Vue {
-  @Prop({ type: Array, required: true }) readonly mapGroups!: MapGroup[];
+  @Prop({ type: Array, required: true }) readonly mapGroups!: GeneticsMapGroup[];
   @Prop({ type: Object }) readonly highlightedMap: GeneticsMap;
 
   filteringGenes: { [key: string]: string | null } = {

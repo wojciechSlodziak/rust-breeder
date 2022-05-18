@@ -15,8 +15,8 @@
 </template>
 
 <script lang="ts">
-import GeneticsMap from '@/models/genetics-map.model';
 import Sapling from '@/models/sapling.model';
+import { GeneticsMap } from '@/services/optimizer-service/models';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 
 @Component

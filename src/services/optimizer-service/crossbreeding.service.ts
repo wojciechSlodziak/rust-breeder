@@ -9,8 +9,8 @@ class CrossbreedingService {
    * @param crossbreedSaplings A list of saplings which have to be crosbreeded with each other.
    * @returns A list of results that are possible outcomes for the given crossbreedSaplings.
    */
-  crossbreed(crossbreedSaplings: Sapling[]): Sapling[] {
-    let resultSaplings: Sapling[] = [new Sapling()];
+  crossbreed(crossbreedSaplings: Sapling[], generationIndex: number): Sapling[] {
+    let resultSaplings: Sapling[] = [new Sapling(null, generationIndex)];
     const involvedSaplings: Sapling[] = [];
     for (let genePosition = 0; genePosition < 6; genePosition++) {
       const geneToWeightMap: Record<GeneEnum, number> = {
@@ -112,10 +112,11 @@ class CrossbreedingService {
    * @param resultSapling The sapling that resulted from crosbreeding process, and which needs to be crossbreeded
    * with base sapling due to it's genes being not fully dominant.
    * @param baseSapling One of the saplings provided to the corssbreeding process, which need to be checked for outcome.
+   * @param generationIndex Index of the generation.
    * @returns Result sapling after merging resultSapling and baseSapling.
    */
-  crossbreedResultWithBase(resultSapling: Sapling, baseSapling: Sapling) {
-    const finalresultSapling = new Sapling();
+  crossbreedResultWithBase(resultSapling: Sapling, baseSapling: Sapling, generationIndex: number) {
+    const finalresultSapling = new Sapling(null, generationIndex);
     resultSapling.genes.forEach((gene, index) => {
       if (
         gene.type === GeneEnum.B ||

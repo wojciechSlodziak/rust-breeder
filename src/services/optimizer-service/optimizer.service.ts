@@ -1,47 +1,66 @@
 import Worker from 'worker-loader!./optimizer-service.worker';
-import GeneticsMap from '../../models/genetics-map.model';
 import ApplicationOptions from '@/interfaces/application-options';
 import {
   getWorkChunks,
   resultMapGroupsSortingFunction,
   appendListToMapGroupsMap,
-  fixPrototypeAssignmentsAfterSerialization
+  fixPrototypeAssignmentsAfterSerialization,
+  getBestSaplingsForNextGeneration,
+  linkGenerationTree
 } from './optimizer.helper';
-import { MIN_CROSSBREEDING_SAPLINGS } from '@/const';
-import { OptimizerServiceEventListenerCallback, MapGroup, NotEnoughSourceSaplingsError } from './models';
+import {
+  OptimizerServiceEventListenerCallback,
+  NotEnoughSourceSaplingsError,
+  OptimizerServiceEventListenerCallbackData,
+  GenerationInfo,
+  GeneticsMapGroup
+} from './models';
+import Sapling from '@/models/sapling.model';
 
 class OptimizerService {
   listeners: OptimizerServiceEventListenerCallback[] = [];
 
   workers: Worker[];
   workerProgress: number[] = [];
-  resultMapLists: GeneticsMap[][] = [];
-  mapGroupMap: { [key: string]: MapGroup } = {};
+  mapGroupMap: { [key: string]: GeneticsMapGroup } = {};
 
   /**
    * Entry point in the application where dispatching work and maintaining progress updates happenn.
    * @param sourceGenes List of raw String representations of saplings provided by the User.
    * @param options Options provided from the UI, selected by the User.
    */
-  simulateBestGenetics(sourceGenes: string[], options: ApplicationOptions) {
+  simulateBestGenetics(
+    sourceSaplings: Sapling[],
+    generationInfo: GenerationInfo = { index: 1 },
+    options: ApplicationOptions
+  ) {
     this.workerProgress = [];
-    this.resultMapLists = [];
-    this.mapGroupMap = {};
+    if (generationInfo.index === 1) {
+      this.mapGroupMap = {};
+    }
 
-    if (sourceGenes.length < MIN_CROSSBREEDING_SAPLINGS) {
+    if (sourceSaplings.length < options.minCrossbreedingSaplingsNumber) {
       throw new NotEnoughSourceSaplingsError();
     }
 
     this.workers = [];
 
-    const workChunks = getWorkChunks(sourceGenes.length, options.withRepetitions, options.maxCrossbreedingSaplings);
+    const workChunks = getWorkChunks(
+      sourceSaplings.length,
+      options.withRepetitions,
+      options.minCrossbreedingSaplingsNumber,
+      options.maxCrossbreedingSaplingsNumber,
+      generationInfo.addedSaplings
+    );
+
     workChunks.forEach((workChunk, workerIndex) => {
       const worker = new Worker();
       this.workers.push(worker);
 
       worker.postMessage({
-        sourceGenes: sourceGenes,
+        sourceSaplings: sourceSaplings,
         ...workChunk,
+        generationInfo,
         options
       });
 
@@ -50,26 +69,25 @@ class OptimizerService {
 
         // Handling partial results.
         appendListToMapGroupsMap(this.mapGroupMap, event.data.partialResultMapList);
-        let mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
-        mapGroups = mapGroups.map((mapGroup, index) => ({ ...mapGroup, index }));
+        linkGenerationTree(this.mapGroupMap);
+        const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
+        // console.log('additive size', mapGroups.length);
 
         // Progress tracking.
         this.workerProgress[workerIndex] = event.data.combinationsProcessed;
 
         // Progress updates notfication.
-        this.listeners.forEach((listenerCallback) => {
-          listenerCallback('PROGRESS_UPDATE', {
-            isDone: false,
-            mapGroups,
-            progressPercent:
-              Number(
-                (
-                  this.workerProgress.reduce((acc, current) => acc + current, 0) / workChunk.allCombinationsCount
-                ).toFixed(2)
-              ) * 100
-          });
+        const progressPercent =
+          Number(
+            (this.workerProgress.reduce((acc, current) => acc + current, 0) / workChunk.allCombinationsCount).toFixed(2)
+          ) * 100;
+        this.sendEvent('PROGRESS_UPDATE', {
+          generationIndex: generationInfo.index,
+          mapGroups,
+          progressPercent
         });
 
+        // Worker has to be terminated when it has finished all the work.
         if (this.workerProgress[workerIndex] === workChunk.combinationsToProcess) {
           worker.terminate();
         }
@@ -79,16 +97,45 @@ class OptimizerService {
           this.workerProgress.reduce((acc, singleWorkerProgress) => acc + singleWorkerProgress, 0) ===
           workChunk.allCombinationsCount
         ) {
-          this.listeners.forEach((listenerCallback) => {
-            listenerCallback('DONE', { isDone: true, mapGroups });
-          });
+          this.sendEvent('DONE_GENERATION', { generationIndex: generationInfo.index, mapGroups });
 
-          // Cleanup.
-          this.resultMapLists = [];
-          this.workerProgress = [];
-          this.mapGroupMap = {};
+          if (generationInfo.index < options.numberOfGenerations) {
+            console.log('starting next generation');
+            const additionalSourceSaplings = getBestSaplingsForNextGeneration(
+              sourceSaplings,
+              mapGroups,
+              generationInfo.index,
+              options.numberOfSaplingsAddedBetweenGenerations
+            );
+            if (additionalSourceSaplings.length > 0) {
+              const newGenerationInfo: GenerationInfo = {
+                index: generationInfo.index + 1,
+                addedSaplings: additionalSourceSaplings.length
+              };
+              console.log('adding to next generation -> ', additionalSourceSaplings);
+              const nextGenerationSourceGenes = [...additionalSourceSaplings, ...sourceSaplings];
+              console.log('nextGenerationSourceGenes', nextGenerationSourceGenes);
+              this.simulateBestGenetics(nextGenerationSourceGenes, newGenerationInfo, options);
+            } else {
+              this.sendEvent('DONE', { mapGroups, generationIndex: generationInfo.index });
+            }
+          } else {
+            this.sendEvent('DONE', { mapGroups, generationIndex: generationInfo.index });
+            // Final Cleanup.
+            this.workerProgress = [];
+            this.mapGroupMap = {};
+          }
         }
       });
+    });
+  }
+
+  sendEvent(
+    eventType: 'PROGRESS_UPDATE' | 'DONE_GENERATION' | 'DONE',
+    data: OptimizerServiceEventListenerCallbackData
+  ) {
+    this.listeners.forEach((listenerCallback) => {
+      listenerCallback(eventType, data);
     });
   }
 

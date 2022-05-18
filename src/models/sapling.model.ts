@@ -9,9 +9,11 @@ export default class Sapling {
    * required for rebreeding with base, and for indicating correct base for red gene outcomes (example: single X can't override W, but can override G)
    */
   crossbreedingWeights: number[];
+  generationIndex: number;
   [key: string]: unknown;
 
-  constructor(genes: Gene[] | string | null = null) {
+  constructor(genes: Gene[] | string | null = null, generationIndex = 0) {
+    this.generationIndex = generationIndex;
     if (typeof genes === 'string') {
       this.genes = genes.split('').map((gene) => new Gene(gene as GeneEnum));
     } else if (genes !== null) {
@@ -61,6 +63,7 @@ export default class Sapling {
     const cloneSapling = new Sapling();
     cloneSapling.genes = [...this.genes];
     cloneSapling.crossbreedingWeights = [...this.crossbreedingWeights];
+    cloneSapling.generationIndex = this.generationIndex;
     return cloneSapling;
   }
 

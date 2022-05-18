@@ -1,12 +1,15 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ctx: Worker = self as any;
+import Sapling from '@/models/sapling.model';
 import geneticsSimulatorService from './genetics-simulator.service';
+import { fixSaplingPrototypeAssignments } from './optimizer.helper';
 
 ctx.addEventListener('message', (event) => {
   geneticsSimulatorService.simulateCrossbreeding(
-    event.data.sourceGenes,
+    event.data.sourceSaplings.map((rawSapling: Sapling) => fixSaplingPrototypeAssignments(rawSapling)),
     event.data.startingPositions,
     event.data.combinationsToProcess,
+    event.data.generationInfo,
     {
       callProgressCallbackAfterCombinations: 10000,
       callProgressCallbackAfterNumberOfResultsReached: 5000,

@@ -1,10 +1,16 @@
 <template>
   <div class="group mx-auto" :class="{ 'group--browsing-mode': isGroupBrowsingMode }">
     <div class="group_container" :class="{ 'group_container--overflowed': applyOverflowInBrowsingMode }">
+      <div class="group_helper-text-container" v-if="isGroupBrowsingMode && group.mapList.length > 1">
+        <div class="group_helper-text text-center">
+          Here you can see all the ways you can crossbreed the selected Sapling.
+        </div>
+      </div>
       <SimulationMap
-        @click.native="handleMapClick(map, index !== 0 && !isGroupBrowsingMode)"
+        @click.native="enableSelection && handleMapClick(map, index !== 0 && !isGroupBrowsingMode)"
         @mouseover.native="() => index !== 0 && !isGroupBrowsingMode && handleDummyMouseOver()"
         @mouseout.native="() => index !== 0 && !isGroupBrowsingMode && handleDummyMouseOut()"
+        @crossbreeding-sapling-selected="handleCrossbreedingSaplingSelectedEvent"
         ref="map"
         class="group_map"
         :class="{
@@ -14,7 +20,9 @@
         v-for="(map, index) in group.mapList"
         :key="index"
         :map="map"
-        :isDummy="index !== 0 && !isGroupBrowsingMode"
+        :is-dummy="index !== 0 && !isGroupBrowsingMode"
+        :enable-map-selection="enableSelection"
+        :enable-crossbreeding-sapling-selection="enableCrossbreedingSaplingSelection"
         :forced-height="index !== 0 ? dummyHeight : null"
         :style="{
           'z-index': maxDisplayedMaps - index,
@@ -26,7 +34,7 @@
         }"
       />
     </div>
-    <v-overlay :value="isGroupBrowsingMode" z-index="6" opacity="0.8" @click.native="handleOverlayClick"></v-overlay>
+    <v-overlay :value="isGroupBrowsingMode" z-index="6" opacity="0.9" @click.native="handleOverlayClick"></v-overlay>
   </div>
 </template>
 
@@ -34,15 +42,17 @@
 import { MAX_SAME_RESULT_VARIANTS_IN_MAP } from '../const';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import SimulationMap from './SimulationMap.vue';
-import { MapGroup } from '@/services/optimizer-service/models';
-import GeneticsMap from '@/models/genetics-map.model';
+import { GeneticsMapGroup, GeneticsMap } from '@/services/optimizer-service/models';
 
 @Component({
   components: { SimulationMap }
 })
 export default class SimulationMapGroup extends Vue {
-  @Prop({ type: Object, required: true }) readonly group!: MapGroup;
+  @Prop({ type: Object, required: true }) readonly group!: GeneticsMapGroup;
   @Prop({ type: Object }) readonly highlightedMap: GeneticsMap;
+  @Prop({ type: Boolean }) readonly groupBrowsingMode: boolean;
+  @Prop({ type: Boolean }) readonly enableSelection: boolean;
+  @Prop({ type: Boolean }) readonly enableCrossbreedingSaplingSelection: boolean;
 
   dummyHeight = 0;
   maxDisplayedMaps = MAX_SAME_RESULT_VARIANTS_IN_MAP;
@@ -50,6 +60,12 @@ export default class SimulationMapGroup extends Vue {
   isGroupBrowsingMode = false;
   isMouseHoveringDummy = false;
   applyOverflowInBrowsingMode = false;
+
+  created() {
+    if (this.groupBrowsingMode) {
+      this.openBrowsingMode();
+    }
+  }
 
   updated() {
     if (this.$refs.map) {
@@ -90,9 +106,14 @@ export default class SimulationMapGroup extends Vue {
     this.closeBrowsingMode();
   }
 
+  handleCrossbreedingSaplingSelectedEvent(group: GeneticsMapGroup) {
+    this.$emit('crossbreeding-sapling-selected', group);
+  }
+
   openBrowsingMode() {
     this.isMouseHoveringDummy = false;
     this.isGroupBrowsingMode = true;
+    this.$emit('open');
     setTimeout(() => {
       this.applyOverflowInBrowsingMode = true;
     }, 200);
@@ -101,6 +122,7 @@ export default class SimulationMapGroup extends Vue {
   closeBrowsingMode() {
     this.isGroupBrowsingMode = false;
     this.applyOverflowInBrowsingMode = false;
+    this.$emit('close');
   }
 }
 </script>
@@ -115,7 +137,6 @@ export default class SimulationMapGroup extends Vue {
     transition: opacity 0.15s, transform 0.15s;
   }
   .group_map {
-    cursor: pointer;
     &.group_map--dummy {
       position: absolute;
       overflow: hidden;
@@ -183,6 +204,17 @@ export default class SimulationMapGroup extends Vue {
       &::-webkit-scrollbar-corner {
         background: transparent;
       }
+    }
+  }
+  .group_helper-text-container {
+    position: fixed;
+    width: 100%;
+    left: 0;
+    .group_helper-text {
+      position: relative;
+      top: -20px;
+      transform: translateY(-100%);
+      white-space: normal;
     }
   }
 }

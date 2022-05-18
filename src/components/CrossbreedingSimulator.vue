@@ -1,8 +1,6 @@
 <template>
   <div class="simulator">
-    <div class="simulator_progress-container">
-      <v-progress-linear color="secondary" v-if="isSimulating" v-model="progressPercent" stream></v-progress-linear>
-    </div>
+    <ProgressIndicator :is-active="isSimulating" :progress-percents="progressPercents"></ProgressIndicator>
     <v-container fluid>
       <v-row>
         <v-col cols="12" :md="showHighlight ? 12 : 4" :lg="showHighlight ? 6 : 3" class="pa-1">
@@ -57,14 +55,24 @@
               </div>
 
               <div v-if="showHighlight" class="d-flex flex-column align-center" style="flex: 1 0 0">
-                <SimulationMap :map="highlightedMap" :isHighlight="true" />
-                <v-btn class="mt-3" @click="handleClearHighlightClick">Clear</v-btn>
+                <SimulationMap
+                  :map="highlightedMap"
+                  enable-crossbreeding-sapling-selection
+                  @crossbreeding-sapling-selected="handleYoungestCrossbreedingSaplingSelectedEvent"
+                />
+                <v-btn class="mt-3" @click="handleClearHighlightClick">Clear Selection</v-btn>
+                <div class="mt-2" v-if="highlightedMap && highlightedMap.resultSapling.generationIndex > 1">
+                  The Sapling you selected comes from the
+                  <strong>{{ highlightedMap.resultSapling.generationIndex === 2 ? '2nd' : '3rd' }}</strong> generation.
+                  You will need to crossbreed the Saplings that it requires first. Click on
+                  <span class="simulator_highlight-guide">highlighted</span> Surrounding Saplings to see how to
+                  crossbreed them.
+                </div>
               </div>
             </v-row>
           </v-form>
         </v-col>
-
-        <v-col cols="12" :md="showHighlight ? 12 : 8" :lg="showHighlight ? 6 : 9">
+        <v-col class="mt-10" cols="12" :md="showHighlight ? 12 : 8" :lg="showHighlight ? 6 : 9">
           <SimulationResults
             v-if="resultMapGroups !== null && resultMapGroups.length !== 0"
             :mapGroups="resultMapGroups"
@@ -83,6 +91,23 @@
         </v-col>
       </v-row>
     </v-container>
+    <SimulationMapGroup
+      key="youngestCrossbreedingSaplingGroup"
+      v-if="displayedYoungestCrossbreedingSaplingGroup && !displayedOldestCrossbreedingSaplingGroup"
+      :group="displayedYoungestCrossbreedingSaplingGroup"
+      group-browsing-mode
+      enable-crossbreeding-sapling-selection
+      @crossbreeding-sapling-selected="handleOldestCrossbreedingSaplingSelectedEvent"
+      @close="handleYoungestGenerationSimulationMapGroupCloseEvent"
+    ></SimulationMapGroup>
+
+    <SimulationMapGroup
+      key="oldestCrossbreedingSaplingGroup"
+      v-if="displayedOldestCrossbreedingSaplingGroup"
+      :group="displayedOldestCrossbreedingSaplingGroup"
+      group-browsing-mode
+      @close="handleOldestGenerationSimulationMapGroupCloseEvent"
+    ></SimulationMapGroup>
   </div>
 </template>
 
@@ -96,12 +121,15 @@ import OptionsButton from './OptionsButton.vue';
 import SaplingListPreview from './SaplingListPreview.vue';
 import SaplingScreenCapture from './SaplingScreenCapture.vue';
 import {
+  GeneticsMap,
   OptimizerServiceEventListenerCallbackData,
-  MapGroup,
+  GeneticsMapGroup,
   NotEnoughSourceSaplingsError
 } from '@/services/optimizer-service/models';
-import GeneticsMap from '@/models/genetics-map.model';
+import Sapling from '@/models/sapling.model';
 import goTo from 'vuetify/lib/services/goto';
+import ProgressIndicator from './ProgressIndicator.vue';
+import SimulationMapGroup from './SimulationMapGroup.vue';
 
 @Component({
   components: {
@@ -110,19 +138,43 @@ import goTo from 'vuetify/lib/services/goto';
     SaplingInputHighlights,
     OptionsButton,
     SaplingScreenCapture,
-    SaplingListPreview
+    SaplingListPreview,
+    ProgressIndicator,
+    SimulationMapGroup
   }
 })
 export default class CrossbreedingSimulator extends Vue {
   placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`;
-  saplingGenes = '';
-  progressPercent = 0;
+  saplingGenes = `XXYWGH
+XHHWHG
+XHYXGW
+WHHXHH
+HHGWGY
+GGGXYH
+WGGWYH
+XHGHGH
+WGGWGH
+YWGHGH
+GYGXHH
+XGGXHX
+XXYHHH
+WYYGGH
+YYGWGW
+WGGWHW
+YHYXYH
+WGYWYH
+XHGHGX
+WGHWGH
+XHGYXX`;
+  progressPercents: number[] = [];
   isSimulating = false;
   isFormValid = false;
   isScreenScanning = false;
   showNotEnoughSaplingsError = false;
   highlightedMap: GeneticsMap | null = null;
-  resultMapGroups: readonly MapGroup[] | null = null;
+  displayedYoungestCrossbreedingSaplingGroup: GeneticsMapGroup | null = null;
+  displayedOldestCrossbreedingSaplingGroup: GeneticsMapGroup | null = null;
+  resultMapGroups: readonly GeneticsMapGroup[] | null = null;
 
   sourceSaplingRules = [
     (v: string) => v !== '' || 'Give me some plants to work with!',
@@ -180,16 +232,16 @@ export default class CrossbreedingSimulator extends Vue {
 
   onOptimizerServiceEvent(type: string, data: OptimizerServiceEventListenerCallbackData) {
     if (type === 'PROGRESS_UPDATE') {
-      this.progressPercent = data.progressPercent || 0;
+      Vue.set(this.progressPercents, data.generationIndex - 1, data.progressPercent || 0);
       this.resultMapGroups = Object.freeze(data.mapGroups || null);
-    }
-    if (type === 'DONE') {
-      this.progressPercent = 100;
+    } else if (type === 'DONE_GENERATION') {
+      Vue.set(this.progressPercents, data.generationIndex - 1, 100);
+    } else if (type === 'DONE') {
+      console.log(data.mapGroups);
       this.resultMapGroups = Object.freeze(data.mapGroups || null);
 
       setTimeout(() => {
         this.isSimulating = false;
-        this.progressPercent = 0;
       }, 200);
     }
     this.$forceUpdate();
@@ -200,12 +252,15 @@ export default class CrossbreedingSimulator extends Vue {
     const deduplicatedSaplingGeneList = this.getDeduplicatedSaplingGeneList();
     this.saplingGenes = deduplicatedSaplingGeneList.join('\n');
 
-    this.progressPercent = 0;
+    const options = (this.$refs.optionsButton as OptionsButton).getOptions();
+
+    this.progressPercents = new Array(options.numberOfGenerations);
     this.resultMapGroups = null;
     try {
       optimizerService.simulateBestGenetics(
-        deduplicatedSaplingGeneList,
-        (this.$refs.optionsButton as OptionsButton).getOptions()
+        deduplicatedSaplingGeneList.map((geneString) => new Sapling(geneString)),
+        undefined,
+        options
       );
       this.isSimulating = true;
     } catch (e) {
@@ -263,6 +318,32 @@ export default class CrossbreedingSimulator extends Vue {
     }
   }
 
+  handleYoungestCrossbreedingSaplingSelectedEvent(group: GeneticsMapGroup) {
+    this.displayedYoungestCrossbreedingSaplingGroup = group;
+  }
+
+  handleOldestCrossbreedingSaplingSelectedEvent(group: GeneticsMapGroup) {
+    this.displayedOldestCrossbreedingSaplingGroup = group;
+  }
+
+  handleYoungestGenerationSimulationMapGroupCloseEvent() {
+    console.log(
+      'handleYoungestGenerationSimulationMapGroupCloseEvent',
+      this.displayedYoungestCrossbreedingSaplingGroup,
+      this.displayedOldestCrossbreedingSaplingGroup
+    );
+    this.displayedYoungestCrossbreedingSaplingGroup = null;
+  }
+
+  handleOldestGenerationSimulationMapGroupCloseEvent() {
+    this.displayedOldestCrossbreedingSaplingGroup = null;
+    console.log(
+      'handleOldestGenerationSimulationMapGroupCloseEvent',
+      this.displayedYoungestCrossbreedingSaplingGroup,
+      this.displayedOldestCrossbreedingSaplingGroup
+    );
+  }
+
   handleClearHighlightClick() {
     this.clearHighlight();
   }
@@ -293,14 +374,15 @@ export default class CrossbreedingSimulator extends Vue {
 </script>
 
 <style scoped lang="scss">
-.simulator_progress-container {
-  height: 5px;
-}
 .simulator_sapling-input-container {
   position: relative;
   min-width: 260px;
   .simulator_sapling-input {
     z-index: 1;
   }
+}
+.simulator_highlight-guide {
+  outline: 2px double rgba(223, 145, 0, 0.3);
+  outline-offset: 2px;
 }
 </style>

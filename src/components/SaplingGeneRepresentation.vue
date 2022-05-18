@@ -1,6 +1,6 @@
 <template>
   <div class="sapling-gene-repr">
-    <span v-for="(gene, index) in genes" :key="index">
+    <span class="sapling-gene-repr_gene-container" v-for="(gene, index) in genes" :key="index">
       <span
         class="sapling-gene-repr_gene"
         :class="{
@@ -37,8 +37,7 @@ $radiusPX: 1.5625em;
 
 .sapling-gene-repr {
   font-size: 1em;
-  padding: 5px 0;
-  span {
+  .sapling-gene-repr_gene-container {
     display: inline-block;
     height: 1.5625em;
   }

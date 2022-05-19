@@ -64,6 +64,16 @@
                       handleCrossbreedingSaplingSelection(index)
                   "
                 />
+                <span
+                  v-if="crossbreedSapling.generationIndex > 0"
+                  class="map_sapling-chance"
+                  :class="{ 'map_sapling-chance--subtle': !enableCrossbreedingSaplingSelection }"
+                  >{{
+                    map.crossbreedSaplingsVariants
+                      ? map.crossbreedSaplingsVariants[index].mapList[0].chancePercent
+                      : ''
+                  }}%</span
+                >
               </li>
             </ul>
           </div>
@@ -169,15 +179,15 @@ export default class SimulationMap extends Vue {
   .map_sapling--selectable {
     transition: outline-color 0.15s;
     user-select: none;
-    outline: 2px double rgba(223, 145, 0, 0.3);
+    outline: 2px solid rgba(223, 145, 0, 0.3);
     outline-offset: 2px;
   }
   .map_sapling--selectable:hover {
-    outline: 2px double rgba(223, 145, 0, 0.8);
+    outline: 2px solid rgba(223, 145, 0, 0.8);
     cursor: pointer;
   }
   .map_sapling--selectable:active {
-    outline: 2px double rgb(223, 145, 1);
+    outline: 2px solid rgb(223, 145, 1);
   }
   &.map--hidden {
     .map_header,
@@ -189,14 +199,29 @@ export default class SimulationMap extends Vue {
     background-color: #191919;
     padding: 5px 0;
   }
-  .map_sapling-generation {
+  .map_sapling-generation,
+  .map_sapling-chance {
     position: absolute;
     display: inline-block;
     font-size: 0.7em;
-    left: -0.5em;
     top: 0.75em;
     user-select: none;
+
     &.map_sapling-generation--subtle {
+      opacity: 0.3;
+    }
+  }
+  .map_sapling-generation {
+    left: -0.5em;
+    &.map_sapling-generation--subtle {
+      opacity: 0.3;
+    }
+  }
+  .map_sapling-chance {
+    right: 0;
+    width: 2.6em;
+    text-align: left;
+    &.map_sapling-chance--subtle {
       opacity: 0.3;
     }
   }

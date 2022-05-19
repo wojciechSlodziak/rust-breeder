@@ -25,7 +25,9 @@ export default class SaplingListPreview extends Vue {
 
   animateLastSapling() {
     this.$nextTick(() => {
-      const lastSaplingGeneRepresentationElement = this.$el.querySelector('.sapling-list-preview_sapling:last-child');
+      const lastSaplingGeneRepresentationElement = this.$el.querySelector(
+        'li:last-child .sapling-list-preview_sapling'
+      );
       lastSaplingGeneRepresentationElement?.classList.add('sapling-list-preview_sapling--animate');
       setTimeout(() => {
         lastSaplingGeneRepresentationElement?.classList.remove('sapling-list-preview_sapling--animate');

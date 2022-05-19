@@ -382,7 +382,7 @@ XHGYXX`;
   }
 }
 .simulator_highlight-guide {
-  outline: 2px double rgba(223, 145, 0, 0.3);
+  outline: 2px solid rgba(223, 145, 0, 0.3);
   outline-offset: 2px;
 }
 </style>

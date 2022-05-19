@@ -112,8 +112,8 @@ export default class OptionsButton extends Vue {
     modifyMinimumTrackedScoreManually: false,
     minCrossbreedingSaplingsNumber: 2,
     maxCrossbreedingSaplingsNumber: 5,
-    numberOfGenerations: 3, // TODO: set to 2 by default
-    numberOfSaplingsAddedBetweenGenerations: 20,
+    numberOfGenerations: 2, // TODO: set to 2 by default
+    numberOfSaplingsAddedBetweenGenerations: 20, // TODO: set to 20 by default
     minimumTrackedScore: 4,
     geneScores: {
       [GeneEnum.G]: 1,

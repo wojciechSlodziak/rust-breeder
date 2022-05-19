@@ -25,11 +25,38 @@
     <v-card-text class="map_detail">
       <v-tooltip bottom open-delay="250" :disabled="!enableMapSelection">
         <template v-slot:activator="{ on, attrs }">
-          <div v-bind="attrs" v-on="on" class="mb-4">
+          <div v-bind="attrs" v-on="on">
             <div class="mb-1">
-              Center Sapling:<span class="white--text" v-if="!map.baseSapling"><br />any extra random plant</span>
+              Center Sapling:
+              <div class="white--text mb-4" v-if="!map.baseSapling">any extra random plant</div>
             </div>
-            <SaplingGeneRepresentation class="map_sapling" :sapling="map.baseSapling" v-if="map.baseSapling" />
+            <div class="map_base-sapling-container mb-4" v-if="map.baseSapling">
+              <span
+                class="map_sapling-generation"
+                :class="{ 'map_sapling-generation--subtle': !enableComposingSaplingsSelection }"
+                >GEN.{{ map.baseSapling.generationIndex }}</span
+              >
+              <SaplingGeneRepresentation
+                class="map_sapling"
+                :class="{
+                  'map_sapling--selectable':
+                    enableComposingSaplingsSelection && map.baseSapling && map.baseSapling.generationIndex > 0
+                }"
+                :sapling="map.baseSapling"
+                @click.native="
+                  enableComposingSaplingsSelection &&
+                    map.baseSapling &&
+                    map.baseSapling.generationIndex > 0 &&
+                    handleBaseSaplingSelection()
+                "
+              />
+              <span
+                v-if="map.baseSapling.generationIndex > 0"
+                class="map_sapling-chance"
+                :class="{ 'map_sapling-chance--subtle': !enableComposingSaplingsSelection }"
+                >{{ map.baseSaplingVariants ? map.baseSaplingVariants.mapList[0].chancePercent : '' }}%</span
+              >
+            </div>
           </div>
         </template>
         <span
@@ -48,18 +75,17 @@
               <li class="map_sapling-list" v-for="(crossbreedSapling, index) in map.crossbreedSaplings" :key="index">
                 <span
                   class="map_sapling-generation"
-                  :class="{ 'map_sapling-generation--subtle': !enableCrossbreedingSaplingSelection }"
+                  :class="{ 'map_sapling-generation--subtle': !enableComposingSaplingsSelection }"
                   >GEN.{{ crossbreedSapling.generationIndex }}</span
                 >
                 <SaplingGeneRepresentation
                   class="map_sapling"
                   :class="{
-                    'map_sapling--selectable':
-                      enableCrossbreedingSaplingSelection && crossbreedSapling.generationIndex > 0
+                    'map_sapling--selectable': enableComposingSaplingsSelection && crossbreedSapling.generationIndex > 0
                   }"
                   :sapling="crossbreedSapling"
                   @click.native="
-                    enableCrossbreedingSaplingSelection &&
+                    enableComposingSaplingsSelection &&
                       crossbreedSapling.generationIndex > 0 &&
                       handleCrossbreedingSaplingSelection(index)
                   "
@@ -67,7 +93,7 @@
                 <span
                   v-if="crossbreedSapling.generationIndex > 0"
                   class="map_sapling-chance"
-                  :class="{ 'map_sapling-chance--subtle': !enableCrossbreedingSaplingSelection }"
+                  :class="{ 'map_sapling-chance--subtle': !enableComposingSaplingsSelection }"
                   >{{
                     map.crossbreedSaplingsVariants
                       ? map.crossbreedSaplingsVariants[index].mapList[0].chancePercent
@@ -98,10 +124,10 @@ import SimulationMapGroup from './SimulationMapGroup.vue';
 })
 export default class SimulationMap extends Vue {
   @Prop({ type: Object, required: true }) readonly map!: GeneticsMap;
-  @Prop({ type: Boolean }) isDummy: boolean;
-  @Prop({ type: Boolean }) enableCrossbreedingSaplingSelection: boolean;
-  @Prop({ type: Boolean }) enableMapSelection: boolean;
-  @Prop({ type: Number }) forcedHeight: number;
+  @Prop({ type: Boolean }) readonly isDummy: boolean;
+  @Prop({ type: Boolean }) readonly enableComposingSaplingsSelection: boolean;
+  @Prop({ type: Boolean }) readonly enableMapSelection: boolean;
+  @Prop({ type: Number }) readonly forcedHeight: number;
 
   get chanceClass() {
     let chanceClass = 'map_chance--';
@@ -121,8 +147,13 @@ export default class SimulationMap extends Vue {
 
   handleCrossbreedingSaplingSelection(crossbreedSaplingIndex: number) {
     if (this.map.crossbreedSaplingsVariants) {
-      console.log(this.map.crossbreedSaplingsVariants[crossbreedSaplingIndex]);
-      this.$emit('crossbreeding-sapling-selected', this.map.crossbreedSaplingsVariants[crossbreedSaplingIndex]);
+      this.$emit('composing-sapling-selected', this.map.crossbreedSaplingsVariants[crossbreedSaplingIndex]);
+    }
+  }
+
+  handleBaseSaplingSelection() {
+    if (this.map.baseSaplingVariants) {
+      this.$emit('composing-sapling-selected', this.map.baseSaplingVariants);
     }
   }
 }
@@ -167,6 +198,12 @@ export default class SimulationMap extends Vue {
     .map_gen--1 {
       color: rgb(31, 196, 31);
     }
+  }
+  .map_base-sapling-container {
+    position: relative;
+    justify-content: center;
+    padding: 5px 0;
+    display: flex;
   }
   .map_sapling-list {
     position: relative;

@@ -18,14 +18,11 @@ export function resultMapsSortingFunction(geneticsMap1: GeneticsMap, geneticsMap
   if (
     geneticsMap1.resultSapling.generationIndex < geneticsMap2.resultSapling.generationIndex ||
     (geneticsMap1.resultSapling.generationIndex === geneticsMap2.resultSapling.generationIndex &&
-      geneticsMap1.chancePercent > geneticsMap2.chancePercent) ||
-    (geneticsMap1.resultSapling.generationIndex === geneticsMap2.resultSapling.generationIndex &&
-      geneticsMap1.chancePercent === geneticsMap2.chancePercent &&
-      sumOfCrossbreedingSaplingGenerations1 < sumOfCrossbreedingSaplingGenerations2) ||
-    (geneticsMap1.resultSapling.generationIndex === geneticsMap2.resultSapling.generationIndex &&
-      geneticsMap1.chancePercent === geneticsMap2.chancePercent &&
-      sumOfCrossbreedingSaplingGenerations1 === sumOfCrossbreedingSaplingGenerations2 &&
-      geneticsMap1.crossbreedSaplings.length < geneticsMap2.crossbreedSaplings.length)
+      (geneticsMap1.chancePercent > geneticsMap2.chancePercent ||
+        (geneticsMap1.chancePercent === geneticsMap2.chancePercent &&
+          (sumOfCrossbreedingSaplingGenerations1 < sumOfCrossbreedingSaplingGenerations2 ||
+            (sumOfCrossbreedingSaplingGenerations1 === sumOfCrossbreedingSaplingGenerations2 &&
+              geneticsMap1.crossbreedSaplings.length < geneticsMap2.crossbreedSaplings.length)))))
   ) {
     return -1;
   } else {
@@ -40,14 +37,16 @@ export function resultMapGroupsSortingFunction(
   geneticsMapsGroup1: GeneticsMapGroup,
   geneticsMapsGroup2: GeneticsMapGroup
 ): number {
+  const group1FirstMap = geneticsMapsGroup1.mapList[0];
+  const group2FirstMap = geneticsMapsGroup2.mapList[0];
   if (
-    geneticsMapsGroup1.mapList[0].score > geneticsMapsGroup2.mapList[0].score ||
-    (geneticsMapsGroup1.mapList[0].score === geneticsMapsGroup2.mapList[0].score &&
-      geneticsMapsGroup1.mapList[0].chancePercent > geneticsMapsGroup2.mapList[0].chancePercent) ||
-    (geneticsMapsGroup1.mapList[0].score === geneticsMapsGroup2.mapList[0].score &&
-      geneticsMapsGroup1.mapList[0].chancePercent === geneticsMapsGroup2.mapList[0].chancePercent &&
-      geneticsMapsGroup1.mapList[0].resultSapling.generationIndex <
-        geneticsMapsGroup2.mapList[0].resultSapling.generationIndex)
+    group1FirstMap.score > group2FirstMap.score ||
+    (group1FirstMap.score === group2FirstMap.score &&
+      (group1FirstMap.chancePercent > group2FirstMap.chancePercent ||
+        (group1FirstMap.chancePercent === group2FirstMap.chancePercent &&
+          (group1FirstMap.resultSapling.generationIndex < group2FirstMap.resultSapling.generationIndex ||
+            (group1FirstMap.resultSapling.generationIndex === group2FirstMap.resultSapling.generationIndex &&
+              geneticsMapsGroup1.resultSaplingGeneString < geneticsMapsGroup2.resultSaplingGeneString)))))
   ) {
     return -1;
   } else {
@@ -191,18 +190,7 @@ export function getWorkChunks(
     allCombinationsCount -= combinationsToIgnore;
   }
 
-  console.log(
-    'getWorkChunks',
-    sourceSaplingsCount,
-    withRepetitions,
-    minCrossbreedingSaplings,
-    maxCrossbreedingSaplings,
-    mandatorySaplingsCount
-  );
-
-  console.log('allCombinationsCount', allCombinationsCount);
-
-  const numberOfWorkers = navigator.hardwareConcurrency;
+  const numberOfWorkers = Math.ceil(navigator.hardwareConcurrency / 3);
   const combinationsPerWorker = Math.ceil(allCombinationsCount / numberOfWorkers);
   const workChunks = [];
 
@@ -226,7 +214,6 @@ export function getWorkChunks(
         };
       }
 
-      // console.log(positions);
       const setNextPositionResult = setNextPosition(
         positions,
         positionIndexForInc,
@@ -239,7 +226,6 @@ export function getWorkChunks(
       positionIndexForInc = setNextPositionResult.nextPositionIndexForInc;
 
       combinationsProcessed++;
-      // console.log(setNextPositionResult.hasMoreCombinations, combinationsProcessed);
       workChunks[workerIndex].combinationsToProcess = combinationsProcessed;
       if (
         hasMoreCombinations &&
@@ -251,8 +237,8 @@ export function getWorkChunks(
       }
     }
   }
-  console.log('workChunks', workChunks);
 
+  console.log('workChunks', workChunks);
   return workChunks;
 }
 
@@ -347,6 +333,9 @@ export function fixSaplingPrototypeAssignments(rawSapling: Sapling): Sapling {
 export function linkGenerationTree(mapGroupMap: { [key: string]: GeneticsMapGroup }) {
   Object.values(mapGroupMap).forEach((mapGroup) => {
     mapGroup.mapList.forEach((map) => {
+      if (map.baseSapling) {
+        map.baseSaplingVariants = mapGroupMap[map.baseSapling.toString()];
+      }
       map.crossbreedSaplingsVariants = new Array(map.crossbreedSaplings.length);
       map.crossbreedSaplings.forEach((crossbreedSapling, crossbreedSaplingIndex) => {
         if (crossbreedSapling.generationIndex > 0) {

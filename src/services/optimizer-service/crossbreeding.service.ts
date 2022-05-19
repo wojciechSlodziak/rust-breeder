@@ -116,18 +116,18 @@ class CrossbreedingService {
    * @returns Result sapling after merging resultSapling and baseSapling.
    */
   crossbreedResultWithBase(resultSapling: Sapling, baseSapling: Sapling, generationIndex: number) {
-    const finalresultSapling = new Sapling(null, generationIndex);
+    const finalResultSapling = new Sapling(null, generationIndex);
     resultSapling.genes.forEach((gene, index) => {
       if (
         gene.type === GeneEnum.B ||
-        resultSapling.crossbreedingWeights![index] <= baseSapling.genes[index].crossbreedingWeight()
+        baseSapling.genes[index].crossbreedingWeight() > resultSapling.crossbreedingWeights![index]
       ) {
-        finalresultSapling.addGene(baseSapling.genes[index]);
+        finalResultSapling.addGene(baseSapling.genes[index]);
       } else {
-        finalresultSapling.addGene(gene);
+        finalResultSapling.addGene(gene);
       }
     });
-    return finalresultSapling;
+    return finalResultSapling;
   }
 
   /**

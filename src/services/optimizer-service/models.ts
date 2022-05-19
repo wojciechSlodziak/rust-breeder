@@ -17,6 +17,7 @@ export class GeneticsMap {
   crossbreedSaplingsVariants?: GeneticsMapGroup[];
   resultSapling!: Sapling;
   baseSapling?: Sapling;
+  baseSaplingVariants?: GeneticsMapGroup;
   score!: number;
   chancePercent!: number;
 }
@@ -40,7 +41,6 @@ export interface OptimizerServiceEventListenerCallbackData {
 export interface SimulateOptions {
   progressCallback: (combinationsProcessed: number, partialResultMapList: GeneticsMap[]) => void;
   callProgressCallbackAfterCombinations: number;
-  callProgressCallbackAfterNumberOfResultsReached: number;
   minCrossbreedingSaplingsNumber: number;
   maxCrossbreedingSaplingsNumber: number;
   numberOfSaplingsAddedBetweenGenerations: number;

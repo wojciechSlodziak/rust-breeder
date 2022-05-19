@@ -38,7 +38,6 @@ class GeneticsSimulatorService {
       let hasMoreCombinations = true;
       let crossbreedSaplings: Sapling[];
       while (hasMoreCombinations) {
-        // console.log(positions);
         crossbreedSaplings = [];
         positions.forEach((position) => {
           crossbreedSaplings.push(sourceSaplings[position]);
@@ -67,12 +66,11 @@ class GeneticsSimulatorService {
 
         if (
           (options && combinationsProcessed % options.callProgressCallbackAfterCombinations === 0) ||
-          options.callProgressCallbackAfterNumberOfResultsReached < result.length ||
           combinationsProcessed === combinationsToProcess
         ) {
           options.progressCallback(
             combinationsProcessed,
-            // Filter out result saplings that were already provided by the User.
+            // Filter out result saplings that were already provided by the User or come from previous generation.
             // We don't need to make something that we already have.
             result.filter((map) => sourceGenes.indexOf(map.resultSapling.toString()) === -1)
           );
@@ -108,26 +106,23 @@ class GeneticsSimulatorService {
         throw e;
       }
     }
-
     resultSaplings.forEach((resultSapling) => {
-      const numberOfBaseGenes = resultSapling.getNumberOfBaseGenes();
-
-      if (numberOfBaseGenes > 0) {
+      if (resultSapling.getNumberOfBaseGenes() > 0) {
         const otherSaplings: Sapling[] = sourceSaplings.filter((sapling) => crossbreedSaplings.indexOf(sapling) === -1);
-        otherSaplings.forEach((baseSapling) => {
-          const rebreedresultSapling = crossbreedingService.crossbreedResultWithBase(
+        otherSaplings.forEach((potentialBaseSapling) => {
+          const rebreedResultSapling = crossbreedingService.crossbreedResultWithBase(
             resultSapling,
-            baseSapling,
+            potentialBaseSapling,
             generationIndex
           );
 
-          const score = rebreedresultSapling.getScore(geneScores);
+          const score = rebreedResultSapling.getScore(geneScores);
           if (score >= minimumTrackedScore) {
-            rebreedresultSapling.cleanupCrossbreedingJunk();
+            rebreedResultSapling.cleanupCrossbreedingJunk();
             result.push({
               crossbreedSaplings,
-              baseSapling,
-              resultSapling: rebreedresultSapling,
+              baseSapling: potentialBaseSapling,
+              resultSapling: rebreedResultSapling,
               score: score,
               chancePercent: Number((100 / resultSaplings.length).toFixed(2))
             });

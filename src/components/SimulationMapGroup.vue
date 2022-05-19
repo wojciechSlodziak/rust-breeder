@@ -1,34 +1,45 @@
 <template>
   <div class="group mx-auto" :class="{ 'group--browsing-mode': isGroupBrowsingMode }">
-    <div class="group_container" :class="{ 'group_container--overflowed': applyOverflowInBrowsingMode }">
+    <div
+      v-if="normalViewMode || isGroupBrowsingMode"
+      class="group_container"
+      :class="{ 'group_container--overflowed': applyOverflowInBrowsingMode }"
+    >
       <div class="group_helper-text-container" v-if="isGroupBrowsingMode && group.mapList.length > 1">
-        <div class="group_helper-text text-center">
-          Here you can see all the ways you can crossbreed the selected Sapling.
+        <div class="group_helper-text text-center pl-2 pr-2 d-none d-sm-block">
+          Here you can see all the different ways you can crossbreed the same selected Sapling.
+          <div v-if="hasBrowsingMessageSlotContent">
+            <v-divider class="mt-2 mb-2"></v-divider>
+            <slot name="browsingMessage"></slot>
+          </div>
         </div>
       </div>
       <SimulationMap
+        v-for="(map, index) in visibleMaps"
         @click.native="enableSelection && handleMapClick(map, index !== 0 && !isGroupBrowsingMode)"
         @mouseover.native="() => index !== 0 && !isGroupBrowsingMode && handleDummyMouseOver()"
         @mouseout.native="() => index !== 0 && !isGroupBrowsingMode && handleDummyMouseOut()"
-        @crossbreeding-sapling-selected="handleCrossbreedingSaplingSelectedEvent"
-        ref="map"
+        @composing-sapling-selected="handleComposingSaplingSelectedEvent"
+        :ref="index === 0 ? 'mainMap' : null"
         class="group_map"
         :class="{
           'group_map--dummy': index !== 0 && !isGroupBrowsingMode,
           'group_map--highlighted': map === highlightedMap
         }"
-        v-for="(map, index) in group.mapList"
-        :key="index"
+        :key="
+          (map.baseSapling ? map.baseSapling.toString() + '-' : '') +
+            map.crossbreedSaplings.map((sapling) => sapling.toString()).join('')
+        "
         :map="map"
         :is-dummy="index !== 0 && !isGroupBrowsingMode"
         :enable-map-selection="enableSelection"
-        :enable-crossbreeding-sapling-selection="enableCrossbreedingSaplingSelection"
+        :enable-composing-saplings-selection="enableComposingSaplingsSelection"
         :forced-height="index !== 0 ? dummyHeight : null"
         :style="{
           'z-index': maxDisplayedMaps - index,
           opacity:
             !isGroupBrowsingMode && index !== 0 && map !== highlightedMap
-              ? ((maxDisplayedMaps - index) / maxDisplayedMaps) * (isMouseHoveringDummy ? 1 : 0.4)
+              ? ((maxDisplayedMaps - index) / maxDisplayedMaps) * (isMouseHoveringDummy ? 1 : 0.75)
               : 1,
           transform: !isGroupBrowsingMode ? 'translateX(' + index * (isMouseHoveringDummy ? 20 : 15) + 'px)' : 'none'
         }"
@@ -51,8 +62,10 @@ export default class SimulationMapGroup extends Vue {
   @Prop({ type: Object, required: true }) readonly group!: GeneticsMapGroup;
   @Prop({ type: Object }) readonly highlightedMap: GeneticsMap;
   @Prop({ type: Boolean }) readonly groupBrowsingMode: boolean;
+  @Prop({ type: Boolean }) readonly normalViewMode: boolean;
   @Prop({ type: Boolean }) readonly enableSelection: boolean;
-  @Prop({ type: Boolean }) readonly enableCrossbreedingSaplingSelection: boolean;
+  @Prop({ type: Boolean }) readonly enableComposingSaplingsSelection: boolean;
+  @Prop({ type: Boolean }) readonly displayFrontMapOnly: boolean;
 
   dummyHeight = 0;
   maxDisplayedMaps = MAX_SAME_RESULT_VARIANTS_IN_MAP;
@@ -61,16 +74,34 @@ export default class SimulationMapGroup extends Vue {
   isMouseHoveringDummy = false;
   applyOverflowInBrowsingMode = false;
 
+  get visibleMaps() {
+    return this.displayFrontMapOnly ? this.group.mapList.slice(0, 1) : this.group.mapList;
+  }
+
+  get hasBrowsingMessageSlotContent() {
+    return this.$slots.browsingMessage;
+  }
+
   created() {
     if (this.groupBrowsingMode) {
-      this.openBrowsingMode();
+      this.$nextTick(() => {
+        this.openBrowsingMode();
+      });
     }
   }
 
+  mounted() {
+    this.handlePotentialHeightChange();
+  }
+
   updated() {
-    if (this.$refs.map) {
+    this.handlePotentialHeightChange();
+  }
+
+  handlePotentialHeightChange() {
+    if (this.$refs.mainMap) {
       this.$nextTick(() => {
-        this.dummyHeight = (this.$refs.map as Vue[])[0].$el.getBoundingClientRect().height;
+        this.dummyHeight = (this.$refs.mainMap as Vue[])[0].$el.getBoundingClientRect().height;
       });
     }
   }
@@ -106,8 +137,8 @@ export default class SimulationMapGroup extends Vue {
     this.closeBrowsingMode();
   }
 
-  handleCrossbreedingSaplingSelectedEvent(group: GeneticsMapGroup) {
-    this.$emit('crossbreeding-sapling-selected', group);
+  handleComposingSaplingSelectedEvent(group: GeneticsMapGroup) {
+    this.$emit('composing-sapling-selected', group);
   }
 
   openBrowsingMode() {
@@ -134,7 +165,7 @@ export default class SimulationMapGroup extends Vue {
   position: relative;
   .group_map {
     position: relative;
-    transition: opacity 0.15s, transform 0.15s;
+    transition: opacity 0.15s, transform 0.2s;
   }
   .group_map {
     &.group_map--dummy {

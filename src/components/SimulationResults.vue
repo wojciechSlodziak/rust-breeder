@@ -45,12 +45,14 @@
     </v-container>
     <div class="mt-5">Click on a Card to see more details about generations and crossbreeding!</div>
     <ul class="mt-3 mb-12">
-      <li v-for="(group, index) in visibleMapGroups" :key="index">
+      <li v-for="(group, index) in visibleMapGroups" :key="group.resultSaplingGeneString">
         <SimulationMapGroup
           :group="group"
           v-on:select:map="handleSelectMapEvent"
           :highlightedMap="highlightedMap"
+          :display-front-map-only="displayFrontMapOnly"
           enable-selection
+          normal-view-mode
         />
         <InViewAnchor
           :key="index"
@@ -75,6 +77,7 @@ import SimulationMapGroup from './SimulationMapGroup.vue';
 export default class SimulationResults extends Vue {
   @Prop({ type: Array, required: true }) readonly mapGroups!: GeneticsMapGroup[];
   @Prop({ type: Object }) readonly highlightedMap: GeneticsMap;
+  @Prop({ type: Boolean }) readonly displayFrontMapOnly: boolean;
 
   filteringGenes: { [key: string]: string | null } = {
     gene0: '',
@@ -96,7 +99,8 @@ export default class SimulationResults extends Vue {
     (v: number) => !v || v <= 6 || 'No more than six...'
   ];
 
-  page = 1;
+  page = 2;
+  itemsPerPage = 3;
 
   get filteredMapGroups() {
     let mapGroups = this.mapGroups;
@@ -138,7 +142,7 @@ export default class SimulationResults extends Vue {
   }
 
   get visibleMapGroups() {
-    return this.filteredMapGroups.slice(0, this.page * 10);
+    return this.filteredMapGroups.slice(0, this.page * this.itemsPerPage);
   }
 
   get hasMore() {

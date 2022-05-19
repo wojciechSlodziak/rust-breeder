@@ -66,7 +66,9 @@ export default class Sapling {
   clone(): Sapling {
     const cloneSapling = new Sapling();
     cloneSapling.genes = [...this.genes];
-    cloneSapling.crossbreedingWeights = [...this.crossbreedingWeights];
+    if (this.crossbreedingWeights) {
+      cloneSapling.crossbreedingWeights = [...this.crossbreedingWeights];
+    }
     cloneSapling.generationIndex = this.generationIndex;
     return cloneSapling;
   }

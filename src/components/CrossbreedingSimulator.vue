@@ -1,6 +1,7 @@
 <template>
   <div class="simulator">
     <ProgressIndicator :is-active="isSimulating" :progress-percents="progressPercents"></ProgressIndicator>
+    <div class="simulator_calc-time mr-2" v-if="calcTime">time: {{ calcTime }}</div>
     <v-container fluid>
       <v-row>
         <v-col cols="12" :md="showHighlight ? 12 : 4" :lg="showHighlight ? 6 : 3" class="pa-1">
@@ -57,16 +58,15 @@
               <div v-if="showHighlight" class="d-flex flex-column align-center" style="flex: 1 0 0">
                 <SimulationMap
                   :map="highlightedMap"
-                  enable-crossbreeding-sapling-selection
-                  @crossbreeding-sapling-selected="handleYoungestCrossbreedingSaplingSelectedEvent"
+                  enable-composing-saplings-selection
+                  @composing-sapling-selected="handleYoungestComposingSaplingSelectedEvent"
                 />
                 <v-btn class="mt-3" @click="handleClearHighlightClick">Clear Selection</v-btn>
                 <div class="mt-2" v-if="highlightedMap && highlightedMap.resultSapling.generationIndex > 1">
                   The Sapling you selected comes from the
                   <strong>{{ highlightedMap.resultSapling.generationIndex === 2 ? '2nd' : '3rd' }}</strong> generation.
                   You will need to crossbreed the Saplings that it requires first. Click on
-                  <span class="simulator_highlight-guide">highlighted</span> Surrounding Saplings to see how to
-                  crossbreed them.
+                  <span class="simulator_highlight-guide">highlighted</span> Saplings to see how to crossbreed them.
                 </div>
               </div>
             </v-row>
@@ -77,6 +77,7 @@
             v-if="resultMapGroups !== null && resultMapGroups.length !== 0"
             :mapGroups="resultMapGroups"
             :highlightedMap="highlightedMap"
+            :displayFrontMapOnly="isSimulating"
             v-on:select:map="handleSelectMapEvent"
           />
           <div
@@ -92,19 +93,28 @@
       </v-row>
     </v-container>
     <SimulationMapGroup
-      key="youngestCrossbreedingSaplingGroup"
-      v-if="displayedYoungestCrossbreedingSaplingGroup && !displayedOldestCrossbreedingSaplingGroup"
-      :group="displayedYoungestCrossbreedingSaplingGroup"
+      key="youngestComposingingSaplingGroup"
+      v-if="displayedYoungestComposingSaplingGroup && !displayedOldestComposingSaplingGroup"
+      :group="displayedYoungestComposingSaplingGroup"
       group-browsing-mode
-      enable-crossbreeding-sapling-selection
-      @crossbreeding-sapling-selected="handleOldestCrossbreedingSaplingSelectedEvent"
+      enable-composing-saplings-selection
+      @composing-sapling-selected="handleOldestComposingSaplingSelectedEvent"
       @close="handleYoungestGenerationSimulationMapGroupCloseEvent"
-    ></SimulationMapGroup>
+    >
+      <template
+        v-if="displayedYoungestComposingSaplingGroup.mapList[0].resultSapling.generationIndex > 1"
+        v-slot:browsingMessage
+      >
+        The Sapling you selected comes from the <strong>2nd</strong> generation. You will need to crossbreed the
+        Saplings that it requires first. Click on <span class="simulator_highlight-guide">highlighted</span> Saplings to
+        see how to crossbreed them.
+      </template>
+    </SimulationMapGroup>
 
     <SimulationMapGroup
       key="oldestCrossbreedingSaplingGroup"
-      v-if="displayedOldestCrossbreedingSaplingGroup"
-      :group="displayedOldestCrossbreedingSaplingGroup"
+      v-if="displayedOldestComposingSaplingGroup"
+      :group="displayedOldestComposingSaplingGroup"
       group-browsing-mode
       @close="handleOldestGenerationSimulationMapGroupCloseEvent"
     ></SimulationMapGroup>
@@ -154,27 +164,29 @@ GGGXYH
 WGGWYH
 XHGHGH
 WGGWGH
-YWGHGH
-GYGXHH
-XGGXHX
-XXYHHH
-WYYGGH
-YYGWGW
 WGGWHW
 YHYXYH
 WGYWYH
 XHGHGX
 WGHWGH
 XHGYXX`;
+  // YWGHGH
+  // GYGXHH
+  // XGGXHX
+  // XXYHHH
+  // WYYGGH
+  // YYGWGW
   progressPercents: number[] = [];
   isSimulating = false;
   isFormValid = false;
   isScreenScanning = false;
+  calcStartTime: number | null = null;
+  calcEndTime: number | null = null;
   showNotEnoughSaplingsError = false;
   highlightedMap: GeneticsMap | null = null;
-  displayedYoungestCrossbreedingSaplingGroup: GeneticsMapGroup | null = null;
-  displayedOldestCrossbreedingSaplingGroup: GeneticsMapGroup | null = null;
-  resultMapGroups: readonly GeneticsMapGroup[] | null = null;
+  displayedYoungestComposingSaplingGroup: GeneticsMapGroup | null = null;
+  displayedOldestComposingSaplingGroup: GeneticsMapGroup | null = null;
+  resultMapGroups: GeneticsMapGroup[] | null = null;
 
   sourceSaplingRules = [
     (v: string) => v !== '' || 'Give me some plants to work with!',
@@ -187,6 +199,16 @@ XHGYXX`;
 
   get saplingGeneList() {
     return this.saplingGenes === '' ? [] : this.saplingGenes.trim().split(/\r?\n/);
+  }
+
+  get calcTime() {
+    if (this.calcStartTime && this.calcEndTime) {
+      const timeDiff = this.calcEndTime - this.calcStartTime;
+      const minutes = Math.floor(timeDiff / 60000);
+      const seconds = (timeDiff % 60000) / 1000;
+      return `${minutes}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
+    }
+    return null;
   }
 
   constructor() {
@@ -233,18 +255,23 @@ XHGYXX`;
   onOptimizerServiceEvent(type: string, data: OptimizerServiceEventListenerCallbackData) {
     if (type === 'PROGRESS_UPDATE') {
       Vue.set(this.progressPercents, data.generationIndex - 1, data.progressPercent || 0);
-      this.resultMapGroups = Object.freeze(data.mapGroups || null);
+      this.setData(data.mapGroups as GeneticsMapGroup[]);
     } else if (type === 'DONE_GENERATION') {
       Vue.set(this.progressPercents, data.generationIndex - 1, 100);
     } else if (type === 'DONE') {
+      this.setData(data.mapGroups as GeneticsMapGroup[]);
       console.log(data.mapGroups);
-      this.resultMapGroups = Object.freeze(data.mapGroups || null);
+      this.calcEndTime = Date.now();
 
       setTimeout(() => {
         this.isSimulating = false;
       }, 200);
     }
     this.$forceUpdate();
+  }
+
+  setData(mapGroups: GeneticsMapGroup[]) {
+    this.resultMapGroups = mapGroups;
   }
 
   handleSimulateClick() {
@@ -256,6 +283,8 @@ XHGYXX`;
 
     this.progressPercents = new Array(options.numberOfGenerations);
     this.resultMapGroups = null;
+    this.calcStartTime = Date.now();
+    this.calcEndTime = null;
     try {
       optimizerService.simulateBestGenetics(
         deduplicatedSaplingGeneList.map((geneString) => new Sapling(geneString)),
@@ -318,30 +347,20 @@ XHGYXX`;
     }
   }
 
-  handleYoungestCrossbreedingSaplingSelectedEvent(group: GeneticsMapGroup) {
-    this.displayedYoungestCrossbreedingSaplingGroup = group;
+  handleYoungestComposingSaplingSelectedEvent(group: GeneticsMapGroup) {
+    this.displayedYoungestComposingSaplingGroup = group;
   }
 
-  handleOldestCrossbreedingSaplingSelectedEvent(group: GeneticsMapGroup) {
-    this.displayedOldestCrossbreedingSaplingGroup = group;
+  handleOldestComposingSaplingSelectedEvent(group: GeneticsMapGroup) {
+    this.displayedOldestComposingSaplingGroup = group;
   }
 
   handleYoungestGenerationSimulationMapGroupCloseEvent() {
-    console.log(
-      'handleYoungestGenerationSimulationMapGroupCloseEvent',
-      this.displayedYoungestCrossbreedingSaplingGroup,
-      this.displayedOldestCrossbreedingSaplingGroup
-    );
-    this.displayedYoungestCrossbreedingSaplingGroup = null;
+    this.displayedYoungestComposingSaplingGroup = null;
   }
 
   handleOldestGenerationSimulationMapGroupCloseEvent() {
-    this.displayedOldestCrossbreedingSaplingGroup = null;
-    console.log(
-      'handleOldestGenerationSimulationMapGroupCloseEvent',
-      this.displayedYoungestCrossbreedingSaplingGroup,
-      this.displayedOldestCrossbreedingSaplingGroup
-    );
+    this.displayedOldestComposingSaplingGroup = null;
   }
 
   handleClearHighlightClick() {
@@ -374,6 +393,12 @@ XHGYXX`;
 </script>
 
 <style scoped lang="scss">
+.simulator_calc-time {
+  position: absolute;
+  right: 0;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+}
 .simulator_sapling-input-container {
   position: relative;
   min-width: 260px;

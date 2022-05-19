@@ -71,7 +71,6 @@ class OptimizerService {
         appendListToMapGroupsMap(this.mapGroupMap, event.data.partialResultMapList);
         linkGenerationTree(this.mapGroupMap);
         const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
-        // console.log('additive size', mapGroups.length);
 
         // Progress tracking.
         this.workerProgress[workerIndex] = event.data.combinationsProcessed;

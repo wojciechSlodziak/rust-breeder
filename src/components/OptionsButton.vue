@@ -23,7 +23,7 @@
             ticks="always"
             tick-size="1"
             label="Crossbreeding Saplings Range"
-            hint="Controls how many Saplings to use for each Crossbreeding. It seems that range from 2 to 5 is a sweet spot between effectiveness and speed. It is possible that we are missing some results if this value is not set to max (8)."
+            hint="Controls how many spots in a planter to use around the Center Sapling. It seems that range from 2 to 5 is a sweet spot between effectiveness and speed. It is possible that we are missing some results if this value is not set to max, but it saves a lot of processing time."
             persistent-hint
           ></v-range-slider>
           <v-slider
@@ -39,7 +39,7 @@
           <v-text-field
             class="mt-6"
             type="number"
-            label="Number of best Saplings added to next Generation"
+            label="Number of best Saplings added to the next Generation"
             v-model.number="numberOfSaplingsAddedBetweenGenerations"
             :rules="numberOfSaplingsAddedBetweenGenerationsRules"
             min="1"
@@ -48,7 +48,7 @@
             class="mt-5"
             v-model="withRepetitions"
             label="Check combinations with repetitions"
-            hint="Aditionally checks combinations where one plant is used multiple times in one crossbreeding session. Increases calculation time."
+            hint="Aditionally checks combinations where one plant is used more than once in one crossbreeding session. Slightly increases processing time."
             persistent-hint
           />
           <v-container class="mt-10 pa-0">
@@ -70,7 +70,7 @@
             @change="handleModifyMinimumTrackedScoreManuallyChange"
             v-model="modifyMinimumTrackedScoreManually"
             label="Change Minimum Tracked Score"
-            hint="Changing Minimum Tracked Score can increase memory consumption."
+            hint="Setting a lower Minimum Tracked Score can increase memory consumption."
             persistent-hint
           />
           <v-text-field
@@ -113,7 +113,7 @@ export default class OptionsButton extends Vue {
     minCrossbreedingSaplingsNumber: 2,
     maxCrossbreedingSaplingsNumber: 5,
     numberOfGenerations: 3, // TODO: set to 2 by default
-    numberOfSaplingsAddedBetweenGenerations: 15,
+    numberOfSaplingsAddedBetweenGenerations: 20,
     minimumTrackedScore: 4,
     geneScores: {
       [GeneEnum.G]: 1,

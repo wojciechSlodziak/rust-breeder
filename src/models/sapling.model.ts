@@ -8,7 +8,7 @@ export default class Sapling {
    * Property used for keeping the track of weight of the genes after crossbreeding,
    * required for rebreeding with base, and for indicating correct base for red gene outcomes (example: single X can't override W, but can override G)
    */
-  crossbreedingWeights: number[];
+  crossbreedingWeights?: number[];
   generationIndex: number;
   [key: string]: unknown;
 
@@ -27,7 +27,7 @@ export default class Sapling {
   addGene(gene: Gene, weight: number | undefined = undefined) {
     this.genes.push(gene);
     if (weight) {
-      this.crossbreedingWeights.push(weight);
+      this.crossbreedingWeights!.push(weight);
     }
   }
 
@@ -52,11 +52,15 @@ export default class Sapling {
   }
 
   hasRedGenesWithLowestWeight() {
-    return this.genes.some((gene, index) => !gene.isGreen() && this.crossbreedingWeights[index] === 1);
+    return this.genes.some((gene, index) => !gene.isGreen() && this.crossbreedingWeights![index] === 1);
   }
 
   toString() {
     return this.genes.map((gene) => gene.type).join('');
+  }
+
+  cleanupCrossbreedingJunk() {
+    delete this.crossbreedingWeights;
   }
 
   clone(): Sapling {

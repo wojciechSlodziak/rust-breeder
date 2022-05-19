@@ -123,6 +123,7 @@ class GeneticsSimulatorService {
 
           const score = rebreedresultSapling.getScore(geneScores);
           if (score >= minimumTrackedScore) {
+            rebreedresultSapling.cleanupCrossbreedingJunk();
             result.push({
               crossbreedSaplings,
               baseSapling,
@@ -135,11 +136,13 @@ class GeneticsSimulatorService {
       } else {
         const score = resultSapling.getScore(geneScores);
         if (score >= minimumTrackedScore) {
+          const baseSapling = resultSapling.hasRedGenesWithLowestWeight()
+            ? crossbreedingService.buildBaseSaplingWithMockGenes(resultSapling)
+            : undefined;
+          resultSapling.cleanupCrossbreedingJunk();
           result.push({
             crossbreedSaplings,
-            baseSapling: resultSapling.hasRedGenesWithLowestWeight()
-              ? crossbreedingService.buildBaseSaplingWithMockGenes(resultSapling)
-              : undefined,
+            baseSapling,
             resultSapling,
             score: score,
             chancePercent: Number((100 / resultSaplings.length).toFixed(2))

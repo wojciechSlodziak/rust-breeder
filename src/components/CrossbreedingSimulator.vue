@@ -155,27 +155,28 @@ import SimulationMapGroup from './SimulationMapGroup.vue';
 })
 export default class CrossbreedingSimulator extends Vue {
   placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`;
-  saplingGenes = `XXYWGH
-XHHWHG
-XHYXGW
-WHHXHH
-HHGWGY
-GGGXYH
-WGGWYH
-XHGHGH
-WGGWGH
-WGGWHW
-YHYXYH
-WGYWYH
-XHGHGX
-WGHWGH
-XHGYXX`;
+  saplingGenes = ``;
+  // saplingGenes = `XXYWGH
+  // XHHWHG
+  // XHYXGW
+  // WHHXHH
+  // HHGWGY
+  // GGGXYH
+  // WGGWYH
+  // XHGHGH
+  // WGGWGH
+  // WGGWHW
+  // YHYXYH
+  // WGYWYH
+  // XHGHGX
+  // WGHWGH
+  // XHGYXX
   // YWGHGH
   // GYGXHH
   // XGGXHX
   // XXYHHH
   // WYYGGH
-  // YYGWGW
+  // YYGWGW`;
   progressPercents: number[] = [];
   isSimulating = false;
   isFormValid = false;

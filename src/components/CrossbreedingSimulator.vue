@@ -180,7 +180,7 @@ export default class CrossbreedingSimulator extends Vue {
   progressPercents: number[] = [];
   isSimulating = false;
   isFormValid = false;
-  isScreenScanning = false;
+  numberOfGenerations: number;
   calcStartTime: number | null = null;
   calcEndTime: number | null = null;
   showNotEnoughSaplingsError = false;
@@ -188,6 +188,7 @@ export default class CrossbreedingSimulator extends Vue {
   displayedYoungestComposingSaplingGroup: GeneticsMapGroup | null = null;
   displayedOldestComposingSaplingGroup: GeneticsMapGroup | null = null;
   resultMapGroups: GeneticsMapGroup[] | null = null;
+  isScreenScanning = false;
 
   sourceSaplingRules = [
     (v: string) => v !== '' || 'Give me some plants to work with!',
@@ -256,12 +257,10 @@ export default class CrossbreedingSimulator extends Vue {
   onOptimizerServiceEvent(type: string, data: OptimizerServiceEventListenerCallbackData) {
     if (type === 'PROGRESS_UPDATE') {
       Vue.set(this.progressPercents, data.generationIndex - 1, data.progressPercent || 0);
-      this.setData(data.mapGroups as GeneticsMapGroup[]);
     } else if (type === 'DONE_GENERATION') {
+      this.setData(data.mapGroups as GeneticsMapGroup[], data.generationIndex === this.numberOfGenerations);
       Vue.set(this.progressPercents, data.generationIndex - 1, 100);
     } else if (type === 'DONE') {
-      this.setData(data.mapGroups as GeneticsMapGroup[]);
-      console.log(data.mapGroups);
       this.calcEndTime = Date.now();
 
       setTimeout(() => {
@@ -271,8 +270,9 @@ export default class CrossbreedingSimulator extends Vue {
     this.$forceUpdate();
   }
 
-  setData(mapGroups: GeneticsMapGroup[]) {
-    this.resultMapGroups = mapGroups;
+  setData(mapGroups: GeneticsMapGroup[], isFinalResult: boolean) {
+    // For partial results cloning for better performance is required to prevent Vue from constantly observing the results.
+    this.resultMapGroups = isFinalResult ? mapGroups : mapGroups.map((mapGroup) => mapGroup.clone());
   }
 
   handleSimulateClick() {
@@ -282,6 +282,7 @@ export default class CrossbreedingSimulator extends Vue {
 
     const options = (this.$refs.optionsButton as OptionsButton).getOptions();
 
+    this.numberOfGenerations = options.numberOfGenerations;
     this.progressPercents = new Array(options.numberOfGenerations);
     this.resultMapGroups = null;
     this.calcStartTime = Date.now();

@@ -1,6 +1,6 @@
 <template>
   <span>
-    <v-btn @click="isDialogOpen = true" :disabled="isDisabled" v-if="!isScanning">
+    <v-btn @click="isDialogOpen = true" :disabled="isDisabled" v-if="shouldDisplayScreenCaptureButton && !isScanning">
       Scan Rust
       <v-icon right>
         mdi-monitor-screenshot
@@ -82,6 +82,11 @@ export default class SaplingScreenCapture extends Vue {
 
   isDialogOpen = false;
   isScanning = false;
+  shouldDisplayScreenCaptureButton = false;
+
+  created() {
+    this.shouldDisplayScreenCaptureButton = navigator.mediaDevices && 'getDisplayMedia' in navigator.mediaDevices;
+  }
 
   mounted() {
     screenCaptureService.addEventListener(this.onScreenCaptureServiceEvent);

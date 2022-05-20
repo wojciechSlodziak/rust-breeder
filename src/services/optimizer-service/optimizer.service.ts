@@ -71,7 +71,7 @@ class OptimizerService {
   }
 
   handleWorkerMessage(
-    event: MessageEvent<any>,
+    event: MessageEvent,
     workerRef: Worker,
     workerIndex: number,
     sourceSaplings: Sapling[],

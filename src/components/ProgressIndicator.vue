@@ -55,7 +55,9 @@ export default class ProgressIndicator extends Vue {
 
 <style scoped lang="scss">
 .simulator_progress-container {
-  height: 5px;
+  position: fixed;
+  z-index: 4;
+  width: 100%;
 }
 .mt-1px {
   margin-top: 1px;

@@ -6,7 +6,7 @@ export default class Sapling {
   genes: Gene[];
   /**
    * Property used for keeping the track of weight of the genes after crossbreeding,
-   * required for rebreeding with base, and for indicating correct base for red gene outcomes (example: single X can't override W, but can override G)
+   * required for rebreeding with base, and for indicating correct base for red gene outcomes (example: single X can't override W, but can override G).
    */
   crossbreedingWeights?: number[];
   generationIndex: number;
@@ -71,9 +71,5 @@ export default class Sapling {
     }
     cloneSapling.generationIndex = this.generationIndex;
     return cloneSapling;
-  }
-
-  toJSON() {
-    return this.toString();
   }
 }

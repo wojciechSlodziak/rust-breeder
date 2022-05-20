@@ -22,3 +22,5 @@ import AboutButton from './AboutButton.vue';
 })
 export default class InfoButtons extends Vue {}
 </script>
+
+<style scoped lang="scss"></style>

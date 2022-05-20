@@ -1,5 +1,8 @@
 <template>
-  <div class="group mx-auto" :class="{ 'group--browsing-mode': isGroupBrowsingMode }">
+  <div
+    class="group mx-auto"
+    :class="{ 'group--normal-mode': !isGroupBrowsingMode, 'group--browsing-mode': isGroupBrowsingMode }"
+  >
     <div
       v-if="normalViewMode || isGroupBrowsingMode"
       class="group_container"
@@ -23,17 +26,23 @@
               map.crossbreedSaplings.map((sapling) => sapling.toString()).join('')
           "
         >
-          <div v-if="isGroupBrowsingMode" class="group_map-label">{{ `Option ${index + 1}` }}</div>
+          <div v-if="isGroupBrowsingMode" class="group_map-label mb-1">{{ `Option ${index + 1}` }}</div>
           <SimulationMap
             @click.native="enableSelection && handleMapClick(map, index !== 0 && !isGroupBrowsingMode)"
-            @mouseover.native="() => index !== 0 && !isGroupBrowsingMode && handleDummyMouseOver()"
-            @mouseout.native="() => index !== 0 && !isGroupBrowsingMode && handleDummyMouseOut()"
+            @mouseenter.native="() => index !== 0 && !isGroupBrowsingMode && handleDummyMouseEnter()"
+            @mouseleave.native="handleMouseLeave(index)"
+            @pointerleave.native="handleMouseLeave(index)"
+            @mousedown.native="() => index === 0 && handleMouseDown()"
+            @pointerdown.native="() => index === 0 && handleMouseDown()"
+            @mouseup.native="() => index === 0 && handleMouseUp()"
+            @pointerup.native="() => index === 0 && handleMouseUp()"
             @composing-sapling-selected="handleComposingSaplingSelectedEvent"
             :ref="index === 0 ? 'mainMap' : null"
             class="group_map"
             :class="{
               'group_map--dummy': index !== 0 && !isGroupBrowsingMode,
-              'group_map--highlighted': map === highlightedMap
+              'group_map--highlighted': map === highlightedMap,
+              'group_map--dummy-hovered': index !== 0 && isMouseHoveringDummy
             }"
             :key="
               (map.baseSapling ? map.baseSapling.toString() + '-' : '') +
@@ -46,14 +55,7 @@
             :enable-composing-saplings-selection="enableComposingSaplingsSelection"
             :forced-height="index !== 0 ? dummyHeight : null"
             :style="{
-              'z-index': maxDisplayedMaps - index,
-              opacity:
-                !isGroupBrowsingMode && index !== 0 && map !== highlightedMap
-                  ? ((maxDisplayedMaps - index) / maxDisplayedMaps) * (isMouseHoveringDummy ? 1 : 0.75)
-                  : 1,
-              transform: !isGroupBrowsingMode
-                ? 'translateX(' + index * (isMouseHoveringDummy ? 20 : 15) + 'px)'
-                : 'none'
+              'z-index': maxDisplayedMaps - index
             }"
           />
         </div>
@@ -84,6 +86,7 @@ export default class SimulationMapGroup extends Vue {
   maxDisplayedMaps = MAX_SAME_RESULT_VARIANTS_IN_MAP;
 
   isGroupBrowsingMode = false;
+  isLongPressingMap = false;
   isMouseHoveringDummy = false;
   applyOverflowInBrowsingMode = false;
 
@@ -134,12 +137,30 @@ export default class SimulationMapGroup extends Vue {
     }, 100);
   }
 
-  handleDummyMouseOver() {
+  handleDummyMouseEnter() {
+    console.log('dummy over');
     this.isMouseHoveringDummy = true;
   }
 
-  handleDummyMouseOut() {
-    this.isMouseHoveringDummy = false;
+  handleMouseLeave(index: number) {
+    if (index === 0) {
+      this.isLongPressingMap = false;
+    } else {
+      this.isMouseHoveringDummy = false;
+    }
+  }
+
+  handleMouseDown() {
+    this.isLongPressingMap = true;
+    setTimeout(() => {
+      if (this.isLongPressingMap) {
+        this.openBrowsingMode();
+      }
+    }, 500);
+  }
+
+  handleMouseUp() {
+    this.isLongPressingMap = false;
   }
 
   handleOverlayClick() {
@@ -153,6 +174,7 @@ export default class SimulationMapGroup extends Vue {
   openBrowsingMode() {
     this.isMouseHoveringDummy = false;
     this.isGroupBrowsingMode = true;
+    this.isLongPressingMap = false;
     this.$emit('open');
     setTimeout(() => {
       this.applyOverflowInBrowsingMode = true;
@@ -172,9 +194,31 @@ export default class SimulationMapGroup extends Vue {
   z-index: 0;
   width: 320px;
   position: relative;
+  user-select: none;
+  &.group--normal-mode {
+    .group_map {
+      transition: transform 0.2s;
+    }
+    &:hover {
+      .group_map-container:nth-child(2) .group_map {
+        transform: rotate(9deg);
+        &.group_map--dummy-hovered {
+          transition: transform 0.1s;
+          transform: rotate(13deg);
+        }
+      }
+      .group_map-container:nth-child(3) .group_map {
+        transform: rotate(18deg);
+        &.group_map--dummy-hovered {
+          transition: transform 0.1s;
+          transform: rotate(26deg);
+        }
+      }
+    }
+  }
   .group_map {
     position: relative;
-    transition: opacity 0.15s, transform 0.2s;
+    transform-origin: bottom right;
   }
   .group_map {
     &.group_map--dummy {

@@ -1,8 +1,8 @@
 <template>
   <div class="text-center">
-    <v-container class="pa-0">
+    <v-container class="px-3 py-0">
       <v-row>
-        <v-col class="px-3 py-1">
+        <v-col class="px-2 py-0">
           <v-text-field
             type="number"
             label="No. of Gs"
@@ -11,7 +11,7 @@
             :rules="geneCountRules"
           ></v-text-field>
         </v-col>
-        <v-col class="px-3 py-1">
+        <v-col class="px-2 py-0">
           <v-text-field
             type="number"
             label="No. of Ys"
@@ -20,7 +20,7 @@
             :rules="geneCountRules"
           ></v-text-field>
         </v-col>
-        <v-col class="px-3 py-1">
+        <v-col class="px-2 py-0">
           <v-text-field
             type="number"
             label="No. of Hs"
@@ -30,9 +30,8 @@
           ></v-text-field>
         </v-col>
       </v-row>
-      <v-divider></v-divider>
-      <v-row class="mt-1">
-        <v-col cols="4" md="2" v-for="n in 6" :key="n" class="px-3 py-0">
+      <v-row class="mt-0">
+        <v-col cols="4" sm="2" v-for="n in 6" :key="n" class="px-2 py-0">
           <v-text-field
             type="text"
             :label="'Gene ' + n"
@@ -44,6 +43,7 @@
       </v-row>
     </v-container>
     <div class="mt-5">Click on a Card to see more details about generations and crossbreeding!</div>
+    <div class="hidden-md-and-up">Press and hold Card to view alternative variants.</div>
     <ul class="mt-3 mb-12">
       <li v-for="(group, index) in visibleMapGroups" :key="group.resultSaplingGeneString">
         <SimulationMapGroup

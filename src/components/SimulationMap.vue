@@ -23,7 +23,7 @@
     </v-list-item>
     <v-divider class="mx-4"></v-divider>
     <v-card-text class="map_detail">
-      <v-tooltip bottom open-delay="250" :disabled="!enableMapSelection">
+      <v-tooltip bottom open-delay="250" :disabled="!enableMapSelection || $vuetify.breakpoint.xsOnly">
         <template v-slot:activator="{ on, attrs }">
           <div v-bind="attrs" v-on="on">
             <div class="mb-1">
@@ -67,7 +67,7 @@
         >
       </v-tooltip>
       <v-divider class="mb-5"></v-divider>
-      <v-tooltip bottom open-delay="250" :disabled="!enableMapSelection">
+      <v-tooltip bottom open-delay="250" :disabled="!enableMapSelection || $vuetify.breakpoint.xsOnly">
         <template v-slot:activator="{ on, attrs }">
           <div v-bind="attrs" v-on="on">
             <div class="mb-1">Surrounding Saplings:</div>
@@ -226,12 +226,6 @@ export default class SimulationMap extends Vue {
   }
   .map_sapling--selectable:active {
     outline: 2px solid rgb(223, 145, 1);
-  }
-  &.map--hidden {
-    .map_header,
-    .map_detail {
-      visibility: hidden;
-    }
   }
   .map_result-sapling {
     background-color: #191919;

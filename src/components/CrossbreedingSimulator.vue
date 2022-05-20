@@ -77,7 +77,6 @@
             v-if="resultMapGroups !== null && resultMapGroups.length !== 0"
             :mapGroups="resultMapGroups"
             :highlightedMap="highlightedMap"
-            :displayFrontMapOnly="isSimulating"
             v-on:select:map="handleSelectMapEvent"
           />
           <div

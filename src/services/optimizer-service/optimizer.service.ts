@@ -64,68 +64,84 @@ class OptimizerService {
         options
       });
 
-      worker.addEventListener('message', (event) => {
-        fixPrototypeAssignmentsAfterSerialization(event.data.partialResultMapList);
-
-        // Handling partial results.
-        appendListToMapGroupsMap(this.mapGroupMap, event.data.partialResultMapList);
-        linkGenerationTree(this.mapGroupMap);
-
-        // Progress tracking.
-        this.workerProgress[workerIndex] = event.data.combinationsProcessed;
-
-        // Progress updates notfication.
-        const progressPercent =
-          Number(
-            (this.workerProgress.reduce((acc, current) => acc + current, 0) / workChunk.allCombinationsCount).toFixed(2)
-          ) * 100;
-        this.sendEvent('PROGRESS_UPDATE', {
-          generationIndex: generationInfo.index,
-          progressPercent
-        });
-
-        // Worker has to be terminated when it has finished all the work.
-        if (this.workerProgress[workerIndex] === workChunk.combinationsToProcess) {
-          worker.terminate();
-        }
-
-        // Handling complete results.
-        if (
-          this.workerProgress.reduce((acc, singleWorkerProgress) => acc + singleWorkerProgress, 0) ===
-          workChunk.allCombinationsCount
-        ) {
-          const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
-          this.sendEvent('DONE_GENERATION', { generationIndex: generationInfo.index, mapGroups });
-
-          if (generationInfo.index < options.numberOfGenerations) {
-            console.log('starting next generation');
-            const additionalSourceSaplings = getBestSaplingsForNextGeneration(
-              sourceSaplings,
-              mapGroups,
-              generationInfo.index,
-              options.numberOfSaplingsAddedBetweenGenerations
-            );
-            if (additionalSourceSaplings.length > 0) {
-              const newGenerationInfo: GenerationInfo = {
-                index: generationInfo.index + 1,
-                addedSaplings: additionalSourceSaplings.length
-              };
-              console.log('adding to next generation -> ', additionalSourceSaplings);
-              const nextGenerationSourceGenes = [...additionalSourceSaplings, ...sourceSaplings];
-              console.log('nextGenerationSourceGenes', nextGenerationSourceGenes);
-              this.simulateBestGenetics(nextGenerationSourceGenes, newGenerationInfo, options);
-            } else {
-              this.sendEvent('DONE', { mapGroups, generationIndex: generationInfo.index });
-            }
-          } else {
-            this.sendEvent('DONE', { mapGroups, generationIndex: generationInfo.index });
-            // Final Cleanup.
-            this.workerProgress = [];
-            this.mapGroupMap = {};
-          }
-        }
+      worker.addEventListener('message', (e) => {
+        this.handleWorkerMessage(e, worker, workerIndex, sourceSaplings, generationInfo.index, workChunk, options);
       });
     });
+  }
+
+  handleWorkerMessage(
+    event: MessageEvent<any>,
+    workerRef: Worker,
+    workerIndex: number,
+    sourceSaplings: Sapling[],
+    generationIndex: number,
+    workChunk: {
+      startingPositions: number[];
+      combinationsToProcess: number;
+      allCombinationsCount: number;
+    },
+    options: ApplicationOptions
+  ) {
+    fixPrototypeAssignmentsAfterSerialization(event.data.partialResultMapList);
+
+    // Handling partial results.
+    appendListToMapGroupsMap(this.mapGroupMap, event.data.partialResultMapList);
+    linkGenerationTree(this.mapGroupMap);
+
+    // Progress tracking.
+    this.workerProgress[workerIndex] = event.data.combinationsProcessed;
+
+    // Progress updates notfication.
+    const progressPercent =
+      Number(
+        (this.workerProgress.reduce((acc, current) => acc + current, 0) / workChunk.allCombinationsCount).toFixed(2)
+      ) * 100;
+    this.sendEvent('PROGRESS_UPDATE', {
+      generationIndex: generationIndex,
+      progressPercent
+    });
+
+    // Worker has to be terminated when it has finished all the work.
+    if (this.workerProgress[workerIndex] === workChunk.combinationsToProcess) {
+      workerRef.terminate();
+    }
+
+    // Handling complete results.
+    if (
+      this.workerProgress.reduce((acc, singleWorkerProgress) => acc + singleWorkerProgress, 0) ===
+      workChunk.allCombinationsCount
+    ) {
+      const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
+      this.sendEvent('DONE_GENERATION', { generationIndex: generationIndex, mapGroups });
+
+      if (generationIndex < options.numberOfGenerations) {
+        console.log('starting next generation');
+        const additionalSourceSaplings = getBestSaplingsForNextGeneration(
+          sourceSaplings,
+          mapGroups,
+          generationIndex,
+          options.numberOfSaplingsAddedBetweenGenerations
+        );
+        if (additionalSourceSaplings.length > 0) {
+          const newGenerationInfo: GenerationInfo = {
+            index: generationIndex + 1,
+            addedSaplings: additionalSourceSaplings.length
+          };
+          console.log('adding to next generation -> ', additionalSourceSaplings);
+          const nextGenerationSourceGenes = [...additionalSourceSaplings, ...sourceSaplings];
+          console.log('nextGenerationSourceGenes', nextGenerationSourceGenes);
+          this.simulateBestGenetics(nextGenerationSourceGenes, newGenerationInfo, options);
+        } else {
+          this.sendEvent('DONE', { mapGroups, generationIndex: generationIndex });
+        }
+      } else {
+        this.sendEvent('DONE', { mapGroups, generationIndex: generationIndex });
+        // Final Cleanup.
+        this.workerProgress = [];
+        this.mapGroupMap = {};
+      }
+    }
   }
 
   sendEvent(

@@ -182,7 +182,7 @@ export default class SimulationMap extends Vue {
         color: white;
       }
     }
-    .map_chance,
+    .map_chance span,
     .map_gen {
       font-weight: bold;
     }

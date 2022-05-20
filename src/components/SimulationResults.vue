@@ -50,7 +50,6 @@
           :group="group"
           v-on:select:map="handleSelectMapEvent"
           :highlightedMap="highlightedMap"
-          :display-front-map-only="displayFrontMapOnly"
           enable-selection
           normal-view-mode
         />
@@ -77,7 +76,6 @@ import SimulationMapGroup from './SimulationMapGroup.vue';
 export default class SimulationResults extends Vue {
   @Prop({ type: Array, required: true }) readonly mapGroups!: GeneticsMapGroup[];
   @Prop({ type: Object }) readonly highlightedMap: GeneticsMap;
-  @Prop({ type: Boolean }) readonly displayFrontMapOnly: boolean;
 
   filteringGenes: { [key: string]: string | null } = {
     gene0: '',
@@ -149,15 +147,12 @@ export default class SimulationResults extends Vue {
     return this.filteredMapGroups.length > this.visibleMapGroups.length;
   }
 
-  created() {
-    this.page = 1;
-  }
-
   handleSelectMapEvent(map: GeneticsMap) {
     this.$emit('select:map', map);
   }
 
   showMore() {
+    console.log('show more');
     this.page = this.page + 1;
   }
 }

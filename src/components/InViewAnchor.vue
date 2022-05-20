@@ -13,12 +13,9 @@ export default class InViewAnchor extends Vue {
   }
 
   mounted() {
-    this.checkIfInView();
-  }
-
-  beforeDestroy() {
-    window.removeEventListener('scroll', this.checkIfInView);
-    window.removeEventListener('resize', this.checkIfInView);
+    this.$nextTick(() => {
+      this.checkIfInView();
+    });
   }
 
   checkIfInView() {
@@ -29,6 +26,8 @@ export default class InViewAnchor extends Vue {
       rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
       rect.right <= (window.innerWidth || document.documentElement.clientWidth);
     if (isInView) {
+      window.removeEventListener('scroll', this.checkIfInView);
+      window.removeEventListener('resize', this.checkIfInView);
       this.$emit('in-view');
     }
   }

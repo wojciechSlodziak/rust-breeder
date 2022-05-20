@@ -182,7 +182,7 @@ export function getWorkChunks(
     allCombinationsCount -= combinationsToIgnore;
   }
 
-  const numberOfWorkers = Math.ceil(navigator.hardwareConcurrency / 3);
+  const numberOfWorkers = Math.ceil(navigator.hardwareConcurrency / 4);
   const combinationsPerWorker = Math.ceil(allCombinationsCount / numberOfWorkers);
   const workChunks = [];
 

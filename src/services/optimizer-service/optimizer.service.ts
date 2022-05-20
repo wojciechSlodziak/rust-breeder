@@ -70,7 +70,6 @@ class OptimizerService {
         // Handling partial results.
         appendListToMapGroupsMap(this.mapGroupMap, event.data.partialResultMapList);
         linkGenerationTree(this.mapGroupMap);
-        const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
 
         // Progress tracking.
         this.workerProgress[workerIndex] = event.data.combinationsProcessed;
@@ -82,7 +81,6 @@ class OptimizerService {
           ) * 100;
         this.sendEvent('PROGRESS_UPDATE', {
           generationIndex: generationInfo.index,
-          mapGroups,
           progressPercent
         });
 
@@ -96,6 +94,7 @@ class OptimizerService {
           this.workerProgress.reduce((acc, singleWorkerProgress) => acc + singleWorkerProgress, 0) ===
           workChunk.allCombinationsCount
         ) {
+          const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
           this.sendEvent('DONE_GENERATION', { generationIndex: generationInfo.index, mapGroups });
 
           if (generationInfo.index < options.numberOfGenerations) {

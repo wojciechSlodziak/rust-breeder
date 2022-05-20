@@ -212,6 +212,7 @@ export default class SimulationMap extends Vue {
   }
   .map_sapling {
     font-size: 1rem;
+    outline: 0px solid rgba(223, 145, 0, 0.3);
   }
   .map_sapling--selectable {
     transition: outline-color 0.15s;

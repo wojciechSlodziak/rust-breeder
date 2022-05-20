@@ -65,7 +65,8 @@ class GeneticsSimulatorService {
         positionIndexForInc = setNextPositionResult.nextPositionIndexForInc;
 
         if (
-          (options && combinationsProcessed % options.callProgressCallbackAfterCombinations === 0) ||
+          combinationsProcessed % options.callProgressCallbackAfterCombinations === 0 ||
+          options.callProgressCallbackAfterNumberOfResultsReached < result.length ||
           combinationsProcessed === combinationsToProcess
         ) {
           options.progressCallback(
@@ -119,13 +120,20 @@ class GeneticsSimulatorService {
           const score = rebreedResultSapling.getScore(geneScores);
           if (score >= minimumTrackedScore) {
             rebreedResultSapling.cleanupCrossbreedingJunk();
-            result.push({
-              crossbreedSaplings,
-              baseSapling: potentialBaseSapling,
-              resultSapling: rebreedResultSapling,
-              score: score,
-              chancePercent: Number((100 / resultSaplings.length).toFixed(2))
-            });
+            const sumOfComposingSaplingsGenerations =
+              crossbreedSaplings.reduce((acc, sapling) => acc + sapling.generationIndex, 0) +
+              (potentialBaseSapling ? potentialBaseSapling.generationIndex : 0);
+            const chancePercent = Number((100 / resultSaplings.length).toFixed(2));
+            result.push(
+              new GeneticsMap(
+                rebreedResultSapling,
+                crossbreedSaplings,
+                score,
+                chancePercent,
+                sumOfComposingSaplingsGenerations,
+                potentialBaseSapling
+              )
+            );
           }
         });
       } else {
@@ -135,13 +143,20 @@ class GeneticsSimulatorService {
             ? crossbreedingService.buildBaseSaplingWithMockGenes(resultSapling)
             : undefined;
           resultSapling.cleanupCrossbreedingJunk();
-          result.push({
-            crossbreedSaplings,
-            baseSapling,
-            resultSapling,
-            score: score,
-            chancePercent: Number((100 / resultSaplings.length).toFixed(2))
-          });
+          const sumOfComposingSaplingsGenerations =
+            crossbreedSaplings.reduce((acc, sapling) => acc + sapling.generationIndex, 0) +
+            (baseSapling ? baseSapling.generationIndex : 0);
+          const chancePercent = Number((100 / resultSaplings.length).toFixed(2));
+          result.push(
+            new GeneticsMap(
+              resultSapling,
+              crossbreedSaplings,
+              score,
+              chancePercent,
+              sumOfComposingSaplingsGenerations,
+              baseSapling
+            )
+          );
         }
       }
     });

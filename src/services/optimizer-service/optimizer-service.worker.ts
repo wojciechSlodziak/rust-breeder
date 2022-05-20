@@ -11,7 +11,8 @@ ctx.addEventListener('message', (event) => {
     event.data.combinationsToProcess,
     event.data.generationInfo,
     {
-      callProgressCallbackAfterCombinations: Math.ceil(event.data.combinationsToProcess * 0.1),
+      callProgressCallbackAfterCombinations: 5000,
+      callProgressCallbackAfterNumberOfResultsReached: 2500,
       progressCallback: (combinationsProcessed, partialResultMapList) => {
         ctx.postMessage({ combinationsProcessed, partialResultMapList });
       },

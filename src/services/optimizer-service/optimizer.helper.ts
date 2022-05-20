@@ -7,21 +7,13 @@ import { GeneticsMap, GeneticsMapGroup } from './models';
  * Used for sorting Maps that yield the same result Sapling.
  */
 export function resultMapsSortingFunction(geneticsMap1: GeneticsMap, geneticsMap2: GeneticsMap): number {
-  const sumOfCrossbreedingSaplingGenerations1 = geneticsMap1.crossbreedSaplings.reduce(
-    (acc, sapling) => acc + sapling.generationIndex,
-    0
-  );
-  const sumOfCrossbreedingSaplingGenerations2 = geneticsMap2.crossbreedSaplings.reduce(
-    (acc, sapling) => acc + sapling.generationIndex,
-    0
-  );
   if (
     geneticsMap1.resultSapling.generationIndex < geneticsMap2.resultSapling.generationIndex ||
     (geneticsMap1.resultSapling.generationIndex === geneticsMap2.resultSapling.generationIndex &&
       (geneticsMap1.chancePercent > geneticsMap2.chancePercent ||
         (geneticsMap1.chancePercent === geneticsMap2.chancePercent &&
-          (sumOfCrossbreedingSaplingGenerations1 < sumOfCrossbreedingSaplingGenerations2 ||
-            (sumOfCrossbreedingSaplingGenerations1 === sumOfCrossbreedingSaplingGenerations2 &&
+          (geneticsMap1.sumOfComposingSaplingsGenerations < geneticsMap2.sumOfComposingSaplingsGenerations ||
+            (geneticsMap1.sumOfComposingSaplingsGenerations === geneticsMap2.sumOfComposingSaplingsGenerations &&
               geneticsMap1.crossbreedSaplings.length < geneticsMap2.crossbreedSaplings.length)))))
   ) {
     return -1;
@@ -252,21 +244,19 @@ export function appendListToMapGroupsMap(
   mapList: GeneticsMap[]
 ): void {
   mapList.forEach((geneticsMap) => {
-    const resultSaplingGeneString = geneticsMap.resultSapling.genes.map((gene) => gene.type.toString()).join('');
+    const resultSaplingGeneString = geneticsMap.resultSapling.toString();
     if (mapGroupMap[resultSaplingGeneString] === undefined) {
-      mapGroupMap[resultSaplingGeneString] = {
-        resultSaplingGeneString,
-        mapList: [geneticsMap]
-      };
+      mapGroupMap[resultSaplingGeneString] = new GeneticsMapGroup(resultSaplingGeneString, [geneticsMap]);
     } else {
       mapGroupMap[resultSaplingGeneString].mapList.push(geneticsMap);
     }
 
     mapGroupMap[resultSaplingGeneString].mapList.sort(resultMapsSortingFunction);
     // Discards results if there is more than MAX_SAME_RESULT_VARIANTS_IN_MAP maps for the same resultSapling.
-    mapGroupMap[resultSaplingGeneString].mapList = [
-      ...mapGroupMap[resultSaplingGeneString].mapList.splice(0, MAX_SAME_RESULT_VARIANTS_IN_MAP)
-    ];
+    mapGroupMap[resultSaplingGeneString].mapList = mapGroupMap[resultSaplingGeneString].mapList.slice(
+      0,
+      MAX_SAME_RESULT_VARIANTS_IN_MAP
+    );
   });
 }
 
@@ -295,6 +285,7 @@ export function getBestSaplingsForNextGeneration(
  */
 export function fixPrototypeAssignmentsAfterSerialization(mapList: GeneticsMap[]) {
   mapList.forEach((map) => {
+    Object.setPrototypeOf(map, GeneticsMap.prototype);
     Object.setPrototypeOf(map.resultSapling, Sapling.prototype);
     map.resultSapling.genes.forEach((gene) => {
       Object.setPrototypeOf(gene, Gene.prototype);

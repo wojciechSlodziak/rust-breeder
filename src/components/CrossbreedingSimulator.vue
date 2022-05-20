@@ -1,12 +1,13 @@
 <template>
   <div class="simulator">
+    <div class="simulator_calc-time mr-1" v-if="calcTime">time: {{ calcTime }}</div>
+    <span class="app_version mr-1" v-if="!isSimulating && !calcTime">v2.0</span>
     <ProgressIndicator :is-active="isSimulating" :progress-percents="progressPercents"></ProgressIndicator>
-    <div class="simulator_calc-time mr-2" v-if="calcTime">time: {{ calcTime }}</div>
     <v-container fluid>
       <v-row>
         <v-col cols="12" :md="showHighlight ? 12 : 4" :lg="showHighlight ? 6 : 3" class="pa-1">
           <v-form ref="form" v-model="isFormValid" spellcheck="false">
-            <v-row class="d-flex justify-center mt-2 px-3">
+            <v-row class="d-flex justify-center mt-3 px-3">
               <v-btn
                 class="ma-1"
                 color="primary"
@@ -33,7 +34,7 @@
                 <OptionsButton ref="optionsButton" />
               </span>
             </v-row>
-            <v-row class="d-flex mx-1 pt-3 pb-3 mt-5">
+            <v-row class="d-flex mx-1 pt-3 pb-3 mt-4">
               <div class="flex-grow-1 mx-3 simulator_sapling-input-container">
                 <v-textarea
                   full-width
@@ -55,7 +56,12 @@
                 <SaplingListPreview :saplingGeneList="saplingGeneList" ref="saplingListPreview"></SaplingListPreview>
               </div>
 
-              <div v-if="showHighlight" class="d-flex flex-column align-center" style="flex: 1 0 0">
+              <div
+                ref="highlightedMap"
+                v-if="showHighlight"
+                class="d-flex flex-column align-center"
+                style="flex: 1 0 0"
+              >
                 <SimulationMap
                   :map="highlightedMap"
                   enable-composing-saplings-selection
@@ -72,9 +78,14 @@
             </v-row>
           </v-form>
         </v-col>
-        <v-col class="mt-10" cols="12" :md="showHighlight ? 12 : 8" :lg="showHighlight ? 6 : 9">
+        <v-col
+          ref="results"
+          cols="12"
+          v-if="resultMapGroups !== null && resultMapGroups.length !== 0"
+          :md="showHighlight ? 12 : 8"
+          :lg="showHighlight ? 6 : 9"
+        >
           <SimulationResults
-            v-if="resultMapGroups !== null && resultMapGroups.length !== 0"
             :mapGroups="resultMapGroups"
             :highlightedMap="highlightedMap"
             v-on:select:map="handleSelectMapEvent"
@@ -257,6 +268,9 @@ export default class CrossbreedingSimulator extends Vue {
     if (type === 'PROGRESS_UPDATE') {
       Vue.set(this.progressPercents, data.generationIndex - 1, data.progressPercent || 0);
     } else if (type === 'DONE_GENERATION') {
+      if (data.generationIndex === 1) {
+        this.scrollToResults();
+      }
       this.setData(data.mapGroups as GeneticsMapGroup[], data.generationIndex === this.numberOfGenerations);
       Vue.set(this.progressPercents, data.generationIndex - 1, 100);
     } else if (type === 'DONE') {
@@ -388,17 +402,28 @@ export default class CrossbreedingSimulator extends Vue {
 
   handleSelectMapEvent(map: GeneticsMap) {
     this.highlightedMap = map;
-    goTo(0, { duration: 200 });
+    this.$nextTick(() => {
+      const topDistance = (this.$refs.highlightedMap as HTMLElement)?.getBoundingClientRect().top + window.scrollY - 20;
+      goTo(topDistance, { duration: 200 });
+    });
+  }
+
+  scrollToResults() {
+    this.$nextTick(() => {
+      const topDistance = (this.$refs.results as HTMLElement)?.getBoundingClientRect().top + window.scrollY;
+      goTo(topDistance, { duration: 300 });
+    });
   }
 }
 </script>
 
 <style scoped lang="scss">
-.simulator_calc-time {
+.simulator_calc-time,
+.app_version {
   position: absolute;
   right: 0;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.7);
+  opacity: 0.5;
 }
 .simulator_sapling-input-container {
   position: relative;

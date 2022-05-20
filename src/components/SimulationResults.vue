@@ -152,7 +152,6 @@ export default class SimulationResults extends Vue {
   }
 
   showMore() {
-    console.log('show more');
     this.page = this.page + 1;
   }
 }

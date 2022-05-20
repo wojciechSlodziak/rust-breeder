@@ -138,7 +138,6 @@ export default class SimulationMapGroup extends Vue {
   }
 
   handleDummyMouseEnter() {
-    console.log('dummy over');
     this.isMouseHoveringDummy = true;
   }
 

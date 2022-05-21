@@ -66,7 +66,6 @@
 </template>
 
 <script lang="ts">
-import { MAX_SAME_RESULT_VARIANTS_IN_MAP } from '../const';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import SimulationMap from './SimulationMap.vue';
 import { GeneticsMapGroup, GeneticsMap } from '@/services/optimizer-service/models';
@@ -83,7 +82,7 @@ export default class SimulationMapGroup extends Vue {
   @Prop({ type: Boolean }) readonly enableComposingSaplingsSelection: boolean;
 
   dummyHeight = 0;
-  maxDisplayedMaps = MAX_SAME_RESULT_VARIANTS_IN_MAP;
+  maxDisplayedMaps = 3;
 
   isGroupBrowsingMode = false;
   isLongPressingMap = false;

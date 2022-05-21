@@ -116,7 +116,6 @@ class OptimizerService {
       this.sendEvent('DONE_GENERATION', { generationIndex: generationIndex, mapGroups });
 
       if (generationIndex < options.numberOfGenerations) {
-        console.log('starting next generation');
         const additionalSourceSaplings = getBestSaplingsForNextGeneration(
           sourceSaplings,
           mapGroups,
@@ -129,12 +128,7 @@ class OptimizerService {
             index: generationIndex + 1,
             addedSaplings: additionalSourceSaplings.length
           };
-          console.log(
-            'adding to next generation -> ',
-            additionalSourceSaplings.map((sapling) => sapling.toString())
-          );
           const nextGenerationSourceGenes = [...additionalSourceSaplings, ...sourceSaplings];
-          console.log('nextGenerationSourceGenes', nextGenerationSourceGenes);
           this.simulateBestGenetics(nextGenerationSourceGenes, newGenerationInfo, options);
         } else {
           this.sendEvent('DONE', { mapGroups, generationIndex: generationIndex });

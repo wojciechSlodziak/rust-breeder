@@ -1,7 +1,12 @@
 <template>
   <div>
     <AboutButton />
-    <v-btn href="https://discord.gg/Va5475pqFw" target="_blank" class="indigo accent-2 ml-2">Discord</v-btn>
+    <v-btn href="https://discord.gg/Va5475pqFw" target="_blank" class="indigo accent-2 ml-2"
+      >Discord
+      <v-icon right>
+        mdi-discord
+      </v-icon>
+    </v-btn>
     <v-btn
       href="https://donorbox.org/rust-crossbreeding-optimizer?default_interval=o"
       target="_blank"

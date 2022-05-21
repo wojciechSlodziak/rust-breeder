@@ -68,6 +68,8 @@ export default class Sapling {
     cloneSapling.genes = [...this.genes];
     if (this.crossbreedingWeights) {
       cloneSapling.crossbreedingWeights = [...this.crossbreedingWeights];
+    } else {
+      delete cloneSapling.crossbreedingWeights;
     }
     cloneSapling.generationIndex = this.generationIndex;
     return cloneSapling;

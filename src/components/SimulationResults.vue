@@ -48,10 +48,10 @@
       <li v-for="(group, index) in visibleMapGroups" :key="group.resultSaplingGeneString">
         <SimulationMapGroup
           :group="group"
-          v-on:select:map="handleSelectMapEvent"
-          :highlightedMap="highlightedMap"
+          v-on:map-selected="handleMapSelectedEvent"
+          v-on:group-selected="handleGroupSelectedEvent"
+          :highlighted-map="highlightedMap"
           enable-selection
-          normal-view-mode
         />
         <InViewAnchor
           :key="index"
@@ -147,8 +147,12 @@ export default class SimulationResults extends Vue {
     return this.filteredMapGroups.length > this.visibleMapGroups.length;
   }
 
-  handleSelectMapEvent(map: GeneticsMap) {
-    this.$emit('select:map', map);
+  handleMapSelectedEvent(map: GeneticsMap) {
+    this.$emit('map-selected', map);
+  }
+
+  handleGroupSelectedEvent(group: GeneticsMapGroup) {
+    this.$emit('group-selected', group);
   }
 
   showMore() {

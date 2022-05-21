@@ -1,9 +1,9 @@
 <template>
   <v-card
-    v-ripple="enableMapSelection && !isDummy"
+    v-ripple="enableRipple"
     class="map"
-    :class="{ 'map--hidden': isDummy, 'map--selectable': enableMapSelection }"
-    :style="{ height: isDummy ? forcedHeight + 'px' : 'auto' }"
+    :class="{ 'map--selectable': enableMapSelection }"
+    :style="{ height: forcedHeight ? forcedHeight + 'px' : 'auto' }"
     outlined
   >
     <v-list-item class="map_header">
@@ -23,7 +23,7 @@
     </v-list-item>
     <v-divider class="mx-4"></v-divider>
     <v-card-text class="map_detail">
-      <v-tooltip bottom open-delay="250" :disabled="!enableMapSelection || $vuetify.breakpoint.xsOnly">
+      <v-tooltip bottom open-delay="250" :disabled="!enableTooltip || $vuetify.breakpoint.xsOnly">
         <template v-slot:activator="{ on, attrs }">
           <div v-bind="attrs" v-on="on">
             <div class="mb-1">
@@ -67,7 +67,7 @@
         >
       </v-tooltip>
       <v-divider class="mb-5"></v-divider>
-      <v-tooltip bottom open-delay="250" :disabled="!enableMapSelection || $vuetify.breakpoint.xsOnly">
+      <v-tooltip bottom open-delay="250" :disabled="!enableTooltip || $vuetify.breakpoint.xsOnly">
         <template v-slot:activator="{ on, attrs }">
           <div v-bind="attrs" v-on="on">
             <div class="mb-1">Surrounding Saplings:</div>
@@ -124,9 +124,10 @@ import SimulationMapGroup from './SimulationMapGroup.vue';
 })
 export default class SimulationMap extends Vue {
   @Prop({ type: Object, required: true }) readonly map!: GeneticsMap;
-  @Prop({ type: Boolean }) readonly isDummy: boolean;
   @Prop({ type: Boolean }) readonly enableComposingSaplingsSelection: boolean;
   @Prop({ type: Boolean }) readonly enableMapSelection: boolean;
+  @Prop({ type: Boolean }) readonly enableTooltip: boolean;
+  @Prop({ type: Boolean }) readonly enableRipple: boolean;
   @Prop({ type: Number }) readonly forcedHeight: number;
 
   get chanceClass() {
@@ -163,6 +164,7 @@ export default class SimulationMap extends Vue {
 .map {
   color: lightgray;
   text-align: center;
+  user-select: none;
   width: 320px;
   &.map--selectable {
     cursor: pointer;

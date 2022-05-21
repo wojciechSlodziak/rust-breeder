@@ -65,7 +65,7 @@
                 <SimulationMap
                   :map="highlightedMap"
                   enable-composing-saplings-selection
-                  @composing-sapling-selected="handleYoungestComposingSaplingSelectedEvent"
+                  @composing-sapling-selected="handleHighlightComposingSaplingSelectedEvent"
                 />
                 <v-btn class="mt-3" @click="handleClearHighlightClick">Clear Selection</v-btn>
                 <div class="mt-2" v-if="highlightedMap && highlightedMap.resultSapling.generationIndex > 1">
@@ -86,9 +86,10 @@
           :lg="showHighlight ? 6 : 9"
         >
           <SimulationResults
-            :mapGroups="resultMapGroups"
-            :highlightedMap="highlightedMap"
-            v-on:select:map="handleSelectMapEvent"
+            :map-groups="resultMapGroups"
+            :highlighted-map="highlightedMap"
+            v-on:map-selected="handleMapSelectedEvent"
+            v-on:group-selected="handleGroupSelectedEvent"
           />
           <div
             class="text-center py-md-6 mb-10"
@@ -102,32 +103,29 @@
         </v-col>
       </v-row>
     </v-container>
-    <SimulationMapGroup
-      key="youngestComposingingSaplingGroup"
-      v-if="displayedYoungestComposingSaplingGroup && !displayedOldestComposingSaplingGroup"
-      :group="displayedYoungestComposingSaplingGroup"
-      group-browsing-mode
-      enable-composing-saplings-selection
-      @composing-sapling-selected="handleOldestComposingSaplingSelectedEvent"
-      @close="handleYoungestGenerationSimulationMapGroupCloseEvent"
+    <SimulationMapGroupBrowser
+      :group="selectedBrowsingGroup"
+      :group2="selectedBrowsingGroup2"
+      :enable-map-selection="!isSelectedBrowsingGroupFromHighlight"
+      :enable-composing-saplings-selection="isSelectedBrowsingGroupFromHighlight"
+      :highlighted-map="highlightedMap"
+      @map-selected="handleMapSelectedEvent"
+      @composing-sapling-selected="handleBrowsingGroupComposingSaplingSelected"
+      @leave-group-browsing="handleBrowserLeaveEvent"
     >
       <template
-        v-if="displayedYoungestComposingSaplingGroup.mapList[0].resultSapling.generationIndex > 1"
-        v-slot:browsingMessage
+        v-if="
+          selectedBrowsingGroup &&
+            !selectedBrowsingGroup2 &&
+            selectedBrowsingGroup.mapList[0].resultSapling.generationIndex > 1
+        "
+        v-slot:message
       >
         The Sapling you selected comes from the <strong>2nd</strong> generation. You will need to crossbreed the
         Saplings that it requires first. Click on <span class="simulator_highlight-guide">highlighted</span> Saplings to
         see how to crossbreed them.
       </template>
-    </SimulationMapGroup>
-
-    <SimulationMapGroup
-      key="oldestCrossbreedingSaplingGroup"
-      v-if="displayedOldestComposingSaplingGroup"
-      :group="displayedOldestComposingSaplingGroup"
-      group-browsing-mode
-      @close="handleOldestGenerationSimulationMapGroupCloseEvent"
-    ></SimulationMapGroup>
+    </SimulationMapGroupBrowser>
   </div>
 </template>
 
@@ -150,6 +148,7 @@ import Sapling from '@/models/sapling.model';
 import goTo from 'vuetify/lib/services/goto';
 import ProgressIndicator from './ProgressIndicator.vue';
 import SimulationMapGroup from './SimulationMapGroup.vue';
+import SimulationMapGroupBrowser from './SimulationMapGroupBrowser.vue';
 
 @Component({
   components: {
@@ -160,7 +159,8 @@ import SimulationMapGroup from './SimulationMapGroup.vue';
     SaplingScreenCapture,
     SaplingListPreview,
     ProgressIndicator,
-    SimulationMapGroup
+    SimulationMapGroup,
+    SimulationMapGroupBrowser
   }
 })
 export default class CrossbreedingSimulator extends Vue {
@@ -190,13 +190,14 @@ export default class CrossbreedingSimulator extends Vue {
   progressPercents: number[] = [];
   isSimulating = false;
   isFormValid = false;
-  numberOfGenerations: number;
+  numberOfGenerations = 0;
   calcStartTime: number | null = null;
   calcEndTime: number | null = null;
   showNotEnoughSaplingsError = false;
   highlightedMap: GeneticsMap | null = null;
-  displayedYoungestComposingSaplingGroup: GeneticsMapGroup | null = null;
-  displayedOldestComposingSaplingGroup: GeneticsMapGroup | null = null;
+  selectedBrowsingGroup: GeneticsMapGroup | null = null;
+  isSelectedBrowsingGroupFromHighlight = false;
+  selectedBrowsingGroup2: GeneticsMapGroup | null = null;
   resultMapGroups: GeneticsMapGroup[] | null = null;
   isScreenScanning = false;
 
@@ -362,22 +363,6 @@ export default class CrossbreedingSimulator extends Vue {
     }
   }
 
-  handleYoungestComposingSaplingSelectedEvent(group: GeneticsMapGroup) {
-    this.displayedYoungestComposingSaplingGroup = group;
-  }
-
-  handleOldestComposingSaplingSelectedEvent(group: GeneticsMapGroup) {
-    this.displayedOldestComposingSaplingGroup = group;
-  }
-
-  handleYoungestGenerationSimulationMapGroupCloseEvent() {
-    this.displayedYoungestComposingSaplingGroup = null;
-  }
-
-  handleOldestGenerationSimulationMapGroupCloseEvent() {
-    this.displayedOldestComposingSaplingGroup = null;
-  }
-
   handleClearHighlightClick() {
     this.clearHighlight();
   }
@@ -400,12 +385,35 @@ export default class CrossbreedingSimulator extends Vue {
     }
   }
 
-  handleSelectMapEvent(map: GeneticsMap) {
+  handleMapSelectedEvent(map: GeneticsMap) {
     this.highlightedMap = map;
+    this.selectedBrowsingGroup = null;
     this.$nextTick(() => {
       const topDistance = (this.$refs.highlightedMap as HTMLElement)?.getBoundingClientRect().top + window.scrollY - 20;
       goTo(topDistance, { duration: 200 });
     });
+  }
+
+  handleGroupSelectedEvent(group: GeneticsMapGroup) {
+    this.isSelectedBrowsingGroupFromHighlight = false;
+    this.selectedBrowsingGroup = group;
+  }
+
+  handleHighlightComposingSaplingSelectedEvent(group: GeneticsMapGroup) {
+    this.isSelectedBrowsingGroupFromHighlight = true;
+    this.selectedBrowsingGroup = group;
+  }
+
+  handleBrowsingGroupComposingSaplingSelected(group: GeneticsMapGroup) {
+    this.selectedBrowsingGroup2 = group;
+  }
+
+  handleBrowserLeaveEvent() {
+    if (this.selectedBrowsingGroup2) {
+      this.selectedBrowsingGroup2 = null;
+    } else {
+      this.selectedBrowsingGroup = null;
+    }
   }
 
   scrollToResults() {

@@ -76,9 +76,9 @@ class CrossbreedingService {
       for (let winnerGeneTypeIndex = winnerGeneTypes.length - 1; winnerGeneTypeIndex >= 0; winnerGeneTypeIndex -= 1) {
         resultSaplings.forEach((resultSapling) => {
           if (winnerGeneTypeIndex !== 0) {
-            const additionalresultSapling = resultSapling.clone();
-            additionalresultSapling.addGene(new Gene(winnerGeneTypes[winnerGeneTypeIndex]), highestGeneWeight);
-            resultSaplingsToAppend.push(additionalresultSapling);
+            const additionalResultSapling = resultSapling.clone();
+            additionalResultSapling.addGene(new Gene(winnerGeneTypes[winnerGeneTypeIndex]), highestGeneWeight);
+            resultSaplingsToAppend.push(additionalResultSapling);
           } else {
             resultSapling.addGene(new Gene(winnerGeneTypes[winnerGeneTypeIndex]), highestGeneWeight);
           }
@@ -146,18 +146,39 @@ class CrossbreedingService {
    *
    * @returns A mock representation of base sapling.
    */
-
-  buildBaseSaplingWithMockGenes(resultSapling: Sapling): Sapling {
+  buildBaseSaplingWithMockGenes(
+    resultSapling: Sapling,
+    otherSaplings: Sapling[]
+  ): { baseSapling: Sapling; hasCounterSapling: boolean } {
     const baseSaplingMock = new Sapling();
+    let hasSaplingCounteringWithRedWithLowestWeight = false;
     resultSapling.genes.forEach((gene, index) => {
-      if (!gene.isGreen() && resultSapling.crossbreedingWeights![index] === 1) {
-        baseSaplingMock.addGene(new Gene(GeneEnum.MG));
+      if (gene.isRed() && resultSapling.crossbreedingWeights![index] === 1) {
+        const hasSaplingCounteringWithRedWithLowestWeightOnThatPosition =
+          otherSaplings.length > 0
+            ? otherSaplings.some(
+                (otherSapling) =>
+                  otherSapling.genes[index].isRed() &&
+                  otherSapling.crossbreedingWeights![index] === 1 &&
+                  otherSapling.genes[index].type !== gene.type
+              )
+            : false;
+        if (hasSaplingCounteringWithRedWithLowestWeightOnThatPosition) {
+          hasSaplingCounteringWithRedWithLowestWeight =
+            hasSaplingCounteringWithRedWithLowestWeight || hasSaplingCounteringWithRedWithLowestWeightOnThatPosition;
+          baseSaplingMock.addGene(new Gene(gene.type));
+        } else {
+          baseSaplingMock.addGene(new Gene(GeneEnum.MG));
+        }
       } else {
         baseSaplingMock.addGene(new Gene(GeneEnum.MA));
       }
     });
 
-    return baseSaplingMock;
+    return {
+      baseSapling: baseSaplingMock,
+      hasCounterSapling: hasSaplingCounteringWithRedWithLowestWeight
+    };
   }
 }
 

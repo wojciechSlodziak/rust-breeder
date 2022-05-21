@@ -1,5 +1,5 @@
 <template>
-  <div class="text-center">
+  <div :class="{ 'd-none': !mapGroups }">
     <v-container class="px-3 py-0">
       <v-row>
         <v-col class="px-2 py-0">
@@ -42,9 +42,16 @@
         </v-col>
       </v-row>
     </v-container>
-    <div class="mt-5">Click on a Card to see more details about generations and crossbreeding!</div>
-    <div class="hidden-md-and-up">Press and hold Card to view alternative variants.</div>
-    <ul class="mt-3 mb-12">
+    <div class="text-center">
+      <div class="mt-5 orange--text" v-if="mapGroups && mapGroups.length > 0 && visibleMapGroups.length === 0">
+        Filters you applied return no results!
+      </div>
+      <div class="mt-5" v-if="visibleMapGroups.length > 0">
+        <div class="mt-5">Click on a Card to see more details about generations and crossbreeding!</div>
+        <div class="hidden-md-and-up mt-2">Press and hold Card to view alternative variants.</div>
+      </div>
+    </div>
+    <ul class="mt-3 mb-12" v-if="visibleMapGroups.length > 0">
       <li v-for="(group, index) in visibleMapGroups" :key="group.resultSaplingGeneString">
         <SimulationMapGroup
           :group="group"
@@ -74,7 +81,7 @@ import SimulationMapGroup from './SimulationMapGroup.vue';
   components: { SimulationMapGroup, InViewAnchor }
 })
 export default class SimulationResults extends Vue {
-  @Prop({ type: Array, required: true }) readonly mapGroups!: GeneticsMapGroup[];
+  @Prop({ type: Array }) readonly mapGroups: GeneticsMapGroup[];
   @Prop({ type: Object }) readonly highlightedMap: GeneticsMap;
 
   filteringGenes: { [key: string]: string | null } = {
@@ -101,7 +108,7 @@ export default class SimulationResults extends Vue {
   itemsPerPage = 3;
 
   get filteredMapGroups() {
-    let mapGroups = this.mapGroups;
+    let mapGroups = this.mapGroups || [];
     [GeneEnum.Y, GeneEnum.G, GeneEnum.H].forEach((geneName) => {
       if (this.geneCount[`${geneName.toLowerCase()}Count`]) {
         mapGroups = mapGroups.filter(

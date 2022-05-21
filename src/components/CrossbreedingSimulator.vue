@@ -78,13 +78,7 @@
             </v-row>
           </v-form>
         </v-col>
-        <v-col
-          ref="results"
-          cols="12"
-          v-if="resultMapGroups !== null && resultMapGroups.length !== 0"
-          :md="showHighlight ? 12 : 8"
-          :lg="showHighlight ? 6 : 9"
-        >
+        <v-col ref="results" cols="12" :md="showHighlight ? 12 : 8" :lg="showHighlight ? 6 : 9">
           <SimulationResults
             :map-groups="resultMapGroups"
             :highlighted-map="highlightedMap"
@@ -92,7 +86,7 @@
             v-on:group-selected="handleGroupSelectedEvent"
           />
           <div
-            class="text-center py-md-6 mb-10"
+            class="text-center mt-5"
             v-if="resultMapGroups !== null && resultMapGroups.length === 0 && !isSimulating"
           >
             You'll need to find more plants. Try to pick the <strong>good</strong> ones!
@@ -166,27 +160,6 @@ import SimulationMapGroupBrowser from './SimulationMapGroupBrowser.vue';
 export default class CrossbreedingSimulator extends Vue {
   placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`;
   saplingGenes = ``;
-  // saplingGenes = `XXYWGH
-  // XHHWHG
-  // XHYXGW
-  // WHHXHH
-  // HHGWGY
-  // GGGXYH
-  // WGGWYH
-  // XHGHGH
-  // WGGWGH
-  // WGGWHW
-  // YHYXYH
-  // WGYWYH
-  // XHGHGX
-  // WGHWGH
-  // XHGYXX
-  // YWGHGH
-  // GYGXHH
-  // XGGXHX
-  // XXYHHH
-  // WYYGGH
-  // YYGWGW`;
   progressPercents: number[] = [];
   isSimulating = false;
   isFormValid = false;

@@ -68,53 +68,55 @@ export default class SimulationMapGroupBrowser extends Vue {
   @Watch('group')
   onGroupPropertyChanged(value: GeneticsMapGroup | null) {
     if (value) {
+      this.applyOverflow = false;
       this.visibleGroup = value;
+      this.animationClass = 'group--animate-slide-right';
       this.$nextTick(() => {
         this.isVisible = true;
-        this.animationClass = 'group--animate-slide-to-center';
+        this.animationClass = 'group--animate-from-right';
         setTimeout(() => {
           this.applyOverflow = true;
-        }, 300);
+        }, 350);
       });
     } else {
       this.isVisible = false;
-      this.animationClass = null;
+      this.animationClass = 'group--animate-slide-right';
       this.applyOverflow = false;
       setTimeout(() => {
         this.visibleGroup = null;
-      }, 300);
+      }, 350);
     }
   }
 
   @Watch('group2')
   onGroup2PropertyChanged(value: GeneticsMapGroup | null) {
     if (value) {
-      this.animationClass = 'group--animate-slide-to-left';
+      this.animationClass = 'group--animate-slide-left';
       (this.$refs.scrollContainer as HTMLElement).scrollLeft = 0;
       this.applyOverflow = false;
       setTimeout(() => {
-        this.animationClass = null;
         this.visibleGroup = value;
+        this.animationClass = 'group--animate-slide-right';
         this.$nextTick(() => {
-          this.animationClass = 'group--animate-slide-to-center';
+          this.animationClass = 'group--animate-from-right';
           setTimeout(() => {
             this.applyOverflow = true;
-          }, 300);
+          }, 350);
         });
-      }, 300);
+      }, 350);
     } else {
-      this.animationClass = null;
+      this.animationClass = 'group--animate-slide-right';
       this.applyOverflow = false;
       setTimeout(() => {
-        this.animationClass = 'group--animate-slide-to-left';
         this.visibleGroup = this.group;
+        this.animationClass = 'group--animate-slide-left';
         this.$nextTick(() => {
-          this.animationClass = 'group--animate-slide-to-center';
+          this.animationClass = 'group--animate-from-left';
           setTimeout(() => {
             this.applyOverflow = true;
-          }, 300);
+          }, 350);
         });
-      }, 300);
+      }, 350);
     }
   }
 
@@ -156,8 +158,9 @@ export default class SimulationMapGroupBrowser extends Vue {
   height: 100%;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.2s;
+  transition: opacity 0.3s;
   opacity: 0;
+  user-select: none;
   &.group--visible {
     opacity: 1;
   }
@@ -172,50 +175,77 @@ export default class SimulationMapGroupBrowser extends Vue {
     position: relative;
     display: inline-block;
     vertical-align: top;
-    transition: all 0.3s;
+    transition: all 0.25s;
     &:nth-child(1) {
-      opacity: 0;
-      transform: translateX(1000px);
+      opacity: 1;
+      transform: translateX(0);
+      transition-delay: 0;
     }
     &:nth-child(2) {
-      opacity: 0;
-      transform: translateX(1000px);
+      opacity: 1;
+      transform: translateX(0);
+      transition-delay: 0;
     }
     &:nth-child(3) {
-      opacity: 0;
-      transform: translateX(1000px);
+      opacity: 1;
+      transform: translateX(0);
+      transition-delay: 0;
     }
   }
-  &.group--animate-slide-to-center {
+  &.group--animate-from-right {
     .group_map-container:nth-child(1) {
-      opacity: 1;
-      transform: translateX(0);
+      transition-delay: 0ms;
     }
     .group_map-container:nth-child(2) {
-      opacity: 1;
       transition-delay: 50ms;
-      transform: translateX(0);
     }
     .group_map-container:nth-child(3) {
       transition-delay: 100ms;
-      opacity: 1;
-      transform: translateX(0);
     }
   }
-  &.group--animate-slide-to-left {
+  &.group--animate-from-left {
+    .group_map-container:nth-child(1) {
+      transition-delay: 100ms;
+    }
+    .group_map-container:nth-child(2) {
+      transition-delay: 50ms;
+    }
+    .group_map-container:nth-child(3) {
+      transition-delay: 0ms;
+    }
+  }
+  &.group--animate-slide-right {
     .group_map-container:nth-child(1) {
       opacity: 0;
-      transform: translateX(-1000px);
+      transition-delay: 100ms;
+      transform: translateX(100vw);
     }
     .group_map-container:nth-child(2) {
       opacity: 0;
       transition-delay: 50ms;
-      transform: translateX(-1000px);
+      transform: translateX(100vw);
+    }
+    .group_map-container:nth-child(3) {
+      opacity: 0;
+      transition-delay: 0ms;
+      transform: translateX(100vw);
+    }
+  }
+  &.group--animate-slide-left {
+    .group_map-container:nth-child(1) {
+      opacity: 0;
+      transition-delay: 0ms;
+      transform: translateX(-100vw);
+    }
+    .group_map-container:nth-child(2) {
+      opacity: 0;
+      transition-delay: 50ms;
+      transform: translateX(-100vw);
     }
     .group_map-container:nth-child(3) {
       opacity: 0;
       transition-delay: 100ms;
-      transform: translateX(-1000px);
+      transform: translateX(-100vw);
     }
   }
   .group_container {

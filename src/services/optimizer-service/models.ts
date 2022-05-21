@@ -53,6 +53,25 @@ export class GeneticsMap {
     }
     return clone;
   }
+
+  getSumOfComposingSaplingsChances() {
+    if (!this.crossbreedSaplingsVariants && !this.baseSaplingVariants) {
+      return this.crossbreedSaplings.length * 100;
+    } else {
+      let sumOfChances = 0;
+      if (this.crossbreedSaplingsVariants) {
+        sumOfChances += this.crossbreedSaplingsVariants.reduce(
+          (acc, crossbreedSaplingVariants) =>
+            crossbreedSaplingVariants ? crossbreedSaplingVariants.mapList[0].chancePercent : 100,
+          0
+        );
+      }
+      if (this.baseSaplingVariants) {
+        sumOfChances += this.baseSaplingVariants.mapList[0].chancePercent;
+      }
+      return sumOfChances;
+    }
+  }
 }
 
 export class GeneticsMapGroup {

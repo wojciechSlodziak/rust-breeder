@@ -121,14 +121,18 @@ class OptimizerService {
           sourceSaplings,
           mapGroups,
           generationIndex,
-          options.numberOfSaplingsAddedBetweenGenerations
+          options.numberOfSaplingsAddedBetweenGenerations,
+          options.geneScores
         );
         if (additionalSourceSaplings.length > 0) {
           const newGenerationInfo: GenerationInfo = {
             index: generationIndex + 1,
             addedSaplings: additionalSourceSaplings.length
           };
-          console.log('adding to next generation -> ', additionalSourceSaplings);
+          console.log(
+            'adding to next generation -> ',
+            additionalSourceSaplings.map((sapling) => sapling.toString())
+          );
           const nextGenerationSourceGenes = [...additionalSourceSaplings, ...sourceSaplings];
           console.log('nextGenerationSourceGenes', nextGenerationSourceGenes);
           this.simulateBestGenetics(nextGenerationSourceGenes, newGenerationInfo, options);

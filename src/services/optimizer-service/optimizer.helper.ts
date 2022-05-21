@@ -1,4 +1,4 @@
-import { MAX_SAME_RESULT_VARIANTS_IN_MAP } from '@/const';
+import GeneEnum from '@/enums/gene.enum';
 import Gene from '../../models/gene.model';
 import Sapling from '../../models/sapling.model';
 import { GeneticsMap, GeneticsMapGroup } from './models';
@@ -38,7 +38,12 @@ export function resultMapGroupsSortingFunction(
         (group1FirstMap.chancePercent === group2FirstMap.chancePercent &&
           (group1FirstMap.resultSapling.generationIndex < group2FirstMap.resultSapling.generationIndex ||
             (group1FirstMap.resultSapling.generationIndex === group2FirstMap.resultSapling.generationIndex &&
-              geneticsMapsGroup1.resultSaplingGeneString < geneticsMapsGroup2.resultSaplingGeneString)))))
+              (group1FirstMap.sumOfComposingSaplingsGenerations < group2FirstMap.sumOfComposingSaplingsGenerations ||
+                (group1FirstMap.sumOfComposingSaplingsGenerations ===
+                  group2FirstMap.sumOfComposingSaplingsGenerations &&
+                  group1FirstMap.getSumOfComposingSaplingsChances() >
+                    group2FirstMap.getSumOfComposingSaplingsChances()) ||
+                geneticsMapsGroup1.resultSaplingGeneString < geneticsMapsGroup2.resultSaplingGeneString))))))
   ) {
     return -1;
   } else {
@@ -230,7 +235,6 @@ export function getWorkChunks(
     }
   }
 
-  console.log('workChunks', workChunks);
   return workChunks;
 }
 
@@ -252,31 +256,80 @@ export function appendListToMapGroupsMap(
     }
 
     mapGroupMap[resultSaplingGeneString].mapList.sort(resultMapsSortingFunction);
-    // Discards results if there is more than MAX_SAME_RESULT_VARIANTS_IN_MAP maps for the same resultSapling.
-    mapGroupMap[resultSaplingGeneString].mapList = mapGroupMap[resultSaplingGeneString].mapList.slice(
-      0,
-      MAX_SAME_RESULT_VARIANTS_IN_MAP
-    );
+    // Discards results if there is more than 3 maps for the same resultSapling.
+    mapGroupMap[resultSaplingGeneString].mapList = mapGroupMap[resultSaplingGeneString].mapList.slice(0, 3);
   });
 }
 
 /**
  * Returns best genes to use for next generation on top of genes from previous generation.
  * Choice is based on identifying what is missing in the source genes from previous generation and by filling the gaps.
- * @param sourceSaplings TODO:
- * @param resultsFromPreviousGeneration TODO:
+ * @param sourceSaplings Saplings used for crossbreeding in the current generation.
+ * Sum of saplings provided by the user and those used in the current generation.
+ * @param allResults Results so far.
+ * @param currentGenerationIndex Index of the current generation that was calculated.
+ * @param numberOfSaplingsAddedBetweenGenerations How many saplings should be selected by this method for next generation.
+ * @param geneScores Score for gene provided from the app options. Used to define the worst column and to score saplings.
  */
 export function getBestSaplingsForNextGeneration(
   sourceSaplings: Sapling[],
   allResults: GeneticsMapGroup[],
   currentGenerationIndex: number,
-  numberOfSaplingsAddedBetweenGenerations: number
+  numberOfSaplingsAddedBetweenGenerations: number,
+  geneScores: Record<GeneEnum, number>
 ): Sapling[] {
-  // TODO: actual logic
-  return allResults
-    .filter((map) => map.mapList[0].resultSapling.generationIndex === currentGenerationIndex)
-    .slice(0, numberOfSaplingsAddedBetweenGenerations)
-    .map((map) => map.mapList[0].resultSapling);
+  const resultSaplings: Sapling[] = [];
+
+  const mapsToConsider = allResults
+    .filter((mapGroup) => mapGroup.mapList[0].resultSapling.generationIndex === currentGenerationIndex)
+    .map((mapGroup) => mapGroup.mapList[0]);
+
+  const resultGeneScoresPerColumn = new Array(6).fill(0);
+  const addSaplingScoresToResultGeneScoresPerColumn = (sapling: Sapling) => {
+    for (let colIndex = 0; colIndex < resultGeneScoresPerColumn.length; colIndex++) {
+      resultGeneScoresPerColumn[colIndex] += geneScores[sapling.genes[colIndex].type];
+    }
+  };
+  sourceSaplings.forEach(addSaplingScoresToResultGeneScoresPerColumn);
+
+  for (
+    let saplingsToAdd = Math.min(numberOfSaplingsAddedBetweenGenerations, mapsToConsider.length);
+    saplingsToAdd > 0;
+    saplingsToAdd--
+  ) {
+    // Has information about order of columns by their score ordered from worst to best.
+    const resultGeneScoresPerColumnIndexedWorstToBest = resultGeneScoresPerColumn
+      .map((score, index) => ({
+        score,
+        index
+      }))
+      .sort((a, b) => a.score - b.score);
+
+    // Go through all resultMaps and reduce the choice to the best ones
+    // according to how well they compensate current sourceSaplings.
+    let currentSubsetOfMapsToConsider = [...mapsToConsider];
+    resultGeneScoresPerColumnIndexedWorstToBest.forEach((colInfo) => {
+      const bestScoreInCurrentCol = Math.max(
+        ...currentSubsetOfMapsToConsider.map((map) => geneScores[map.resultSapling.genes[colInfo.index].type])
+      );
+      currentSubsetOfMapsToConsider = currentSubsetOfMapsToConsider.filter(
+        (map) => geneScores[map.resultSapling.genes[colInfo.index].type] === bestScoreInCurrentCol
+      );
+    });
+    currentSubsetOfMapsToConsider.sort(resultMapsSortingFunction);
+
+    const bestMapToAdd = currentSubsetOfMapsToConsider[0];
+    resultSaplings.push(bestMapToAdd.resultSapling);
+
+    // Include chosen sapling's score in the tracked column score, to better decide on next additions.
+    addSaplingScoresToResultGeneScoresPerColumn(bestMapToAdd.resultSapling);
+
+    // Remove the sapling from the list as we no longer consider it.
+    const indexOfAddedSaplingInCosideredList = mapsToConsider.indexOf(bestMapToAdd);
+    mapsToConsider.splice(indexOfAddedSaplingInCosideredList, 1);
+  }
+
+  return resultSaplings;
 }
 
 /**

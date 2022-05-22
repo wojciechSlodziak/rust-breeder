@@ -76,7 +76,7 @@ export default class SimulationMapGroup extends Vue {
 
   handlePotentialHeightChange() {
     if (this.$refs.primaryMap) {
-      this.$nextTick(() => {
+      this.onNextTickRerender(() => {
         this.backingMapHeight = (this.$refs.primaryMap as Vue[])[0].$el.getBoundingClientRect().height;
       });
     }

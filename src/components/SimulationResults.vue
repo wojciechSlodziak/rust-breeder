@@ -175,7 +175,6 @@ ul {
   margin: 0;
   padding: 0 !important;
   top: 25px;
-  transition: 0.2s ease-out;
   li {
     display: block;
     &:not(:first-child) {

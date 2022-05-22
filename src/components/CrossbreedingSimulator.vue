@@ -159,7 +159,18 @@ import SimulationMapGroupBrowser from './SimulationMapGroupBrowser.vue';
 })
 export default class CrossbreedingSimulator extends Vue {
   placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`;
-  saplingGenes = ``;
+  // saplingGenes = ``;
+  saplingGenes = `WGXYYW
+WYGXYW
+WGWGYW
+WYWXGG
+XYGWGW
+GGYWGW
+XYYWYW
+YYGWYX
+XYGXYX
+GGGXYX
+XYGWYW`;
   progressPercents: number[] = [];
   isSimulating = false;
   isFormValid = false;
@@ -208,12 +219,12 @@ export default class CrossbreedingSimulator extends Vue {
     if (textarea) {
       const caretPosition = textarea.selectionStart;
       this.saplingGenes = value;
-      this.$nextTick(() => {
+      this.onNextTickRerender(() => {
         this.saplingGenes = value.toUpperCase().replace(/[^GHWYX\n]/g, '');
         if (this.saplingGenes.length !== 0 && this.saplingGenes.charAt(0).match(/\r?\n/)) {
           this.saplingGenes = this.saplingGenes.slice(1);
         }
-        this.$nextTick(() => {
+        this.onNextTickRerender(() => {
           textarea.selectionEnd = caretPosition + (this.saplingGenes.length - value.length);
         });
       });
@@ -298,7 +309,7 @@ export default class CrossbreedingSimulator extends Vue {
   handleSaplingGenesInputBlur() {
     this.saplingGenes = this.saplingGenes.replaceAll(/[\n]{2,}/g, '\n');
     this.saplingGenes = this.getDeduplicatedSaplingGeneList().join('\n');
-    this.$nextTick(() => {
+    this.onNextTickRerender(() => {
       if ((this.$refs.form as Vue & { validate: () => boolean }).validate()) {
         (this.$refs.form as Vue & { resetValidation: () => boolean }).resetValidation();
       }
@@ -361,7 +372,7 @@ export default class CrossbreedingSimulator extends Vue {
   handleMapSelectedEvent(map: GeneticsMap) {
     this.highlightedMap = map;
     this.selectedBrowsingGroup = null;
-    this.$nextTick(() => {
+    this.onNextTickRerender(() => {
       const topDistance = (this.$refs.highlightedMap as HTMLElement)?.getBoundingClientRect().top + window.scrollY - 20;
       goTo(topDistance, { duration: 200 });
     });
@@ -390,7 +401,7 @@ export default class CrossbreedingSimulator extends Vue {
   }
 
   scrollToResults() {
-    this.$nextTick(() => {
+    this.onNextTickRerender(() => {
       const topDistance = (this.$refs.results as HTMLElement)?.getBoundingClientRect().top + window.scrollY;
       goTo(topDistance, { duration: 300 });
     });

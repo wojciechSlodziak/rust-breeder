@@ -4,6 +4,15 @@ import App from './App.vue';
 import vuetify from './plugins/vuetify';
 
 Vue.config.productionTip = false;
+Vue.mixin({
+  methods: {
+    onNextTickRerender: function(callback) {
+      this.$nextTick(() => {
+        requestAnimationFrame(callback);
+      });
+    }
+  }
+});
 
 new Vue({
   vuetify,

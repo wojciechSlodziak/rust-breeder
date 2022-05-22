@@ -13,7 +13,7 @@ export default class InViewAnchor extends Vue {
   }
 
   mounted() {
-    this.$nextTick(() => {
+    this.onNextTickRerender(() => {
       this.checkIfInView();
     });
   }

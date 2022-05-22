@@ -71,7 +71,7 @@ export default class SimulationMapGroupBrowser extends Vue {
       this.applyOverflow = false;
       this.visibleGroup = value;
       this.animationClass = 'group--animate-slide-right';
-      this.$nextTick(() => {
+      this.onNextTickRerender(() => {
         this.isVisible = true;
         this.animationClass = 'group--animate-from-right';
         setTimeout(() => {
@@ -97,7 +97,7 @@ export default class SimulationMapGroupBrowser extends Vue {
       setTimeout(() => {
         this.visibleGroup = value;
         this.animationClass = 'group--animate-slide-right';
-        this.$nextTick(() => {
+        this.onNextTickRerender(() => {
           this.animationClass = 'group--animate-from-right';
           setTimeout(() => {
             this.applyOverflow = true;
@@ -110,7 +110,7 @@ export default class SimulationMapGroupBrowser extends Vue {
       setTimeout(() => {
         this.visibleGroup = this.group;
         this.animationClass = 'group--animate-slide-left';
-        this.$nextTick(() => {
+        this.onNextTickRerender(() => {
           this.animationClass = 'group--animate-from-left';
           setTimeout(() => {
             this.applyOverflow = true;
@@ -179,17 +179,14 @@ export default class SimulationMapGroupBrowser extends Vue {
     &:nth-child(1) {
       opacity: 1;
       transform: translateX(0);
-      transition-delay: 0;
     }
     &:nth-child(2) {
       opacity: 1;
       transform: translateX(0);
-      transition-delay: 0;
     }
     &:nth-child(3) {
       opacity: 1;
       transform: translateX(0);
-      transition-delay: 0;
     }
   }
   &.group--animate-from-right {

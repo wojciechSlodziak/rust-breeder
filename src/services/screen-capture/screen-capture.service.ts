@@ -144,12 +144,14 @@ class ScreenCaptureService {
         promises.push(promise);
       });
 
-      Promise.all(promises).then((resultList) => {
-        const mostResemblingGeneResult = resultList.sort((a, b) =>
-          a.rawMisMatchPercentage > b.rawMisMatchPercentage ? 1 : -1
-        )[0];
-        mainResolve(mostResemblingGeneResult);
-      });
+      Promise.all(promises)
+        .then((resultList) => {
+          const mostResemblingGeneResult = resultList.sort((a, b) =>
+            a.rawMisMatchPercentage > b.rawMisMatchPercentage ? 1 : -1
+          )[0];
+          mainResolve(mostResemblingGeneResult);
+        })
+        .catch(mainReject);
     });
 
     return mainPromise;

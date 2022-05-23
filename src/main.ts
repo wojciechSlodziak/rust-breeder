@@ -8,7 +8,9 @@ Vue.mixin({
   methods: {
     onNextTickRerender: function(callback) {
       this.$nextTick(() => {
-        requestAnimationFrame(callback);
+        requestAnimationFrame(() => {
+          requestAnimationFrame(callback);
+        });
       });
     }
   }

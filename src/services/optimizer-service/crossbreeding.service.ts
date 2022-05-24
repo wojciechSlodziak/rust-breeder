@@ -6,7 +6,7 @@ import { ImpracticalResultError } from './models';
 class CrossbreedingService {
   /**
    * Method performs crossbreeding on a given list of saplings, and returns saplings that can come out of the process.
-   * @param crossbreedSaplings A list of saplings which have to be crosbreeded with each other.
+   * @param crossbreedSaplings A list of saplings which have to be crossbreeded with each other.
    * @returns A list of results that are possible outcomes for the given crossbreedSaplings.
    */
   crossbreed(crossbreedSaplings: Sapling[], generationIndex: number): Sapling[] {
@@ -39,8 +39,8 @@ class CrossbreedingService {
 
       const winnerGeneTypes: GeneEnum[] = [];
       // If winner gene is not dominant enough B gene is stored instead.
-      // This special type of gene indicates possibility of using Base Sapling's genes in the crosbreeding process.
       if (highestGeneWeight < 1) {
+      // This special type of gene indicates possibility of using Base Sapling's genes in the crossbreeding process.
         winnerGeneTypes.push(GeneEnum.B);
       } else {
         Object.keys(geneToWeightMap).forEach((key) => {
@@ -106,10 +106,10 @@ class CrossbreedingService {
 
   /**
    * Method is used for overriding result sapling's B (non-dominant) type genes with the base plant's original gene.
-   * This can happen if crosbreeding saplings don't reach a weight sum higher on a given position than the base plant's weight.
+   * This can happen if crossbreeding saplings don't reach a weight sum higher on a given position than the base plant's weight.
    * At this stage it's not decided whether the outcome of this crossbreeding will be anything useful, as it might end up
    * being a result with low score.
-   * @param resultSapling The sapling that resulted from crosbreeding process, and which needs to be crossbreeded
+   * @param resultSapling The sapling that resulted from crossbreeding process, and which needs to be crossbreeded
    * with base sapling due to it's genes being not fully dominant.
    * @param baseSapling One of the saplings provided to the corssbreeding process, which need to be checked for outcome.
    * @param generationIndex Index of the generation.
@@ -117,6 +117,7 @@ class CrossbreedingService {
    */
   crossbreedResultWithBase(resultSapling: Sapling, baseSapling: Sapling, generationIndex: number) {
     const finalResultSapling = new Sapling(null, generationIndex);
+
     resultSapling.genes.forEach((gene, index) => {
       if (
         gene.type === GeneEnum.B ||

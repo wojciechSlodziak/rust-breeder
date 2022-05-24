@@ -5,7 +5,7 @@ enum GeneEnum {
   W = 'W',
   X = 'X',
 
-  // BASE GENE - Non-dominant gene on a result sapling - in crosbreeding process base plant's gene will remain.
+  // BASE GENE - Non-dominant gene on a result sapling - in crossbreeding process base plant's gene will remain.
   B = 'B',
 
   // MOCK GREEN - Represents a base gene that has to by of any green type.

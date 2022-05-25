@@ -1,7 +1,7 @@
 <template>
   <div class="simulator">
     <div class="simulator_calc-time mr-1" v-if="calcTime">time: {{ calcTime }}</div>
-    <span class="app_version mr-1" v-if="!isSimulating && !calcTime">v2.0</span>
+    <span class="app_version mr-1" v-if="!isSimulating && !calcTime">v2.1</span>
     <ProgressIndicator :is-active="isSimulating" :progress-percents="progressPercents"></ProgressIndicator>
     <v-container fluid>
       <v-row>

@@ -4,11 +4,6 @@ import GeneEnum from '../enums/gene.enum';
 
 export default class Sapling {
   genes: Gene[];
-  /**
-   * Property used for keeping the track of weight of the genes after crossbreeding,
-   * required for rebreeding with base, and for indicating correct base for red gene outcomes (example: single X can't override W, but can override G).
-   */
-  crossbreedingWeights?: number[];
   generationIndex: number;
   [key: string]: unknown;
 
@@ -21,14 +16,10 @@ export default class Sapling {
     } else {
       this.genes = [];
     }
-    this.crossbreedingWeights = [];
   }
 
-  addGene(gene: Gene, weight: number | undefined = undefined) {
+  addGene(gene: Gene) {
     this.genes.push(gene);
-    if (weight) {
-      this.crossbreedingWeights!.push(weight);
-    }
   }
 
   numberOfGs() {
@@ -47,31 +38,11 @@ export default class Sapling {
     return Number(this.genes.reduce((acc, curr) => acc + geneScores[curr.type] || 0, 0).toFixed(2));
   }
 
-  getNumberOfBaseGenes(): number {
-    return this.genes.reduce((acc, curr) => acc + (curr.type === GeneEnum.B ? 1 : 0), 0);
-  }
-
-  hasRedGenesWithLowestWeight() {
-    return this.genes.some((gene, index) => !gene.isGreen() && this.crossbreedingWeights![index] === 1);
-  }
-
   toString() {
     return this.genes.map((gene) => gene.type).join('');
   }
 
-  cleanupCrossbreedingJunk() {
-    delete this.crossbreedingWeights;
-  }
-
   clone(): Sapling {
-    const cloneSapling = new Sapling();
-    cloneSapling.genes = [...this.genes];
-    if (this.crossbreedingWeights) {
-      cloneSapling.crossbreedingWeights = [...this.crossbreedingWeights];
-    } else {
-      delete cloneSapling.crossbreedingWeights;
-    }
-    cloneSapling.generationIndex = this.generationIndex;
-    return cloneSapling;
+    return new Sapling([...this.genes], this.generationIndex);
   }
 }

@@ -8,7 +8,7 @@ export default class Gene {
   }
 
   isGreen(): boolean {
-    return [GeneEnum.G, GeneEnum.H, GeneEnum.Y, GeneEnum.MG].indexOf(this.type) !== -1;
+    return [GeneEnum.G, GeneEnum.H, GeneEnum.Y].indexOf(this.type) !== -1;
   }
 
   isRed(): boolean {
@@ -16,10 +16,10 @@ export default class Gene {
   }
 
   toString(): string {
-    return [GeneEnum.MG, GeneEnum.MA].indexOf(this.type) === -1 ? this.type : '';
+    return this.type;
   }
 
-  crossbreedingWeight(): number {
+  getCrossbreedingWeight(): number {
     return this.isGreen() ? 0.6 : 1;
   }
 }

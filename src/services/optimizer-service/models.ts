@@ -6,7 +6,16 @@ export interface OptimizerServiceEventListenerCallback {
 }
 
 export class NotEnoughSourceSaplingsError extends Error {}
-export class ImpracticalResultError extends Error {}
+
+export class CrossbreedingGeneDetails {
+  geneType: GeneEnum;
+  totalWeight = 0;
+  contributingCrossbreedingSaplingIndexes = new Set<number>();
+}
+
+export class GeneWeightMap {
+  [geneType: string]: CrossbreedingGeneDetails;
+}
 
 export class GeneticsMap {
   resultSapling!: Sapling;

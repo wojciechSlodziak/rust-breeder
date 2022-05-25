@@ -2,7 +2,7 @@ import Sapling from '../../models/sapling.model';
 import crossbreedingService from './crossbreeding.service';
 import { buildInitialSaplingPositions, getMaxPositionsCount, setNextPosition } from './optimizer.helper';
 import GeneEnum from '../../enums/gene.enum';
-import { SimulateOptions, ImpracticalResultError, GenerationInfo, GeneticsMap } from './models';
+import { SimulateOptions, GenerationInfo, GeneticsMap } from './models';
 
 class GeneticsSimulatorService {
   /**
@@ -36,17 +36,18 @@ class GeneticsSimulatorService {
           : buildInitialSaplingPositions(positionCount, options.withRepetitions);
       let positionIndexForInc = positionCount - 1;
       let hasMoreCombinations = true;
-      let crossbreedSaplings: Sapling[];
+      let crossbreedingSaplings: Sapling[];
       while (hasMoreCombinations) {
-        crossbreedSaplings = [];
+        crossbreedingSaplings = [];
         positions.forEach((position) => {
-          crossbreedSaplings.push(sourceSaplings[position]);
+          crossbreedingSaplings.push(sourceSaplings[position]);
         });
 
-        this.performCrossbreedingAndScoring(
+        this.crossbreedAndEvaluate(
           results,
           sourceSaplings,
-          crossbreedSaplings,
+          sourceGenes,
+          crossbreedingSaplings,
           options.geneScores,
           options.minimumTrackedScore,
           generationInfo.index
@@ -69,12 +70,7 @@ class GeneticsSimulatorService {
           options.callProgressCallbackAfterNumberOfResultsReached < results.length ||
           combinationsProcessed === combinationsToProcess
         ) {
-          options.progressCallback(
-            combinationsProcessed,
-            // Filter out result saplings that were already provided by the User or come from previous generation.
-            // We don't need to make something that we already have.
-            results.filter((map) => sourceGenes.indexOf(map.resultSapling.toString()) === -1)
-          );
+          options.progressCallback(combinationsProcessed, results);
           results = [];
         }
       }
@@ -84,90 +80,108 @@ class GeneticsSimulatorService {
   /**
    * Performs a crossbreeding process on a combination (subset) of source Saplings.
    * @param result Map of results. Passed as a reference.
-   * @param sourceSaplings List of source Saplings built from the genes provided by the User.
-   * @param crossbreedSaplings A combination of Saplings that should be crossbreeded with each other.
+   * @param sourceSaplings List of source Saplings provided by the User.
+   * @param sourceSaplingsGeneStrings List of source Sapling genes.
+   * @param crossbreedingSaplings A combination of Saplings that should be crossbreeded with each other.
    * @param geneScores Score for gene provided from the app options, which help in scoring the completed Sapling.
    * @param minimumTrackedScore The minimumTrackedScore used for discarding results.
    */
-  private performCrossbreedingAndScoring(
-    result: GeneticsMap[],
+  private crossbreedAndEvaluate(
+    results: GeneticsMap[],
     sourceSaplings: Sapling[],
-    crossbreedSaplings: Sapling[],
+    sourceSaplingsGeneStrings: string[],
+    crossbreedingSaplings: Sapling[],
     geneScores: Record<GeneEnum, number>,
     minimumTrackedScore: number,
     generationIndex: number
   ) {
-    let resultSaplings: Sapling[] = [];
-    try {
-      resultSaplings = crossbreedingService.crossbreed(crossbreedSaplings, generationIndex);
-    } catch (e) {
-      if (e instanceof ImpracticalResultError) {
-        // Do nothing! In case of exceptions the process should go on.
-      } else {
-        throw e;
-      }
+    const crossbreedingWeights = crossbreedingService.getCrossbreedingWeights(crossbreedingSaplings);
+    const winningCrossbreedingWeights = crossbreedingService.getWinningCrossbreedingWeights(crossbreedingWeights);
+
+    if (
+      crossbreedingService.checkIfCrossbreedingCombinationShouldBeIgnored(
+        winningCrossbreedingWeights,
+        crossbreedingSaplings.length
+      )
+    ) {
+      return;
     }
-    resultSaplings.forEach((resultSapling) => {
-      if (resultSapling.getNumberOfBaseGenes() > 0) {
-        const otherSaplings: Sapling[] = sourceSaplings.filter((sapling) => crossbreedSaplings.indexOf(sapling) === -1);
-        otherSaplings.forEach((potentialBaseSapling) => {
-          const rebreedResultSapling = crossbreedingService.crossbreedResultWithBase(
-            resultSapling,
-            potentialBaseSapling,
-            generationIndex
-          );
 
-          const score = rebreedResultSapling.getScore(geneScores);
-          if (score >= minimumTrackedScore) {
-            const sumOfComposingSaplingsGenerations =
-              crossbreedSaplings.reduce((acc, sapling) => acc + sapling.generationIndex, 0) +
-              (potentialBaseSapling ? potentialBaseSapling.generationIndex : 0);
-            const chancePercent = Number((100 / resultSaplings.length).toFixed(2));
-            result.push(
-              new GeneticsMap(
-                rebreedResultSapling,
-                crossbreedSaplings,
-                score,
-                chancePercent,
-                sumOfComposingSaplingsGenerations,
-                potentialBaseSapling
-              )
-            );
-          }
-        });
-      } else {
-        const score = resultSapling.getScore(geneScores);
-        if (score >= minimumTrackedScore) {
-          const buildBaseSaplingWithMockGenesResult = resultSapling.hasRedGenesWithLowestWeight()
-            ? crossbreedingService.buildBaseSaplingWithMockGenes(
-                resultSapling,
-                resultSaplings.filter((sapling) => sapling !== resultSapling)
-              )
-            : undefined;
+    const requiresCheckingAgainstCenterSapling = crossbreedingService.requiresCheckingAgainstCenterSapling(
+      winningCrossbreedingWeights
+    );
 
-          const sumOfComposingSaplingsGenerations = crossbreedSaplings.reduce(
-            (acc, sapling) => acc + sapling.generationIndex,
-            0
-          );
+    // Create results from the crossbreedingWeights and center saplings (if applicable).
+    if (requiresCheckingAgainstCenterSapling) {
+      const otherSaplings: Sapling[] = sourceSaplings.filter(
+        (sapling) => crossbreedingSaplings.indexOf(sapling) === -1
+      );
+      otherSaplings.forEach((potentialCenterSapling) => {
+        const potentialResultSaplings = crossbreedingService.getCrossbreedingResultsWithPredefinedCenterSapling(
+          winningCrossbreedingWeights,
+          potentialCenterSapling,
+          generationIndex
+        );
+        this.handlePotentialResultSaplings(
+          results,
+          sourceSaplingsGeneStrings,
+          crossbreedingSaplings,
+          geneScores,
+          minimumTrackedScore,
+          potentialResultSaplings,
+          potentialCenterSapling
+        );
+      });
+    } else {
+      const potentialResultSaplings = crossbreedingService.getCrossbreedingResults(
+        winningCrossbreedingWeights,
+        generationIndex
+      );
+      this.handlePotentialResultSaplings(
+        results,
+        sourceSaplingsGeneStrings,
+        crossbreedingSaplings,
+        geneScores,
+        minimumTrackedScore,
+        potentialResultSaplings
+      );
+    }
+  }
 
-          const chancePercent = Number(
-            (100 / (buildBaseSaplingWithMockGenesResult?.hasCounterSapling ? 1 : resultSaplings.length)).toFixed(2)
-          );
-          result.push(
-            new GeneticsMap(
-              resultSapling,
-              crossbreedSaplings,
-              score,
-              chancePercent,
-              sumOfComposingSaplingsGenerations,
-              buildBaseSaplingWithMockGenesResult?.baseSapling
-            )
-          );
-        }
+  private handlePotentialResultSaplings(
+    results: GeneticsMap[],
+    sourceSaplingsGeneStrings: string[],
+    crossbreedingSaplings: Sapling[],
+    geneScores: Record<GeneEnum, number>,
+    minimumTrackedScore: number,
+    potentialResultSaplings: Sapling[],
+    potentialCenterSapling?: Sapling
+  ) {
+    // Filter out results that are the same as sourceSaplings.
+    const filteredPotentialResultSaplings = potentialResultSaplings.filter(
+      (sapling) => sourceSaplingsGeneStrings.indexOf(sapling.toString()) === -1
+    );
+
+    // Evaluate each Sapling and add to the results if positively evaluated.
+    filteredPotentialResultSaplings.forEach((potentialResultSapling) => {
+      const score = potentialResultSapling.getScore(geneScores);
+      if (score >= minimumTrackedScore) {
+        const sumOfComposingSaplingsGenerations =
+          crossbreedingSaplings.reduce((acc, sapling) => acc + sapling.generationIndex, 0) +
+          (potentialCenterSapling ? potentialCenterSapling.generationIndex : 0);
+        const chancePercent = Number((100 / potentialResultSaplings.length).toFixed(2));
+        results.push(
+          new GeneticsMap(
+            potentialResultSapling,
+            crossbreedingSaplings,
+            score,
+            chancePercent,
+            sumOfComposingSaplingsGenerations,
+            potentialCenterSapling
+          )
+        );
       }
     });
-
-    resultSaplings.forEach((resultSapling) => resultSapling.cleanupCrossbreedingJunk());
   }
 }
 

@@ -4,10 +4,10 @@
       <span
         class="sapling-gene-repr_gene"
         :class="{
-          'sapling-gene-repr_gene--red': typeof gene !== 'string' && gene.isRed(),
-          'sapling-gene-repr_gene--green': typeof gene !== 'string' && gene.isGreen()
+          'sapling-gene-repr_gene--red': typeof gene !== 'string' && !gene.isGreen,
+          'sapling-gene-repr_gene--green': typeof gene !== 'string' && gene.isGreen
         }"
-        ><span>{{ typeof gene !== 'string' ? gene.toString() : gene }}</span></span
+        ><span>{{ typeof gene !== 'string' ? gene.type : gene }}</span></span
       >
       <span class="sapling-gene-repr_separator" v-if="genes.length - 1 > index" :key="index + 'sep'">-</span>
     </span>

@@ -3,7 +3,7 @@ import ApplicationOptions from '@/interfaces/application-options';
 import {
   getWorkChunks,
   resultMapGroupsSortingFunction,
-  appendListToMapGroupsMap,
+  joinMapGroupMaps,
   fixPrototypeAssignmentsAfterSerialization,
   getBestSaplingsForNextGeneration,
   linkGenerationTree
@@ -83,11 +83,8 @@ class OptimizerService {
     },
     options: ApplicationOptions
   ) {
-    fixPrototypeAssignmentsAfterSerialization(event.data.partialResultMapList);
-
     // Handling partial results.
-    appendListToMapGroupsMap(this.mapGroupMap, event.data.partialResultMapList);
-    linkGenerationTree(this.mapGroupMap);
+    joinMapGroupMaps(this.mapGroupMap, event.data.partialMapGroupMap);
 
     // Progress tracking.
     this.workerProgress[workerIndex] = event.data.combinationsProcessed;
@@ -107,11 +104,13 @@ class OptimizerService {
       workerRef.terminate();
     }
 
-    // Handling complete results.
+    // Handling complete generation results.
     if (
       this.workerProgress.reduce((acc, singleWorkerProgress) => acc + singleWorkerProgress, 0) ===
       workChunk.allCombinationsCount
     ) {
+      fixPrototypeAssignmentsAfterSerialization(this.mapGroupMap);
+      linkGenerationTree(this.mapGroupMap);
       const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
       this.sendEvent('DONE_GENERATION', { generationIndex: generationIndex, mapGroups });
 

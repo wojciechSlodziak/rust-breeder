@@ -187,7 +187,7 @@ export function getWorkChunks(
     allCombinationsCount -= combinationsToIgnore;
   }
 
-  const numberOfWorkers = Math.ceil(navigator.hardwareConcurrency / 4);
+  const numberOfWorkers = Math.ceil(navigator.hardwareConcurrency / 2);
   const combinationsPerWorker = Math.ceil(allCombinationsCount / numberOfWorkers);
   const workChunks = [];
 
@@ -243,12 +243,31 @@ export function getWorkChunks(
  * @param mapGroupMap Total results so far.
  * @param mapList Partial results.
  */
-export function appendListToMapGroupsMap(
+export function joinMapGroupMaps(
   mapGroupMap: { [key: string]: GeneticsMapGroup },
-  mapList: GeneticsMap[]
+  partialMapGroupMap: { [key: string]: GeneticsMapGroup }
 ): void {
+  Object.keys(partialMapGroupMap).forEach((partialKey) => {
+    if (Object.prototype.hasOwnProperty.call(mapGroupMap, partialKey)) {
+      mapGroupMap[partialKey].mapList.push(...partialMapGroupMap[partialKey].mapList);
+    } else {
+      mapGroupMap[partialKey] = partialMapGroupMap[partialKey];
+    }
+
+    mapGroupMap[partialKey].mapList.sort(resultMapsSortingFunction);
+    // Discards results if there is more than 3 maps for the same resultSapling.
+    mapGroupMap[partialKey].mapList = mapGroupMap[partialKey].mapList.slice(0, 3);
+  });
+}
+
+/**
+ * Creates partial results from partial GeneticsMap list.
+ * @param mapList Partial results.
+ */
+export function createMapGroupMap(mapList: GeneticsMap[]): { [key: string]: GeneticsMapGroup } {
+  const mapGroupMap: { [key: string]: GeneticsMapGroup } = {};
   mapList.forEach((geneticsMap) => {
-    const resultSaplingGeneString = geneticsMap.resultSapling.toString();
+    const resultSaplingGeneString = geneticsMap.resultSapling.genes.map((gene) => gene.type).join('');
     if (mapGroupMap[resultSaplingGeneString] === undefined) {
       mapGroupMap[resultSaplingGeneString] = new GeneticsMapGroup(resultSaplingGeneString, [geneticsMap]);
     } else {
@@ -259,6 +278,8 @@ export function appendListToMapGroupsMap(
     // Discards results if there is more than 3 maps for the same resultSapling.
     mapGroupMap[resultSaplingGeneString].mapList = mapGroupMap[resultSaplingGeneString].mapList.slice(0, 3);
   });
+
+  return mapGroupMap;
 }
 
 /**
@@ -336,25 +357,19 @@ export function getBestSaplingsForNextGeneration(
  * Fixes Prototype assignments after worker serialization to make sure that all the Class methods are accessible.
  * @param mapList List of results, that require prototype fixes.
  */
-export function fixPrototypeAssignmentsAfterSerialization(mapList: GeneticsMap[]) {
-  mapList.forEach((map) => {
-    Object.setPrototypeOf(map, GeneticsMap.prototype);
-    Object.setPrototypeOf(map.resultSapling, Sapling.prototype);
-    map.resultSapling.genes.forEach((gene) => {
-      Object.setPrototypeOf(gene, Gene.prototype);
-    });
-    map.crossbreedSaplings.forEach((crossbreedSapling) => {
-      Object.setPrototypeOf(crossbreedSapling, Sapling.prototype);
-      crossbreedSapling.genes.forEach((gene) => {
-        Object.setPrototypeOf(gene, Gene.prototype);
+export function fixPrototypeAssignmentsAfterSerialization(mapGroupMap: { [key: string]: GeneticsMapGroup }) {
+  Object.values(mapGroupMap).forEach((mapGroup) => {
+    Object.setPrototypeOf(mapGroup, GeneticsMapGroup.prototype);
+    mapGroup.mapList.forEach((map) => {
+      Object.setPrototypeOf(map, GeneticsMap.prototype);
+      Object.setPrototypeOf(map.resultSapling, Sapling.prototype);
+      map.crossbreedSaplings.forEach((crossbreedSapling) => {
+        Object.setPrototypeOf(crossbreedSapling, Sapling.prototype);
       });
+      if (map.baseSapling) {
+        Object.setPrototypeOf(map.baseSapling, Sapling.prototype);
+      }
     });
-    if (map.baseSapling) {
-      Object.setPrototypeOf(map.baseSapling, Sapling.prototype);
-      map.baseSapling.genes.forEach((gene) => {
-        Object.setPrototypeOf(gene, Gene.prototype);
-      });
-    }
   });
 }
 

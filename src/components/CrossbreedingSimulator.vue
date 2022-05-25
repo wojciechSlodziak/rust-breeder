@@ -159,7 +159,25 @@ import SimulationMapGroupBrowser from './SimulationMapGroupBrowser.vue';
 })
 export default class CrossbreedingSimulator extends Vue {
   placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`;
-  saplingGenes = ``;
+  saplingGenes = `WGXYYW
+WGGXYW
+WGYXGW
+WYYXGW
+XYYXGW
+XYGXYW
+YWGYGX
+YGYXYY
+WGGWYX
+XGYWGG
+XYGYGW
+GYYXGW
+XGYWYX
+WYYWGW
+YGGXGX
+WYYWYG
+XGGGYH
+YHHGYY
+XYGWGW`;
   progressPercents: number[] = [];
   isSimulating = false;
   isFormValid = false;
@@ -240,13 +258,13 @@ export default class CrossbreedingSimulator extends Vue {
 
   onOptimizerServiceEvent(type: string, data: OptimizerServiceEventListenerCallbackData) {
     if (type === 'PROGRESS_UPDATE') {
-      Vue.set(this.progressPercents, data.generationIndex - 1, data.progressPercent || 0);
+      this.setProgress(data.generationIndex, Math.round(data.progressPercent || 0));
     } else if (type === 'DONE_GENERATION') {
       if (data.generationIndex === 1) {
         this.scrollToResults();
       }
       this.setData(data.mapGroups as GeneticsMapGroup[], data.generationIndex === this.numberOfGenerations);
-      Vue.set(this.progressPercents, data.generationIndex - 1, 100);
+      this.setProgress(data.generationIndex, 100);
     } else if (type === 'DONE') {
       this.calcEndTime = Date.now();
 
@@ -254,12 +272,19 @@ export default class CrossbreedingSimulator extends Vue {
         this.isSimulating = false;
       }, 200);
     }
-    this.$forceUpdate();
   }
 
   setData(mapGroups: GeneticsMapGroup[], isFinalResult: boolean) {
     // For partial results cloning for better performance is required to prevent Vue from constantly observing the results.
     this.resultMapGroups = isFinalResult ? mapGroups : mapGroups.map((mapGroup) => mapGroup.clone());
+  }
+
+  setProgress(generationIndex: number, progressPercent: number) {
+    const progress = Math.round(progressPercent || 0);
+    const index = generationIndex - 1;
+    if (this.progressPercents[index] !== progress) {
+      Vue.set(this.progressPercents, index, progress);
+    }
   }
 
   handleSimulateClick() {

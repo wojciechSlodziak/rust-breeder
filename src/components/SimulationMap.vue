@@ -16,7 +16,7 @@
           >&nbsp;&middot;&nbsp;<span class="map_score"
             >Score: <span>{{ map.score }}</span></span
           >&nbsp;&middot;&nbsp;<span class="map_chance" :class="chanceClass"
-            >Chance: <span>{{ map.chancePercent }}%</span>
+            >Chance: <span>{{ Math.round(map.chance * 100) }}%</span>
           </span>
         </v-list-item-subtitle>
       </v-list-item-content>
@@ -53,8 +53,13 @@
               <span
                 v-if="map.baseSapling.generationIndex > 0"
                 class="map_sapling-chance"
-                :class="{ 'map_sapling-chance--subtle': !enableComposingSaplingsSelection }"
-                >{{ map.baseSaplingVariants ? map.baseSaplingVariants.mapList[0].chancePercent : '' }}%</span
+                :class="{
+                  'map_sapling-chance--subtle': !enableComposingSaplingsSelection,
+                  'map_sapling-chance--moderate': map.baseSaplingVariants
+                    ? map.baseSaplingVariants.mapList[0].chance <= 0.5
+                    : false
+                }"
+                >{{ map.baseSaplingVariants ? Math.round(map.baseSaplingVariants.mapList[0].chance * 100) : '' }}%</span
               >
             </div>
           </div>
@@ -72,31 +77,46 @@
           <div v-bind="attrs" v-on="on">
             <div class="mb-1">Surrounding Saplings:</div>
             <ul>
-              <li class="map_sapling-list" v-for="(crossbreedSapling, index) in map.crossbreedSaplings" :key="index">
+              <li
+                class="map_sapling-list"
+                v-for="(crossbreedingSapling, index) in map.crossbreedingSaplings"
+                :key="index"
+              >
                 <span
                   class="map_sapling-generation"
-                  :class="{ 'map_sapling-generation--subtle': !enableComposingSaplingsSelection }"
-                  >GEN.{{ crossbreedSapling.generationIndex }}</span
+                  :class="{
+                    'map_sapling-generation--subtle': !enableComposingSaplingsSelection
+                  }"
+                  >GEN.{{ crossbreedingSapling.generationIndex }}</span
                 >
                 <SaplingGeneRepresentation
                   class="map_sapling"
                   :class="{
-                    'map_sapling--selectable': enableComposingSaplingsSelection && crossbreedSapling.generationIndex > 0
+                    'map_sapling--selectable':
+                      enableComposingSaplingsSelection && crossbreedingSapling.generationIndex > 0
                   }"
-                  :sapling="crossbreedSapling"
+                  :sapling="crossbreedingSapling"
                   @click.native="
                     enableComposingSaplingsSelection &&
-                      crossbreedSapling.generationIndex > 0 &&
+                      crossbreedingSapling.generationIndex > 0 &&
                       handleCrossbreedingSaplingSelection(index)
                   "
                 />
                 <span
-                  v-if="crossbreedSapling.generationIndex > 0"
+                  v-if="crossbreedingSapling.generationIndex > 0"
                   class="map_sapling-chance"
-                  :class="{ 'map_sapling-chance--subtle': !enableComposingSaplingsSelection }"
+                  :class="{
+                    'map_sapling-chance--subtle': !enableComposingSaplingsSelection,
+                    'map_sapling-chance--moderate':
+                      enableComposingSaplingsSelection &&
+                      map.crossbreedingSaplingsVariants &&
+                      map.crossbreedingSaplingsVariants[index]
+                        ? map.crossbreedingSaplingsVariants[index].mapList[0].chance <= 0.5
+                        : false
+                  }"
                   >{{
-                    map.crossbreedSaplingsVariants
-                      ? map.crossbreedSaplingsVariants[index].mapList[0].chancePercent
+                    map.crossbreedingSaplingsVariants
+                      ? Math.round(map.crossbreedingSaplingsVariants[index].mapList[0].chance * 100)
                       : ''
                   }}%</span
                 >
@@ -132,12 +152,10 @@ export default class SimulationMap extends Vue {
 
   get chanceClass() {
     let chanceClass = 'map_chance--';
-    if (this.map.chancePercent >= 75) {
+    if (this.map.chance > 0.5) {
       chanceClass += 'high';
-    } else if (this.map.chancePercent >= 50) {
-      chanceClass += 'moderate';
     } else {
-      chanceClass += 'low';
+      chanceClass += 'moderate';
     }
     return chanceClass;
   }
@@ -146,9 +164,9 @@ export default class SimulationMap extends Vue {
     return `map_gen--${this.map.resultSapling.generationIndex}`;
   }
 
-  handleCrossbreedingSaplingSelection(crossbreedSaplingIndex: number) {
-    if (this.map.crossbreedSaplingsVariants) {
-      this.$emit('composing-sapling-selected', this.map.crossbreedSaplingsVariants[crossbreedSaplingIndex]);
+  handleCrossbreedingSaplingSelection(crossbreedingSaplingIndex: number) {
+    if (this.map.crossbreedingSaplingsVariants) {
+      this.$emit('composing-sapling-selected', this.map.crossbreedingSaplingsVariants[crossbreedingSaplingIndex]);
     }
   }
 
@@ -188,7 +206,6 @@ export default class SimulationMap extends Vue {
     .map_gen {
       font-weight: bold;
     }
-    .map_chance--low span,
     .map_gen--3 {
       color: rgb(241, 66, 66);
     }
@@ -257,6 +274,9 @@ export default class SimulationMap extends Vue {
     text-align: left;
     &.map_sapling-chance--subtle {
       opacity: 0.3;
+    }
+    &.map_sapling-chance--moderate {
+      color: rgb(223, 145, 0);
     }
   }
 }

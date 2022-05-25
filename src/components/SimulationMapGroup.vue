@@ -7,7 +7,7 @@
           v-for="(map, index) in group.mapList"
           :key="
             (map.baseSapling ? map.baseSapling.toString() + '-' : '') +
-              map.crossbreedSaplings.map((sapling) => sapling.toString()).join('')
+              map.crossbreedingSaplings.map((sapling) => sapling.toString()).join('')
           "
         >
           <SimulationMap
@@ -28,7 +28,7 @@
             }"
             :key="
               (map.baseSapling ? map.baseSapling.toString() + '-' : '') +
-                map.crossbreedSaplings.map((sapling) => sapling.toString()).join('')
+                map.crossbreedingSaplings.map((sapling) => sapling.toString()).join('')
             "
             :map="map"
             enable-map-selection

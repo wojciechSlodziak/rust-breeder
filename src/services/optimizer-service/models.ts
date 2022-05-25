@@ -21,65 +21,63 @@ export class GeneticsMap {
   resultSapling!: Sapling;
   baseSapling?: Sapling;
   baseSaplingVariants?: GeneticsMapGroup;
-  crossbreedSaplings!: Sapling[];
-  crossbreedSaplingsVariants?: GeneticsMapGroup[];
+  crossbreedingSaplings!: Sapling[];
+  crossbreedingSaplingsVariants?: GeneticsMapGroup[];
   score!: number;
-  chancePercent!: number;
+  chance!: number;
   sumOfComposingSaplingsGenerations!: number;
 
   constructor(
     resultSapling: Sapling,
-    crossbreedSaplings: Sapling[],
+    crossbreedingSaplings: Sapling[],
     score: number,
-    chancePercent: number,
+    chance: number,
     sumOfComposingSaplingsGenerations: number,
     baseSapling?: Sapling
   ) {
     this.resultSapling = resultSapling;
     this.baseSapling = baseSapling;
-    this.crossbreedSaplings = crossbreedSaplings;
+    this.crossbreedingSaplings = crossbreedingSaplings;
     this.score = score;
-    this.chancePercent = chancePercent;
+    this.chance = chance;
     this.sumOfComposingSaplingsGenerations = sumOfComposingSaplingsGenerations;
   }
 
   clone(): GeneticsMap {
     const clone = new GeneticsMap(
       this.resultSapling.clone(),
-      [...this.crossbreedSaplings.map((sapling) => sapling.clone())],
+      [...this.crossbreedingSaplings.map((sapling) => sapling.clone())],
       this.score,
-      this.chancePercent,
+      this.chance,
       this.sumOfComposingSaplingsGenerations,
       this.baseSapling
     );
     if (this.baseSaplingVariants) {
       clone.baseSaplingVariants = this.baseSaplingVariants.clone();
     }
-    if (this.crossbreedSaplingsVariants) {
-      clone.crossbreedSaplingsVariants = this.crossbreedSaplingsVariants.map((crossbreedSaplingsVariants) =>
-        crossbreedSaplingsVariants.clone()
+    if (this.crossbreedingSaplingsVariants) {
+      clone.crossbreedingSaplingsVariants = this.crossbreedingSaplingsVariants.map((crossbreedingSaplingsVariants) =>
+        crossbreedingSaplingsVariants.clone()
       );
     }
     return clone;
   }
 
-  getSumOfComposingSaplingsChances() {
-    if (!this.crossbreedSaplingsVariants && !this.baseSaplingVariants) {
-      return this.crossbreedSaplings.length * 100;
-    } else {
-      let sumOfChances = 0;
-      if (this.crossbreedSaplingsVariants) {
-        sumOfChances += this.crossbreedSaplingsVariants.reduce(
-          (acc, crossbreedSaplingVariants) =>
-            crossbreedSaplingVariants ? crossbreedSaplingVariants.mapList[0].chancePercent : 100,
-          0
-        );
-      }
+  getChanceProduct() {
+    let chanceProduct = this.chance;
+    if (this.crossbreedingSaplingsVariants) {
+      this.crossbreedingSaplingsVariants.forEach((crossbreedingSaplingsVariant) => {
+        if (crossbreedingSaplingsVariant) {
+          chanceProduct *= crossbreedingSaplingsVariant
+            ? crossbreedingSaplingsVariant.mapList[0].getChanceProduct()
+            : 1;
+        }
+      });
       if (this.baseSaplingVariants) {
-        sumOfChances += this.baseSaplingVariants.mapList[0].chancePercent;
+        chanceProduct *= this.baseSaplingVariants.mapList[0].getChanceProduct();
       }
-      return sumOfChances;
     }
+    return chanceProduct;
   }
 }
 

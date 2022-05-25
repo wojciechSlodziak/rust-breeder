@@ -169,13 +169,13 @@ class GeneticsSimulatorService {
         const sumOfComposingSaplingsGenerations =
           crossbreedingSaplings.reduce((acc, sapling) => acc + sapling.generationIndex, 0) +
           (potentialCenterSapling ? potentialCenterSapling.generationIndex : 0);
-        const chancePercent = Number((100 / potentialResultSaplings.length).toFixed(2));
+        const chance = 1 / potentialResultSaplings.length;
         results.push(
           new GeneticsMap(
             potentialResultSapling,
             crossbreedingSaplings,
             score,
-            chancePercent,
+            chance,
             sumOfComposingSaplingsGenerations,
             potentialCenterSapling
           )

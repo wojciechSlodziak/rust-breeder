@@ -10,11 +10,11 @@ export function resultMapsSortingFunction(geneticsMap1: GeneticsMap, geneticsMap
   if (
     geneticsMap1.resultSapling.generationIndex < geneticsMap2.resultSapling.generationIndex ||
     (geneticsMap1.resultSapling.generationIndex === geneticsMap2.resultSapling.generationIndex &&
-      (geneticsMap1.chancePercent > geneticsMap2.chancePercent ||
-        (geneticsMap1.chancePercent === geneticsMap2.chancePercent &&
+      (geneticsMap1.chance > geneticsMap2.chance ||
+        (geneticsMap1.chance === geneticsMap2.chance &&
           (geneticsMap1.sumOfComposingSaplingsGenerations < geneticsMap2.sumOfComposingSaplingsGenerations ||
             (geneticsMap1.sumOfComposingSaplingsGenerations === geneticsMap2.sumOfComposingSaplingsGenerations &&
-              geneticsMap1.crossbreedSaplings.length < geneticsMap2.crossbreedSaplings.length)))))
+              geneticsMap1.crossbreedingSaplings.length < geneticsMap2.crossbreedingSaplings.length)))))
   ) {
     return -1;
   } else {
@@ -34,16 +34,14 @@ export function resultMapGroupsSortingFunction(
   if (
     group1FirstMap.score > group2FirstMap.score ||
     (group1FirstMap.score === group2FirstMap.score &&
-      (group1FirstMap.chancePercent > group2FirstMap.chancePercent ||
-        (group1FirstMap.chancePercent === group2FirstMap.chancePercent &&
+      (group1FirstMap.getChanceProduct() > group2FirstMap.getChanceProduct() ||
+        (group1FirstMap.getChanceProduct() === group2FirstMap.getChanceProduct() &&
           (group1FirstMap.resultSapling.generationIndex < group2FirstMap.resultSapling.generationIndex ||
             (group1FirstMap.resultSapling.generationIndex === group2FirstMap.resultSapling.generationIndex &&
               (group1FirstMap.sumOfComposingSaplingsGenerations < group2FirstMap.sumOfComposingSaplingsGenerations ||
                 (group1FirstMap.sumOfComposingSaplingsGenerations ===
                   group2FirstMap.sumOfComposingSaplingsGenerations &&
-                  group1FirstMap.getSumOfComposingSaplingsChances() >
-                    group2FirstMap.getSumOfComposingSaplingsChances()) ||
-                geneticsMapsGroup1.resultSaplingGeneString < geneticsMapsGroup2.resultSaplingGeneString))))))
+                  geneticsMapsGroup1.resultSaplingGeneString < geneticsMapsGroup2.resultSaplingGeneString)))))))
   ) {
     return -1;
   } else {
@@ -363,8 +361,8 @@ export function fixPrototypeAssignmentsAfterSerialization(mapGroupMap: { [key: s
     mapGroup.mapList.forEach((map) => {
       Object.setPrototypeOf(map, GeneticsMap.prototype);
       Object.setPrototypeOf(map.resultSapling, Sapling.prototype);
-      map.crossbreedSaplings.forEach((crossbreedSapling) => {
-        Object.setPrototypeOf(crossbreedSapling, Sapling.prototype);
+      map.crossbreedingSaplings.forEach((crossbreedingSapling) => {
+        Object.setPrototypeOf(crossbreedingSapling, Sapling.prototype);
       });
       if (map.baseSapling) {
         Object.setPrototypeOf(map.baseSapling, Sapling.prototype);
@@ -395,13 +393,13 @@ export function linkGenerationTree(mapGroupMap: { [key: string]: GeneticsMapGrou
       if (map.baseSapling) {
         map.baseSaplingVariants = mapGroupMap[map.baseSapling.toString()];
       }
-      map.crossbreedSaplingsVariants = new Array(map.crossbreedSaplings.length);
-      map.crossbreedSaplings.forEach((crossbreedSapling, crossbreedSaplingIndex) => {
-        if (crossbreedSapling.generationIndex > 0) {
-          const mapGroup = mapGroupMap[crossbreedSapling.toString()];
+      map.crossbreedingSaplingsVariants = new Array(map.crossbreedingSaplings.length);
+      map.crossbreedingSaplings.forEach((crossbreedingSapling, crossbreedingSaplingIndex) => {
+        if (crossbreedingSapling.generationIndex > 0) {
+          const mapGroup = mapGroupMap[crossbreedingSapling.toString()];
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          map.crossbreedSaplingsVariants![crossbreedSaplingIndex] = mapGroup;
-          map.crossbreedSaplings[crossbreedSaplingIndex] = mapGroup.mapList[0].resultSapling;
+          map.crossbreedingSaplingsVariants![crossbreedingSaplingIndex] = mapGroup;
+          map.crossbreedingSaplings[crossbreedingSaplingIndex] = mapGroup.mapList[0].resultSapling;
         }
       });
     });

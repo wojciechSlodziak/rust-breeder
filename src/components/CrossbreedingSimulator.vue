@@ -265,7 +265,9 @@ export default class CrossbreedingSimulator extends Vue {
     const progress = Math.round(progressPercent || 0);
     const index = generationIndex - 1;
     if (this.progressPercents[index] !== progress) {
-      Vue.set(this.progressPercents, index, progress);
+      this.onNextTickRerender(() => {
+        Vue.set(this.progressPercents, index, progress);
+      });
     }
   }
 

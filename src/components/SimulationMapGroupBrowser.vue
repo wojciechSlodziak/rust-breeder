@@ -21,7 +21,7 @@
           v-for="(map, index) in visibleGroup ? visibleGroup.mapList : []"
           :key="
             (map.baseSapling ? map.baseSapling.toString() + '-' : '') +
-              map.crossbreedSaplings.map((sapling) => sapling.toString()).join('')
+              map.crossbreedingSaplings.map((sapling) => sapling.toString()).join('')
           "
         >
           <div class="group_map-label mb-1" v-if="visibleGroup && visibleGroup.mapList.length > 1">
@@ -36,7 +36,7 @@
             }"
             :key="
               (map.baseSapling ? map.baseSapling.toString() + '-' : '') +
-                map.crossbreedSaplings.map((sapling) => sapling.toString()).join('')
+                map.crossbreedingSaplings.map((sapling) => sapling.toString()).join('')
             "
             :map="map"
             :enable-ripple="enableMapSelection"

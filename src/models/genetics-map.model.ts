@@ -1,9 +1,9 @@
 import Sapling from './sapling.model';
 
 export default class GeneticsMap {
-  crossbreedSaplings!: Sapling[];
+  crossbreedingSaplings!: Sapling[];
 
-  crossbreedSaplingsVariants?: GeneticsMap[];
+  crossbreedingSaplingsVariants?: GeneticsMap[];
 
   resultSapling!: Sapling;
 

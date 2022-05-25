@@ -29,7 +29,7 @@ export default class SaplingInputHighlights extends Vue {
     if (this.highlightedMap && this.inputString) {
       positions = [
         ...positions,
-        ...this.calculatePositions(this.highlightedMap.crossbreedSaplings).map((positionData) => ({
+        ...this.calculatePositions(this.highlightedMap.crossbreedingSaplings).map((positionData) => ({
           ...positionData,
           isBase: false
         }))

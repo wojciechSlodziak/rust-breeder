@@ -159,25 +159,7 @@ import SimulationMapGroupBrowser from './SimulationMapGroupBrowser.vue';
 })
 export default class CrossbreedingSimulator extends Vue {
   placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`;
-  saplingGenes = `WGXYYW
-WGGXYW
-WGYXGW
-WYYXGW
-XYYXGW
-XYGXYW
-YWGYGX
-YGYXYY
-WGGWYX
-XGYWGG
-XYGYGW
-GYYXGW
-XGYWYX
-WYYWGW
-YGGXGX
-WYYWYG
-XGGGYH
-YHHGYY
-XYGWGW`;
+  saplingGenes = ``;
   progressPercents: number[] = [];
   isSimulating = false;
   isFormValid = false;

@@ -19,7 +19,7 @@
                 Reset
               </v-btn>
             </template>
-            <span>Resets options to default values. </span>
+            <span>Resets options to default values. Don't forget to click Set/Save after.</span>
           </v-tooltip>
         </v-card-title>
         <v-card-text class="pl-5 pr-5">

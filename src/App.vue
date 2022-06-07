@@ -14,7 +14,7 @@
       <InfoButtons class="ml-auto d-none d-sm-flex" />
     </v-app-bar>
     <v-main>
-      <CrossbreedingSimulator />
+      <CrossbreedingSimulator :cookies-accepted="cookiesAccepted" />
       <InfoButtons class="d-flex justify-center d-xs-flex d-sm-none mb-3" />
     </v-main>
     <CookieConsent v-on:cookies-accepted="handleCookiesAccepted" />
@@ -36,7 +36,10 @@ import 'cookie-store';
   }
 })
 export default class App extends Vue {
+  cookiesAccepted = false;
+
   handleCookiesAccepted() {
+    this.cookiesAccepted = true;
     // eslint-disable-next-line no-undef
     enableGtag();
   }

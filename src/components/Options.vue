@@ -1,6 +1,6 @@
 <template>
   <v-form v-model="isFormValid">
-    <v-dialog v-model="isDialogOpen" width="600" @click:outside="resetInputs">
+    <v-dialog v-model="isDialogOpen" width="600" @click:outside="undoChanges">
       <template v-slot:activator="{ on, attrs }">
         <v-btn v-bind="attrs" v-on="on">
           Options
@@ -13,6 +13,14 @@
       <v-card>
         <v-card-title class="headline pl-5 pr-5" primary-title>
           <h2 class="text-h5">Options</h2>
+          <v-tooltip top open-delay="0">
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn v-bind="attrs" text v-on="on" class="ml-auto" color="primary" @click="resetToDefaults">
+                Reset
+              </v-btn>
+            </template>
+            <span>Resets options to default values. </span>
+          </v-tooltip>
         </v-card-title>
         <v-card-text class="pl-5 pr-5">
           <v-range-slider
@@ -29,7 +37,7 @@
           <v-slider
             class="mt-8"
             label="Number of Generations"
-            v-model.number="numberOfGenerations"
+            v-model.number="options.numberOfGenerations"
             min="1"
             max="3"
             :tick-labels="numberOfGenerationLabels"
@@ -40,13 +48,13 @@
             class="mt-6"
             type="number"
             label="Number of best Saplings added to the next Generation"
-            v-model.number="numberOfSaplingsAddedBetweenGenerations"
+            v-model.number="options.numberOfSaplingsAddedBetweenGenerations"
             :rules="numberOfSaplingsAddedBetweenGenerationsRules"
             min="1"
           ></v-text-field>
           <v-checkbox
             class="mt-5"
-            v-model="withRepetitions"
+            v-model="options.withRepetitions"
             label="Check combinations with repetitions"
             hint="Aditionally checks combinations where one plant is used more than once in one crossbreeding session. Slightly increases processing time."
             persistent-hint
@@ -60,7 +68,7 @@
                   :label="geneScore.key"
                   :rules="geneScoreRules"
                   @input="handleGeneScoreChange"
-                  v-model.number="geneScores[geneScore.key]"
+                  v-model.number="options.geneScores[geneScore.key]"
                 ></v-text-field>
               </v-col>
             </v-row>
@@ -68,29 +76,50 @@
           <v-checkbox
             class="mt-0"
             @change="handleModifyMinimumTrackedScoreManuallyChange"
-            v-model="modifyMinimumTrackedScoreManually"
-            label="Change Minimum Tracked Score"
+            v-model="options.modifyMinimumTrackedScoreManually"
+            label="Manual Minimum Tracked Score"
             hint="Setting a lower Minimum Tracked Score can increase memory consumption."
             persistent-hint
           />
           <v-text-field
             class="mt-2"
             type="number"
-            :disabled="!modifyMinimumTrackedScoreManually"
+            :disabled="!options.modifyMinimumTrackedScoreManually"
             label="Minimum Tracked Score"
-            v-model.number="minimumTrackedScore"
+            v-model.number="options.minimumTrackedScore"
             :rules="minimumTrackedScoreRules"
           ></v-text-field>
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" text @click="closeDialog">
+          <v-btn color="primary" text @click="handleCloseButtonClick">
             Close
           </v-btn>
-          <v-btn color="primary" @click="saveOptions" :disabled="!isFormValid">
-            Set
-          </v-btn>
+          <v-tooltip top open-delay="0">
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn v-bind="attrs" v-on="on" class="ml-2" color="primary" @click="setOptions" :disabled="!isFormValid">
+                Set
+              </v-btn>
+            </template>
+            <span>Sets the selected options for as long as the App is open.</span>
+          </v-tooltip>
+          <v-tooltip top open-delay="0">
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn
+                v-bind="attrs"
+                v-on="on"
+                class="ml-2"
+                v-if="cookiesAccepted"
+                color="primary"
+                @click="saveOptions"
+                :disabled="!isFormValid"
+              >
+                Save
+              </v-btn>
+            </template>
+            <span>Sets and remembers the selected options for the next time you use the App.</span>
+          </v-tooltip>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -98,44 +127,44 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue, Prop } from 'vue-property-decorator';
 import GeneEnum from '../enums/gene.enum';
 import ApplicationOptions from '../interfaces/application-options';
+import { getCookie, setCookie } from 'typescript-cookie';
+
+const DEFAULT_OPTIONS: ApplicationOptions = {
+  withRepetitions: true,
+  modifyMinimumTrackedScoreManually: false,
+  minCrossbreedingSaplingsNumber: 2,
+  maxCrossbreedingSaplingsNumber: 5,
+  numberOfGenerations: 2,
+  numberOfSaplingsAddedBetweenGenerations: 20,
+  minimumTrackedScore: 4,
+  geneScores: {
+    [GeneEnum.G]: 1,
+    [GeneEnum.Y]: 1,
+    [GeneEnum.H]: 0.5,
+    [GeneEnum.X]: 0,
+    [GeneEnum.W]: 0
+  }
+};
+const STORED_OPTIONS = getCookie(`options-${process.env.VUE_APP_VERSION}`);
 
 @Component
-export default class OptionsButton extends Vue {
+export default class Options extends Vue {
+  @Prop({ type: Boolean }) readonly cookiesAccepted: boolean;
   isDialogOpen = false;
   isFormValid = false;
 
-  options: ApplicationOptions = {
-    withRepetitions: true,
-    modifyMinimumTrackedScoreManually: false,
-    minCrossbreedingSaplingsNumber: 2,
-    maxCrossbreedingSaplingsNumber: 5,
-    numberOfGenerations: 2,
-    numberOfSaplingsAddedBetweenGenerations: 20,
-    minimumTrackedScore: 4,
-    geneScores: {
-      [GeneEnum.G]: 1,
-      [GeneEnum.Y]: 1,
-      [GeneEnum.H]: 0.5,
-      [GeneEnum.X]: 0,
-      [GeneEnum.W]: 0
-    }
-  };
+  currentlySetOptions: ApplicationOptions = STORED_OPTIONS
+    ? JSON.parse(STORED_OPTIONS)
+    : JSON.parse(JSON.stringify(DEFAULT_OPTIONS));
+  options: ApplicationOptions = JSON.parse(JSON.stringify(this.currentlySetOptions));
 
-  withRepetitions = this.options.withRepetitions;
-  modifyMinimumTrackedScoreManually = this.options.modifyMinimumTrackedScoreManually;
   crossbreedingSaplingsNumberRange = [
     this.options.minCrossbreedingSaplingsNumber,
     this.options.maxCrossbreedingSaplingsNumber
   ];
-  numberOfGenerations = this.options.numberOfGenerations;
-  numberOfSaplingsAddedBetweenGenerations = this.options.numberOfSaplingsAddedBetweenGenerations;
-  minimumTrackedScore = this.options.minimumTrackedScore;
-  geneScores: Record<string, number> = {
-    ...this.options.geneScores
-  };
 
   numberOfGenerationLabels = ['one', 'two', 'three'];
   maxCrossbreedingSaplingsLabels = ['2', '3', '4', '5', '6', '7', '8'];
@@ -149,67 +178,70 @@ export default class OptionsButton extends Vue {
   minimumTrackedScoreRules = [(v: number | string) => (v !== '' && v >= -6 && v <= 6) || `Acceptable range: -6 to 6.`];
 
   get scoreInputs() {
-    return Object.keys(this.geneScores || {})
-      .map((key) => ({ key, value: this.geneScores?.[key as GeneEnum] }))
+    return Object.keys(this.options.geneScores || {})
+      .map((key) => ({ key: key as GeneEnum, value: this.options.geneScores?.[key as GeneEnum] }))
       .filter((item, index) => index < 5);
   }
 
   get minimumTrackedScoreDerived() {
-    const highestGeneScore = Math.max(...Object.values(this.geneScores));
+    const highestGeneScore = Math.max(...Object.values(this.options.geneScores));
     return highestGeneScore * 4;
-  }
-
-  created() {
-    this.resetInputs();
   }
 
   handleModifyMinimumTrackedScoreManuallyChange(value: boolean) {
     if (!value) {
-      this.minimumTrackedScore = this.minimumTrackedScoreDerived;
+      this.options.minimumTrackedScore = this.minimumTrackedScoreDerived;
     }
   }
 
   handleGeneScoreChange() {
-    if (!this.modifyMinimumTrackedScoreManually) {
-      this.minimumTrackedScore = this.minimumTrackedScoreDerived;
+    if (!this.options.modifyMinimumTrackedScoreManually) {
+      this.options.minimumTrackedScore = this.minimumTrackedScoreDerived;
     }
   }
 
-  resetInputs() {
-    this.withRepetitions = this.options.withRepetitions;
-    this.modifyMinimumTrackedScoreManually = this.options.modifyMinimumTrackedScoreManually;
+  undoChanges() {
+    this.options = JSON.parse(JSON.stringify(this.currentlySetOptions));
+    this.crossbreedingSaplingsNumberRange = [
+      this.currentlySetOptions.minCrossbreedingSaplingsNumber,
+      this.currentlySetOptions.maxCrossbreedingSaplingsNumber
+    ];
+  }
+
+  resetToDefaults() {
+    this.options = JSON.parse(JSON.stringify(DEFAULT_OPTIONS));
     this.crossbreedingSaplingsNumberRange = [
       this.options.minCrossbreedingSaplingsNumber,
       this.options.maxCrossbreedingSaplingsNumber
     ];
-    this.numberOfGenerations = this.options.numberOfGenerations;
-    this.numberOfSaplingsAddedBetweenGenerations = this.options.numberOfSaplingsAddedBetweenGenerations;
-    this.minimumTrackedScore = this.options.minimumTrackedScore;
-    this.geneScores = {
-      ...this.options.geneScores
-    };
   }
 
   getOptions() {
-    return this.options;
+    return this.currentlySetOptions;
   }
 
-  closeDialog() {
-    this.resetInputs();
+  handleCloseButtonClick() {
+    this.undoChanges();
+    this.isDialogOpen = false;
+  }
+
+  setOptions() {
+    this.options.minCrossbreedingSaplingsNumber = this.crossbreedingSaplingsNumberRange[0];
+    this.options.maxCrossbreedingSaplingsNumber = this.crossbreedingSaplingsNumberRange[1];
+    this.currentlySetOptions = JSON.parse(JSON.stringify(this.options));
+    this.$emit('options-set', this.currentlySetOptions);
     this.isDialogOpen = false;
   }
 
   saveOptions() {
+    this.setOptions();
+    this.storeOptionsInCookie();
     this.isDialogOpen = false;
-    this.options.withRepetitions = this.withRepetitions;
-    this.options.modifyMinimumTrackedScoreManually = this.modifyMinimumTrackedScoreManually;
-    this.options.minCrossbreedingSaplingsNumber = this.crossbreedingSaplingsNumberRange[0];
-    this.options.maxCrossbreedingSaplingsNumber = this.crossbreedingSaplingsNumberRange[1];
-    this.options.numberOfGenerations = this.numberOfGenerations;
-    this.options.numberOfSaplingsAddedBetweenGenerations = this.numberOfSaplingsAddedBetweenGenerations;
-    this.options.minimumTrackedScore = this.minimumTrackedScore;
-    Object.keys(this.geneScores || {}).forEach((key) => {
-      this.options.geneScores[key as GeneEnum] = this.geneScores?.[key as GeneEnum] || 0;
+  }
+
+  storeOptionsInCookie() {
+    setCookie(`options-${process.env.VUE_APP_VERSION}`, JSON.stringify(this.currentlySetOptions), {
+      expires: 356 * 5
     });
   }
 }

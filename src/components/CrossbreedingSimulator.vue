@@ -1,7 +1,7 @@
 <template>
   <div class="simulator">
     <div class="simulator_calc-time mr-1" v-if="calcTime">time: {{ calcTime }}</div>
-    <span class="app_version mr-1" v-if="!isSimulating && !calcTime">v2.1</span>
+    <span class="app_version mr-1" v-if="!isSimulating && !calcTime">v{{ appVersion }}</span>
     <ProgressIndicator :is-active="isSimulating" :progress-percents="progressPercents"></ProgressIndicator>
     <v-container fluid>
       <v-row>
@@ -31,7 +31,7 @@
                 />
               </span>
               <span class="ma-1">
-                <OptionsButton ref="optionsButton" />
+                <Options ref="options" :cookies-accepted="cookiesAccepted" @options-set="handleOptionsSetEvent" />
               </span>
             </v-row>
             <v-row class="d-flex mx-1 pt-3 pb-3 mt-4">
@@ -124,12 +124,12 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue, Prop } from 'vue-property-decorator';
 import optimizerService from '../services/optimizer-service/optimizer.service';
 import SimulationResults from './SimulationResults.vue';
 import SimulationMap from './SimulationMap.vue';
 import SaplingInputHighlights from './SaplingInputHighlights.vue';
-import OptionsButton from './OptionsButton.vue';
+import Options from './Options.vue';
 import SaplingListPreview from './SaplingListPreview.vue';
 import SaplingScreenCapture from './SaplingScreenCapture.vue';
 import {
@@ -143,13 +143,14 @@ import goTo from 'vuetify/lib/services/goto';
 import ProgressIndicator from './ProgressIndicator.vue';
 import SimulationMapGroup from './SimulationMapGroup.vue';
 import SimulationMapGroupBrowser from './SimulationMapGroupBrowser.vue';
+import ApplicationOptions from '@/interfaces/application-options';
 
 @Component({
   components: {
     SimulationResults,
     SimulationMap,
     SaplingInputHighlights,
-    OptionsButton,
+    Options,
     SaplingScreenCapture,
     SaplingListPreview,
     ProgressIndicator,
@@ -158,6 +159,7 @@ import SimulationMapGroupBrowser from './SimulationMapGroupBrowser.vue';
   }
 })
 export default class CrossbreedingSimulator extends Vue {
+  @Prop({ type: Boolean }) readonly cookiesAccepted: boolean;
   placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`;
   saplingGenes = ``;
   progressPercents: number[] = [];
@@ -166,6 +168,7 @@ export default class CrossbreedingSimulator extends Vue {
   numberOfGenerations = 0;
   calcStartTime: number | null = null;
   calcEndTime: number | null = null;
+  options: ApplicationOptions;
   showNotEnoughSaplingsError = false;
   highlightedMap: GeneticsMap | null = null;
   selectedBrowsingGroup: GeneticsMapGroup | null = null;
@@ -173,6 +176,7 @@ export default class CrossbreedingSimulator extends Vue {
   selectedBrowsingGroup2: GeneticsMapGroup | null = null;
   resultMapGroups: GeneticsMapGroup[] | null = null;
   isScreenScanning = false;
+  appVersion = process.env.VUE_APP_VERSION;
 
   sourceSaplingRules = [
     (v: string) => v !== '' || 'Give me some plants to work with!',
@@ -276,10 +280,12 @@ export default class CrossbreedingSimulator extends Vue {
     const deduplicatedSaplingGeneList = this.getDeduplicatedSaplingGeneList();
     this.saplingGenes = deduplicatedSaplingGeneList.join('\n');
 
-    const options = (this.$refs.optionsButton as OptionsButton).getOptions();
+    if (!this.options) {
+      this.options = (this.$refs.options as Options).getOptions();
+    }
 
-    this.numberOfGenerations = options.numberOfGenerations;
-    this.progressPercents = new Array(options.numberOfGenerations);
+    this.numberOfGenerations = this.options.numberOfGenerations;
+    this.progressPercents = new Array(this.options.numberOfGenerations);
     this.resultMapGroups = null;
     this.calcStartTime = Date.now();
     this.calcEndTime = null;
@@ -287,7 +293,7 @@ export default class CrossbreedingSimulator extends Vue {
       optimizerService.simulateBestGenetics(
         deduplicatedSaplingGeneList.map((geneString) => new Sapling(geneString)),
         undefined,
-        options
+        this.options
       );
       this.isSimulating = true;
     } catch (e) {
@@ -396,6 +402,10 @@ export default class CrossbreedingSimulator extends Vue {
     } else {
       this.selectedBrowsingGroup = null;
     }
+  }
+
+  handleOptionsSetEvent(options: ApplicationOptions) {
+    this.options = options;
   }
 
   scrollToResults() {

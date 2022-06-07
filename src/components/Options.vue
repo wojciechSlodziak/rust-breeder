@@ -104,13 +104,12 @@
             </template>
             <span>Sets the selected options for as long as the App is open.</span>
           </v-tooltip>
-          <v-tooltip top open-delay="0">
+          <v-tooltip top open-delay="0" v-if="cookiesAccepted">
             <template v-slot:activator="{ on, attrs }">
               <v-btn
                 v-bind="attrs"
                 v-on="on"
                 class="ml-2"
-                v-if="cookiesAccepted"
                 color="primary"
                 @click="saveOptions"
                 :disabled="!isFormValid"

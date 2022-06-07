@@ -131,6 +131,13 @@ import GeneEnum from '../enums/gene.enum';
 import ApplicationOptions from '../interfaces/application-options';
 import { getCookie, setCookie } from 'typescript-cookie';
 
+/**
+ * This property is used to version the options saved in the cookies.
+ * If the structure of the options would change in the future this value should be incremented
+ * to invalidate obsolote options saved by the User.
+ */
+const OPTIONS_VERSION = 1;
+const OPTIONS_COOKIE_KEY = `options-v${OPTIONS_VERSION}`;
 const DEFAULT_OPTIONS: ApplicationOptions = {
   withRepetitions: true,
   modifyMinimumTrackedScoreManually: false,
@@ -147,7 +154,7 @@ const DEFAULT_OPTIONS: ApplicationOptions = {
     [GeneEnum.W]: 0
   }
 };
-const STORED_OPTIONS = getCookie(`options-${process.env.VUE_APP_VERSION}`);
+const STORED_OPTIONS = getCookie(OPTIONS_COOKIE_KEY);
 
 @Component
 export default class Options extends Vue {
@@ -239,7 +246,7 @@ export default class Options extends Vue {
   }
 
   storeOptionsInCookie() {
-    setCookie(`options-${process.env.VUE_APP_VERSION}`, JSON.stringify(this.currentlySetOptions), {
+    setCookie(OPTIONS_COOKIE_KEY, JSON.stringify(this.currentlySetOptions), {
       expires: 356 * 5
     });
   }

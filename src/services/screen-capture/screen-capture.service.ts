@@ -4,22 +4,25 @@ import { createWorker, PSM } from 'tesseract.js';
 
 const TIME_MS_BETWEEEN_SCANS = 200;
 
-const SCREEN_GENES_HEIGHT = 0.015;
-const SCREEN_GENES_WIDTH = 0.081;
-const SCREEN_GENE_X_POSITION_START = 0.415;
-const SCREEN_GENE_Y_POSITION_START = 0.279;
+const SCREEN_GENE_WIDTH = 0.008;
+const SCREEN_GENE_HEIGHT = 0.015;
+const SCREEN_GENE_X_POSITION_CENTER = 0.42;
+const SCREEN_GENE_Y_POSITION_CENTER = 0.286;
+const SCREEN_DISTANCE_BETWEEN_GENES = 0.01405;
 
 const ASPECT_RATIO_169 = 16 / 9;
 
 class ScreenCaptureService {
   listeners: ScreenCaptureServiceEventListenerCallback[] = [];
 
+  isActive = false;
   video: HTMLVideoElement;
-  worker: Tesseract.Worker;
+  workers: Tesseract.Worker[] = [];
   videoCanvas = document.createElement('canvas');
   geneCanvas = document.createElement('canvas');
 
   startCapturing() {
+    this.isActive = true;
     navigator.mediaDevices
       .getDisplayMedia({
         video: {
@@ -29,17 +32,7 @@ class ScreenCaptureService {
         audio: false
       })
       .then(async (mediaStream) => {
-        this.worker = createWorker();
-        // {logger: (m) => console.log(m)}
-        await this.worker.load();
-        await this.worker.loadLanguage('eng');
-        await this.worker.initialize('eng');
-        await this.worker.setParameters({
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          tessedit_char_whitelist: 'GHYWX6',
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          tessedit_pageseg_mode: PSM.SINGLE_LINE
-        });
+        await this.setupRecognitionWorkers();
 
         this.video = document.createElement('video');
         this.video.srcObject = mediaStream;
@@ -48,7 +41,7 @@ class ScreenCaptureService {
         });
         const track = mediaStream.getVideoTracks()[0];
         track.addEventListener('ended', () => {
-          this.stopScanning();
+          this.stopCapturing();
         });
         this.video.play();
       })
@@ -58,6 +51,7 @@ class ScreenCaptureService {
   }
 
   stopCapturing() {
+    this.isActive = false;
     this.stopScanning();
     const stream: MediaStream = this.video.srcObject as MediaStream;
     if (stream) {
@@ -66,6 +60,28 @@ class ScreenCaptureService {
         track.stop();
       });
       this.video.srcObject = null;
+    }
+  }
+
+  async setupRecognitionWorkers() {
+    if (this.workers.length === 0) {
+      this.workers = await Promise.all(
+        Array(6)
+          .fill(0)
+          .map(async () => {
+            const worker = createWorker();
+            await worker.load();
+            await worker.loadLanguage('eng');
+            await worker.initialize('eng');
+            await worker.setParameters({
+              // eslint-disable-next-line @typescript-eslint/camelcase
+              tessedit_char_whitelist: 'GHYWX',
+              // eslint-disable-next-line @typescript-eslint/camelcase
+              tessedit_pageseg_mode: PSM.SINGLE_CHAR
+            });
+            return worker;
+          })
+      );
     }
   }
 
@@ -78,59 +94,78 @@ class ScreenCaptureService {
   }
 
   private scanFrameRecurrent() {
-    window.requestAnimationFrame(() => {
-      this.scanFrame().then(() => {
-        setTimeout(() => {
-          this.scanFrameRecurrent();
-        }, TIME_MS_BETWEEEN_SCANS);
+    if (this.isActive) {
+      window.requestAnimationFrame(() => {
+        this.scanFrame().then(() => {
+          setTimeout(() => {
+            this.scanFrameRecurrent();
+          }, TIME_MS_BETWEEEN_SCANS);
+        });
       });
-    });
+    }
   }
 
   private async stopScanning() {
-    await this.worker.terminate();
     this.listeners.forEach((listenerCallback) => {
       listenerCallback('STOPPED');
     });
   }
 
   private scanFrame() {
-    const promise = new Promise((resolve) => {
-      const geneScan = this.getSaplingGenesScan();
-      if (geneScan) {
-        // console.log(geneScan);
-        Jimp.read(geneScan).then((image) => {
-          image
-            .greyscale()
-            .invert()
-            .normalize()
-            .contrast(0.4)
-            // .color([{ apply: 'tint', params: [50] }])
-            .getBase64('image/png', async (err, data) => {
-              console.log(data);
+    const geneScans = this.getSaplingGenesScans();
 
-              let {
-                data: { text }
-              } = await this.worker.recognize(data);
-              console.log(text);
-              text = text.replace(/\s/g, '');
-              text = text.replaceAll('6', 'G');
-              console.log(text);
+    const promises: Promise<string>[] = [];
+    geneScans.forEach((geneImgData, index) => {
+      promises.push(this.getRecognizedGene(geneImgData, index));
+    });
 
-              if (text.match(/^[GHYWX]{6}$/g)) {
-                this.listeners.forEach((listenerCallback) => {
-                  listenerCallback('SAPLING-FOUND', text);
-                });
-              }
-              resolve(null);
-            });
-        });
-      }
+    return Promise.all(promises)
+      .then((results) => {
+        const saplingGenesString = results.map((result) => result).join('');
+        if (saplingGenesString.match(/^[GHYWX]{6}$/g)) {
+          this.listeners.forEach((listenerCallback) => {
+            listenerCallback('SAPLING-FOUND', saplingGenesString);
+          });
+        }
+      })
+      .catch(() => {
+        // Fail silently. If there was an error it was not possible to find and match all genes from the screen capture.
+      });
+  }
+
+  private getRecognizedGene(imgData: string, workerIndex: number): Promise<string> {
+    const promise = new Promise<string>((resolve, reject) => {
+      Jimp.read(imgData).then((image) => {
+        image
+          .greyscale()
+          .invert()
+          .normalize()
+          .scale(2)
+          .convolute([
+            [0, -0.5, 0],
+            [-0.5, 4, -0.5],
+            [0, -0.5, 0]
+          ])
+          .contrast(0.5)
+          .getBase64('image/png', async (err, data) => {
+            let {
+              data: { text }
+            } = await this.workers[workerIndex].recognize(data);
+            text = text.replace(/\s/g, '');
+
+            if (text.match(/^[GHYWX]{1}$/g)) {
+              resolve(text);
+            } else {
+              reject(null);
+            }
+          });
+      });
     });
     return promise;
   }
 
-  private getSaplingGenesScan(): string | null {
+  private getSaplingGenesScans(): string[] {
+    const geneScans = [];
     const aspectRatio = this.video.videoWidth / this.video.videoHeight;
     let yPXOffset = 0;
     if (aspectRatio !== ASPECT_RATIO_169) {
@@ -144,28 +179,34 @@ class ScreenCaptureService {
     this.videoCanvas.width = this.video.videoWidth;
 
     const videoCanvasCtx = this.videoCanvas.getContext('2d');
-    if (videoCanvasCtx) {
+    if (this.videoCanvas.width !== 0 && videoCanvasCtx) {
       videoCanvasCtx.drawImage(this.video, 0, yPXOffset, this.videoCanvas.width, this.videoCanvas.height - yPXOffset);
-      const saplingGenesXPixelsStart = Math.round(this.videoCanvas.width * SCREEN_GENE_X_POSITION_START);
-      const saplingGenesXPixelsWidth = Math.round(this.videoCanvas.width * SCREEN_GENES_WIDTH);
-      const saplingGenesYPixelsStart = Math.round(this.videoCanvas.height * SCREEN_GENE_Y_POSITION_START);
-      const saplingGenesYPixelsWidth = Math.round(this.videoCanvas.height * SCREEN_GENES_HEIGHT);
-      const imgData = videoCanvasCtx.getImageData(
-        saplingGenesXPixelsStart,
-        saplingGenesYPixelsStart,
-        saplingGenesXPixelsWidth,
-        saplingGenesYPixelsWidth
-      );
-
-      const geneCanvasCtx = this.geneCanvas.getContext('2d');
-      this.geneCanvas.height = imgData.height;
-      this.geneCanvas.width = imgData.width;
-      if (geneCanvasCtx) {
-        geneCanvasCtx.putImageData(imgData, 0, 0);
-        return this.geneCanvas.toDataURL();
+      for (let genePosition = 0; genePosition < 6; genePosition++) {
+        const saplingGenesXPixelsStart = Math.round(
+          this.videoCanvas.width *
+            (SCREEN_GENE_X_POSITION_CENTER - SCREEN_GENE_WIDTH / 2 + SCREEN_DISTANCE_BETWEEN_GENES * genePosition)
+        );
+        const saplingGenesXPixelsWidth = Math.round(this.videoCanvas.width * SCREEN_GENE_WIDTH);
+        const saplingGenesYPixelsStart = Math.round(
+          this.videoCanvas.height * (SCREEN_GENE_Y_POSITION_CENTER - SCREEN_GENE_HEIGHT / 2)
+        );
+        const saplingGenesYPixelsWidth = Math.round(this.videoCanvas.height * SCREEN_GENE_HEIGHT);
+        const imgData = videoCanvasCtx.getImageData(
+          saplingGenesXPixelsStart,
+          saplingGenesYPixelsStart,
+          saplingGenesXPixelsWidth,
+          saplingGenesYPixelsWidth
+        );
+        const geneCanvasCtx = this.geneCanvas.getContext('2d');
+        this.geneCanvas.height = imgData.height;
+        this.geneCanvas.width = imgData.width;
+        if (geneCanvasCtx) {
+          geneCanvasCtx.putImageData(imgData, 0, 0);
+          geneScans.push(this.geneCanvas.toDataURL());
+        }
       }
     }
-    return null;
+    return geneScans;
   }
 
   addEventListener(callback: ScreenCaptureServiceEventListenerCallback) {

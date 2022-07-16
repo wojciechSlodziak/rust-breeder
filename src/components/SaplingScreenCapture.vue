@@ -1,14 +1,18 @@
 <template>
   <span>
-    <v-btn @click="isDialogOpen = true" :disabled="isDisabled" v-if="shouldDisplayScreenCaptureButton && !isScanning">
+    <v-btn
+      @click="isDialogOpen = true"
+      :disabled="isDisabled"
+      v-if="shouldDisplayScreenCaptureButton && !isScanning && !isInitializing"
+    >
       Scan Rust
       <v-icon right>
         mdi-monitor-screenshot
       </v-icon>
     </v-btn>
-    <v-btn @click="stopCapturing" v-if="isScanning" color="red">
-      Stop Scanning
-      <v-progress-circular class="ml-2" indeterminate color="primary" size="20"></v-progress-circular>
+    <v-btn @click="stopCapturing" v-if="isInitializing || isScanning" color="red" :disabled="isInitializing">
+      {{ isScanning ? 'Stop Scanning' : 'Initializing...' }}
+      <v-progress-circular class="ml-2" indeterminate color="primary" size="20" v-if="isScanning"></v-progress-circular>
     </v-btn>
     <v-dialog v-model="isDialogOpen" width="600">
       <v-card>
@@ -82,6 +86,7 @@ export default class SaplingScreenCapture extends Vue {
 
   isDialogOpen = false;
   isScanning = false;
+  isInitializing = false;
   shouldDisplayScreenCaptureButton = false;
 
   created() {
@@ -101,10 +106,14 @@ export default class SaplingScreenCapture extends Vue {
   }
 
   onScreenCaptureServiceEvent(eventType: string, data?: string) {
-    if (eventType === 'STARTED') {
+    if (eventType === 'INITIALIZING') {
+      this.isInitializing = true;
+    } else if (eventType === 'STARTED') {
+      this.isInitializing = false;
       this.isScanning = true;
       this.$emit('started-scanning');
     } else if (eventType === 'STOPPED') {
+      this.isInitializing = false;
       this.isScanning = false;
       this.$emit('stopped-scanning');
     } else if (eventType === 'SAPLING-FOUND') {

@@ -64,6 +64,9 @@ class ScreenCaptureService {
   }
 
   async setupRecognitionWorkers() {
+    this.listeners.forEach((listenerCallback) => {
+      listenerCallback('INITIALIZING');
+    });
     if (this.workers.length === 0) {
       this.workers = await Promise.all(
         Array(6)

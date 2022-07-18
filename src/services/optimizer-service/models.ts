@@ -7,6 +7,11 @@ export interface OptimizerServiceEventListenerCallback {
 
 export class NotEnoughSourceSaplingsError extends Error {}
 
+export class ProcessingStat {
+  timestamp: number;
+  combinationsProcessed: number;
+}
+
 export class CrossbreedingGeneDetails {
   geneType: GeneEnum;
   totalWeight = 0;
@@ -106,6 +111,7 @@ export class GenerationInfo {
 export interface OptimizerServiceEventListenerCallbackData {
   progressPercent?: number;
   generationIndex: number;
+  estimatedTimeMs: number;
   mapGroups?: GeneticsMapGroup[];
 }
 

@@ -13,9 +13,12 @@ import {
   NotEnoughSourceSaplingsError,
   OptimizerServiceEventListenerCallbackData,
   GenerationInfo,
-  GeneticsMapGroup
+  GeneticsMapGroup,
+  ProcessingStat
 } from './models';
 import Sapling from '@/models/sapling.model';
+
+const ESTIMATION_TIME_UNIT = 10000;
 
 class OptimizerService {
   listeners: OptimizerServiceEventListenerCallback[] = [];
@@ -23,6 +26,9 @@ class OptimizerService {
   workers: Worker[];
   workerProgress: number[] = [];
   mapGroupMap: { [key: string]: GeneticsMapGroup } = {};
+
+  processingStats: ProcessingStat[];
+  startTimestamp: number;
 
   /**
    * Entry point in the application where dispatching work and maintaining progress updates happenn.
@@ -34,6 +40,8 @@ class OptimizerService {
     generationInfo: GenerationInfo = { index: 1 },
     options: ApplicationOptions
   ) {
+    this.startTimestamp = new Date().getTime();
+
     this.workerProgress = [];
     if (generationInfo.index === 1) {
       this.mapGroupMap = {};
@@ -44,6 +52,7 @@ class OptimizerService {
     }
 
     this.workers = [];
+    this.processingStats = [];
 
     const workChunks = getWorkChunks(
       sourceSaplings.length,
@@ -87,7 +96,27 @@ class OptimizerService {
     joinMapGroupMaps(this.mapGroupMap, event.data.partialMapGroupMap);
 
     // Progress tracking.
+    const combinationsProcessedBetweenUpdates =
+      event.data.combinationsProcessed - (this.workerProgress[workerIndex] | 0);
     this.workerProgress[workerIndex] = event.data.combinationsProcessed;
+    const combinationsProcessedSoFar = this.workerProgress.reduce(
+      (acc, singleWorkerProgress) => acc + singleWorkerProgress,
+      0
+    );
+
+    // Time estimation.
+    const currentTimestamp = new Date().getTime();
+    this.processingStats.push({
+      timestamp: currentTimestamp,
+      combinationsProcessed: combinationsProcessedBetweenUpdates
+    });
+    this.processingStats = this.processingStats.filter(
+      (stat) => stat.timestamp > currentTimestamp - ESTIMATION_TIME_UNIT
+    );
+    const avgCombinationsPerMs =
+      this.processingStats.reduce((acc, val) => acc + val.combinationsProcessed, 0) /
+      Math.min(ESTIMATION_TIME_UNIT, currentTimestamp - this.startTimestamp);
+    const avgTimeMsLeft = (workChunk.allCombinationsCount - combinationsProcessedSoFar) / avgCombinationsPerMs;
 
     // Progress updates notfication.
     const progressPercent =
@@ -96,6 +125,7 @@ class OptimizerService {
       ) * 100;
     this.sendEvent('PROGRESS_UPDATE', {
       generationIndex: generationIndex,
+      estimatedTimeMs: avgTimeMsLeft,
       progressPercent
     });
 
@@ -105,14 +135,15 @@ class OptimizerService {
     }
 
     // Handling complete generation results.
-    if (
-      this.workerProgress.reduce((acc, singleWorkerProgress) => acc + singleWorkerProgress, 0) ===
-      workChunk.allCombinationsCount
-    ) {
+    if (combinationsProcessedSoFar === workChunk.allCombinationsCount) {
       fixPrototypeAssignmentsAfterSerialization(this.mapGroupMap);
       linkGenerationTree(this.mapGroupMap);
       const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
-      this.sendEvent('DONE_GENERATION', { generationIndex: generationIndex, mapGroups });
+      this.sendEvent('DONE_GENERATION', {
+        generationIndex: generationIndex,
+        estimatedTimeMs: avgTimeMsLeft,
+        mapGroups
+      });
 
       if (generationIndex < options.numberOfGenerations) {
         const additionalSourceSaplings = getBestSaplingsForNextGeneration(
@@ -130,10 +161,10 @@ class OptimizerService {
           const nextGenerationSourceGenes = [...additionalSourceSaplings, ...sourceSaplings];
           this.simulateBestGenetics(nextGenerationSourceGenes, newGenerationInfo, options);
         } else {
-          this.sendEvent('DONE', { mapGroups, generationIndex: generationIndex });
+          this.sendEvent('DONE', { generationIndex: generationIndex, estimatedTimeMs: avgTimeMsLeft, mapGroups });
         }
       } else {
-        this.sendEvent('DONE', { mapGroups, generationIndex: generationIndex });
+        this.sendEvent('DONE', { generationIndex: generationIndex, estimatedTimeMs: avgTimeMsLeft, mapGroups });
         // Final Cleanup.
         this.workerProgress = [];
         this.mapGroupMap = {};

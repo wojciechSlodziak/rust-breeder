@@ -111,7 +111,7 @@ export class GenerationInfo {
 export interface OptimizerServiceEventListenerCallbackData {
   progressPercent?: number;
   generationIndex: number;
-  estimatedTimeMs: number;
+  estimatedTimeMs: number | null;
   mapGroups?: GeneticsMapGroup[];
 }
 

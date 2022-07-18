@@ -113,10 +113,13 @@ class OptimizerService {
     this.processingStats = this.processingStats.filter(
       (stat) => stat.timestamp > currentTimestamp - ESTIMATION_TIME_UNIT
     );
-    const avgCombinationsPerMs =
-      this.processingStats.reduce((acc, val) => acc + val.combinationsProcessed, 0) /
-      Math.min(ESTIMATION_TIME_UNIT, currentTimestamp - this.startTimestamp);
-    const avgTimeMsLeft = (workChunk.allCombinationsCount - combinationsProcessedSoFar) / avgCombinationsPerMs;
+    let avgTimeMsLeft = null;
+    if (currentTimestamp - this.startTimestamp >= ESTIMATION_TIME_UNIT / 5) {
+      const avgCombinationsPerMs =
+        this.processingStats.reduce((acc, val) => acc + val.combinationsProcessed, 0) /
+        Math.min(ESTIMATION_TIME_UNIT, currentTimestamp - this.startTimestamp);
+      avgTimeMsLeft = (workChunk.allCombinationsCount - combinationsProcessedSoFar) / avgCombinationsPerMs;
+    }
 
     // Progress updates notfication.
     const progressPercent =

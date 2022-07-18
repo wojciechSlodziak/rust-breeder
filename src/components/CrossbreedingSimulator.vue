@@ -165,6 +165,7 @@ export default class CrossbreedingSimulator extends Vue {
   progressPercents: number[] = [];
   isSimulating = false;
   isFormValid = false;
+  lastEstimatedTimeUpdateTimestamp = new Date().getTime();
   numberOfGenerations = 0;
   calcStartTime: number | null = null;
   calcEndTime: number | null = null;
@@ -278,7 +279,11 @@ export default class CrossbreedingSimulator extends Vue {
   }
 
   updateEstimatedTime(estimatedTime: number | null) {
-    this.$emit('estimated-time-updated', estimatedTime);
+    const currentTimestamp = new Date().getTime();
+    if (!estimatedTime || currentTimestamp - this.lastEstimatedTimeUpdateTimestamp > 250) {
+      this.$emit('estimated-time-updated', estimatedTime);
+      this.lastEstimatedTimeUpdateTimestamp = currentTimestamp;
+    }
   }
 
   handleSimulateClick() {

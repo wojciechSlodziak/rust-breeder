@@ -11,10 +11,21 @@
         />
       </a>
       <v-toolbar-title>Breeder</v-toolbar-title>
-      <InfoButtons class="ml-auto d-none d-sm-flex" />
+      <div class="d-flex align-center ml-auto">
+        <div v-if="estimatedTime" class="mr-2 estimated-time">
+          <v-icon small>
+            mdi-timer-outline
+          </v-icon>
+          {{ calcEstimatedTime }}
+        </div>
+        <InfoButtons class="d-none d-sm-flex" />
+      </div>
     </v-app-bar>
     <v-main>
-      <CrossbreedingSimulator :cookies-accepted="cookiesAccepted" />
+      <CrossbreedingSimulator
+        :cookies-accepted="cookiesAccepted"
+        @estimated-time-updated="handleEstimatedTimeUpdated"
+      />
       <InfoButtons class="d-flex justify-center d-xs-flex d-sm-none mb-3" />
     </v-main>
     <CookieConsent v-on:cookies-accepted="handleCookiesAccepted" />
@@ -37,11 +48,25 @@ import 'cookie-store';
 })
 export default class App extends Vue {
   cookiesAccepted = false;
+  estimatedTime: number | null = null;
+
+  get calcEstimatedTime() {
+    if (this.estimatedTime) {
+      const minutes = Math.floor(this.estimatedTime / 60000);
+      const seconds = Math.round((this.estimatedTime % 60000) / 1000);
+      return `${minutes}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
+    }
+    return null;
+  }
 
   handleCookiesAccepted() {
     this.cookiesAccepted = true;
     // eslint-disable-next-line no-undef
     enableGtag();
+  }
+
+  handleEstimatedTimeUpdated(value: number | null) {
+    this.estimatedTime = value;
   }
 }
 </script>

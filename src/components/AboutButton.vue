@@ -1,7 +1,7 @@
 <template>
   <v-dialog v-model="isDialogOpen" width="500">
     <template v-slot:activator="{ on, attrs }">
-      <v-btn v-bind="attrs" v-on="on">
+      <v-btn v-bind="attrs" v-on="on" class="grey darken-3">
         About
       </v-btn>
     </template>
@@ -18,7 +18,7 @@
             I made it, because crossbreeding every wipe without an app was exhausting.
           </p>
           <p>
-            If you have some feedback, you can reach me on my
+            If you have some feedback or need help, you can reach me on my
             <a target="_blank" href="https://discord.gg/Va5475pqFw">Discord</a> server.
           </p>
           <p>

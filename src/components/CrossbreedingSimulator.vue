@@ -33,7 +33,6 @@
               <span class="ma-1">
                 <Options ref="options" :cookies-accepted="cookiesAccepted" @options-set="handleOptionsSetEvent" />
               </span>
-              <div class="mr-1" v-if="estimatedTime">current gen. est. time: {{ calcEstimatedTime }}</div>
             </v-row>
             <v-row class="d-flex mx-1 pt-3 pb-3 mt-4">
               <div class="flex-grow-1 mx-3 simulator_sapling-input-container">
@@ -212,7 +211,6 @@ XHHGGH`;
   numberOfGenerations = 0;
   calcStartTime: number | null = null;
   calcEndTime: number | null = null;
-  estimatedTime: number | null = null;
   options: ApplicationOptions;
   showNotEnoughSaplingsError = false;
   highlightedMap: GeneticsMap | null = null;
@@ -241,15 +239,6 @@ XHHGGH`;
       const timeDiff = this.calcEndTime - this.calcStartTime;
       const minutes = Math.floor(timeDiff / 60000);
       const seconds = (timeDiff % 60000) / 1000;
-      return `${minutes}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
-    }
-    return null;
-  }
-
-  get calcEstimatedTime() {
-    if (this.estimatedTime) {
-      const minutes = Math.floor(this.estimatedTime / 60000);
-      const seconds = (this.estimatedTime % 60000) / 1000;
       return `${minutes}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
     }
     return null;
@@ -299,7 +288,7 @@ XHHGGH`;
   onOptimizerServiceEvent(type: string, data: OptimizerServiceEventListenerCallbackData) {
     if (type === 'PROGRESS_UPDATE') {
       this.setProgress(data.generationIndex, Math.round(data.progressPercent || 0));
-      this.estimatedTime = data.estimatedTimeMs;
+      this.updateEstimatedTime(data.estimatedTimeMs);
     } else if (type === 'DONE_GENERATION') {
       if (data.generationIndex === 1) {
         this.scrollToResults();
@@ -308,7 +297,7 @@ XHHGGH`;
       this.setProgress(data.generationIndex, 100);
     } else if (type === 'DONE') {
       this.calcEndTime = Date.now();
-      this.estimatedTime = null;
+      this.updateEstimatedTime(null);
 
       setTimeout(() => {
         this.isSimulating = false;
@@ -329,6 +318,10 @@ XHHGGH`;
         Vue.set(this.progressPercents, index, progress);
       });
     }
+  }
+
+  updateEstimatedTime(estimatedTime: number | null) {
+    this.$emit('estimated-time-updated', estimatedTime);
   }
 
   handleSimulateClick() {
@@ -363,7 +356,7 @@ XHHGGH`;
 
   handleStopSimulationClick() {
     this.isSimulating = false;
-    this.estimatedTime = null;
+    this.updateEstimatedTime(null);
     optimizerService.cancelSimulation();
   }
 

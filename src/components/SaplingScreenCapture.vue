@@ -25,7 +25,7 @@
             <ol>
               <li>
                 <p>
-                  For best results use <strong>Chrome</strong> or <strong>Edge</strong>. Other browsers might not work
+                  For best results, use <strong>Chrome</strong> or <strong>Edge</strong>. Other browsers might not work
                   correctly.
                 </p>
               </li>
@@ -37,21 +37,27 @@
               </li>
               <li>
                 <p>
-                  Make sure you run the game in <v-chip outlined>16:9</v-chip> aspect ratio resolution (1920x1080 or
-                  2560x1440 or 4K) and <strong>borderless</strong> mode. If you have a different resolution on your
-                  monitor set Rust to <strong>windowed</strong> mode and select a 16:9 ratio resolution.
+                  Make sure you run the game in <v-chip outlined>16:9</v-chip> aspect ratio resolution (1600x900,
+                  1920x1080, 2560x1440 or 4K) and <strong>borderless</strong> mode. If you have a different aspect ratio
+                  on your monitor, set Rust to <strong>windowed</strong> mode and select a 16:9 ratio resolution.
                 </p>
               </li>
               <li>
                 <p>Click <strong>SCAN</strong> and select Rust window.</p>
               </li>
               <li>
+                <p class="mb-0">
+                  After the scanning begins, you need to display genes on the screen by either:
+                </p>
+                <ul class="mb-3">
+                  <li>clicking on a Sapling in your inventory or storage,</li>
+                  <li>looking at a planted Sapling.</li>
+                </ul>
                 <p>
-                  Click on a Sapling in your inventory or storage so that the genes are displayed on the screen. It
-                  takes about a second to capture each Sapling.
+                  It takes about a second to capture each Sapling.
                 </p>
               </li>
-              <li><p class="mb-0">Enjoy! If it doesn't work let me know on Discord!</p></li>
+              <li><p class="mb-0">Enjoy! If it doesn't work, let me know on Discord!</p></li>
             </ol>
           </v-container>
         </v-card-text>

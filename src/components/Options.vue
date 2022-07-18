@@ -56,7 +56,7 @@
             class="mt-5"
             v-model="options.withRepetitions"
             label="Check combinations with repetitions"
-            hint="Aditionally checks combinations where one plant is used more than once in one crossbreeding session. Slightly increases processing time."
+            hint="Additionally, checks combinations where one plant is used more than once in one crossbreeding session. Slightly increases processing time."
             persistent-hint
           />
           <v-container class="mt-10 pa-0">

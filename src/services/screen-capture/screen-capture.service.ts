@@ -115,6 +115,7 @@ class ScreenCaptureService {
   }
 
   private scanFrame() {
+    console.log('----- scanning frame');
     const geneScans = this.getSaplingGenesScans();
 
     const promises: Promise<string>[] = [];
@@ -157,8 +158,10 @@ class ScreenCaptureService {
             text = text.replace(/\s/g, '');
 
             if (text.match(/^[GHYWX]{1}$/g)) {
+              console.log('resolved', text, data);
               resolve(text);
             } else {
+              console.log('rejected', data);
               reject(null);
             }
           });

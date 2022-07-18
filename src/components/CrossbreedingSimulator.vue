@@ -161,50 +161,7 @@ import ApplicationOptions from '@/interfaces/application-options';
 export default class CrossbreedingSimulator extends Vue {
   @Prop({ type: Boolean }) readonly cookiesAccepted: boolean;
   placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`;
-  saplingGenes = `WGXYYW
-WGGXYW
-WGYXGW
-WYYXGW
-XYYXGW
-XYGXYW
-YWGYGX
-WGGWYX
-XGYWGG
-XGYWYX
-WYYWGW
-XYYGWX
-YXGWGX
-WYGXYW
-WGWGYW
-YGYXYH
-WGXYYW
-WGGXYW
-WGYXGW
-WYYXGW
-XYYXGW
-XYGXYW
-YWGYGX
-WGGWYX
-XGYWGG
-XGYWYX
-WYYWGW
-XYYGWX
-YXGWGX
-WYGXYW
-WGWGYW
-WYWXGG
-XYGWGW
-WGYWGW
-XYYWYW
-XYGWYX
-XYGXYX
-WGGXYX
-GYYXHH
-GHGWYH
-HGGGYW
-HHGHYW
-WGGGYY
-XHHGGH`;
+  saplingGenes = ``;
   progressPercents: number[] = [];
   isSimulating = false;
   isFormValid = false;

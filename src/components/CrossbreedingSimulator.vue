@@ -276,6 +276,18 @@ export default class CrossbreedingSimulator extends Vue {
         Vue.set(this.progressPercents, index, progress);
       });
     }
+    this.updateTitle(generationIndex, progressPercent);
+  }
+
+  updateTitle(generationIndex?: number | undefined, progressPercent?: number | undefined) {
+    if (
+      (progressPercent === 100 && generationIndex === this.options.numberOfGenerations) ||
+      generationIndex === undefined
+    ) {
+      document.title = 'Rust Breeder - Crossbreeding Optimizer';
+    } else {
+      document.title = `${progressPercent}% | GEN.${generationIndex}`;
+    }
   }
 
   updateEstimatedTime(estimatedTime: number | null) {
@@ -319,6 +331,7 @@ export default class CrossbreedingSimulator extends Vue {
   handleStopSimulationClick() {
     this.isSimulating = false;
     this.updateEstimatedTime(null);
+    this.updateTitle();
     optimizerService.cancelSimulation();
   }
 

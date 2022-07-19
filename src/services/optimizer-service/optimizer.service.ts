@@ -19,6 +19,7 @@ import {
 import Sapling from '@/models/sapling.model';
 
 const ESTIMATION_TIME_UNIT = 10000;
+const ESTIMATION_SENT_AFTER = ESTIMATION_TIME_UNIT / 10;
 
 class OptimizerService {
   listeners: OptimizerServiceEventListenerCallback[] = [];
@@ -114,7 +115,7 @@ class OptimizerService {
       (stat) => stat.timestamp > currentTimestamp - ESTIMATION_TIME_UNIT
     );
     let avgTimeMsLeft = null;
-    if (currentTimestamp - this.startTimestamp >= ESTIMATION_TIME_UNIT / 5) {
+    if (currentTimestamp - this.startTimestamp >= ESTIMATION_SENT_AFTER) {
       const avgCombinationsPerMs =
         this.processingStats.reduce((acc, val) => acc + val.combinationsProcessed, 0) /
         Math.min(ESTIMATION_TIME_UNIT, currentTimestamp - this.startTimestamp);

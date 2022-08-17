@@ -15,6 +15,7 @@
             @mouseenter.native="() => index !== 0 && handleBackingMapMouseEnter()"
             @mouseleave.native="handleMouseLeave(index)"
             @pointerleave.native="handleMouseLeave(index)"
+            @touchmove.native="handleMouseLeave(index)"
             @mousedown.native="() => index === 0 && handleMouseDown()"
             @pointerdown.native="() => index === 0 && handleMouseDown()"
             @mouseup.native="() => index === 0 && handleMouseUp()"

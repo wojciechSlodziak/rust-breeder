@@ -5,9 +5,9 @@
     <ProgressIndicator :is-active="isSimulating" :progress-percents="progressPercents"></ProgressIndicator>
     <v-container fluid>
       <v-row>
-        <v-col cols="12" :md="showHighlight ? 12 : 4" :lg="showHighlight ? 6 : 3" class="pa-1">
+        <v-col cols="12" :md="showHighlight ? 12 : 4" :lg="showHighlight ? 6 : 3" class="pa-0">
           <v-form ref="form" v-model="isFormValid" spellcheck="false">
-            <v-row class="d-flex justify-center mt-3 px-3">
+            <div class="d-flex flex-wrap justify-center my-4 px-1">
               <v-btn
                 class="ma-1"
                 color="primary"
@@ -33,52 +33,52 @@
               <span class="ma-1">
                 <Options ref="options" :cookies-accepted="cookiesAccepted" @options-set="handleOptionsSetEvent" />
               </span>
-            </v-row>
-            <v-row class="d-flex mx-1 pt-3 pb-3 mt-4">
-              <div class="flex-grow-1 mx-3 simulator_sapling-input-container">
-                <v-textarea
-                  full-width
-                  ref="saplingGenesInput"
-                  class="simulator_sapling-input"
-                  :placeholder="placeholder"
-                  label="Add your genes here..."
-                  :value="saplingGenes"
-                  @input="handleSaplingGenesInput($event)"
-                  @blur="handleSaplingGenesInputBlur"
-                  @keydown="handleSaplingGenesInputKeyDown($event)"
-                  outlined
-                  :disabled="isScreenScanning || isSimulating"
-                  auto-grow
-                  :rules="sourceSaplingRules"
-                  autocomplete="off"
-                ></v-textarea>
-                <SaplingInputHighlights :inputString="saplingGenes" :highlightedMap="highlightedMap" />
-                <SaplingListPreview :saplingGeneList="saplingGeneList" ref="saplingListPreview"></SaplingListPreview>
-              </div>
+            </div>
+            <v-row no-gutters>
+              <v-col>
+                <div class="simulator_sapling-input-container mx-1 mx-sm-3">
+                  <v-textarea
+                    full-width
+                    ref="saplingGenesInput"
+                    class="simulator_sapling-input"
+                    :placeholder="placeholder"
+                    label="Add your genes here..."
+                    :value="saplingGenes"
+                    @input="handleSaplingGenesInput($event)"
+                    @blur="handleSaplingGenesInputBlur"
+                    @keydown="handleSaplingGenesInputKeyDown($event)"
+                    outlined
+                    :disabled="isScreenScanning || isSimulating"
+                    auto-grow
+                    :rules="sourceSaplingRules"
+                    autocomplete="off"
+                  ></v-textarea>
+                  <SaplingInputHighlights :inputString="saplingGenes" :highlightedMap="highlightedMap" />
+                  <SaplingListPreview :saplingGeneList="saplingGeneList" ref="saplingListPreview"></SaplingListPreview>
+                </div>
+              </v-col>
 
-              <div
-                ref="highlightedMap"
-                v-if="showHighlight"
-                class="d-flex flex-column align-center"
-                style="flex: 1 0 0"
-              >
+              <v-col ref="highlightedMap" v-if="showHighlight" class="d-flex flex-column align-center mx-sm-3">
                 <SimulationMap
                   :map="highlightedMap"
                   enable-composing-saplings-selection
                   @composing-sapling-selected="handleHighlightComposingSaplingSelectedEvent"
                 />
                 <v-btn class="mt-3" @click="handleClearHighlightClick">Clear Selection</v-btn>
-                <div class="mt-2" v-if="highlightedMap && highlightedMap.resultSapling.generationIndex > 1">
+                <div
+                  class="mt-2 mb-2 px-2 px-sm-0"
+                  v-if="highlightedMap && highlightedMap.resultSapling.generationIndex > 1"
+                >
                   The Sapling you selected comes from the
                   <strong>{{ highlightedMap.resultSapling.generationIndex === 2 ? '2nd' : '3rd' }}</strong> generation.
-                  You will need to crossbreed the Saplings that it requires first. Click on
+                  You will first need to crossbreed Saplings that it requires. Click on
                   <span class="simulator_highlight-guide">highlighted</span> Saplings to see how to crossbreed them.
                 </div>
-              </div>
+              </v-col>
             </v-row>
           </v-form>
         </v-col>
-        <v-col ref="results" cols="12" :md="showHighlight ? 12 : 8" :lg="showHighlight ? 6 : 9">
+        <v-col ref="results" class="pa-0 pa-md-3" cols="12" :md="showHighlight ? 12 : 8" :lg="showHighlight ? 6 : 9">
           <SimulationResults
             :map-groups="resultMapGroups"
             :highlighted-map="highlightedMap"

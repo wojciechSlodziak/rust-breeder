@@ -46,7 +46,7 @@
       <div class="mt-5 orange--text" v-if="mapGroups && mapGroups.length > 0 && visibleMapGroups.length === 0">
         Filters you applied return no results!
       </div>
-      <div class="mt-5" v-if="visibleMapGroups.length > 0">
+      <div class="mt-5 px-2" v-if="visibleMapGroups.length > 0">
         <div class="mt-5">Click on a Card to see more details about generations and crossbreeding!</div>
         <div class="hidden-md-and-up mt-2">Press and hold Card to view alternative variants.</div>
       </div>

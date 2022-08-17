@@ -84,7 +84,7 @@ export default class SaplingInputHighlights extends Vue {
     padding-right: 9px;
     position: absolute;
     height: 20px;
-    margin-top: 6px;
+    margin-top: 7px;
     left: 3px;
     background: linear-gradient(90deg, transparent 0%, #425c18 15%, #425c18 85%, transparent 100%);
     &.input-highlights_gene-highlight--for-base {

@@ -11,7 +11,7 @@
         <v-list-item-title>
           <SaplingGeneRepresentation :sapling="map.resultSapling" class="map_sapling map_result-sapling" />
         </v-list-item-title>
-        <v-list-item-subtitle class="mt-2">
+        <v-list-item-subtitle class="mt-2 map_header-subtitle">
           <span class="map_gen" :class="genClass">GEN.{{ map.resultSapling.generationIndex }}</span
           >&nbsp;&middot;&nbsp;<span class="map_score"
             >Score: <span>{{ map.score }}</span></span
@@ -196,6 +196,9 @@ export default class SimulationMap extends Vue {
     }
   }
   .map_header {
+    .map_header-subtitle {
+      text-overflow: initial;
+    }
     .map_score {
       span {
         font-weight: bold;

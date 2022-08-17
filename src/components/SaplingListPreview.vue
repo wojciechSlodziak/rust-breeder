@@ -39,11 +39,11 @@ export default class SaplingListPreview extends Vue {
 
 <style scoped lang="scss">
 .sapling-list-preview {
-  padding-top: 9px;
+  margin-top: 9px;
   font-size: 0.72rem;
   position: absolute;
   top: 0px;
-  right: 10px;
+  right: 7px;
 }
 ul {
   list-style: none;

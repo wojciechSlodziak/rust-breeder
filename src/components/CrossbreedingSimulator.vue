@@ -7,7 +7,7 @@
       <v-row>
         <v-col cols="12" :md="showHighlight ? 12 : 4" :lg="showHighlight ? 6 : 3" class="pa-0">
           <v-form ref="form" v-model="isFormValid" spellcheck="false">
-            <div class="d-flex flex-wrap justify-center my-4 px-1">
+            <div class="d-flex flex-wrap justify-center my-4 px-3">
               <v-btn
                 class="ma-1"
                 color="primary"
@@ -36,7 +36,7 @@
             </div>
             <v-row no-gutters>
               <v-col>
-                <div class="simulator_sapling-input-container mx-1 mx-sm-3">
+                <div class="simulator_sapling-input-container mx-3">
                   <v-textarea
                     full-width
                     ref="saplingGenesInput"

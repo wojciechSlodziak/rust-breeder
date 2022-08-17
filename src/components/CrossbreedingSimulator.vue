@@ -37,6 +37,8 @@
             <v-row no-gutters>
               <v-col>
                 <div class="simulator_sapling-input-container mx-3">
+                  <SaplingInputHighlights :inputString="saplingGenes" :highlightedMap="highlightedMap" />
+                  <SaplingListNumbering :saplingGeneList="saplingGeneList"></SaplingListNumbering>
                   <v-textarea
                     full-width
                     ref="saplingGenesInput"
@@ -53,7 +55,6 @@
                     :rules="sourceSaplingRules"
                     autocomplete="off"
                   ></v-textarea>
-                  <SaplingInputHighlights :inputString="saplingGenes" :highlightedMap="highlightedMap" />
                   <SaplingListPreview :saplingGeneList="saplingGeneList" ref="saplingListPreview"></SaplingListPreview>
                 </div>
               </v-col>
@@ -144,6 +145,7 @@ import ProgressIndicator from './ProgressIndicator.vue';
 import SimulationMapGroup from './SimulationMapGroup.vue';
 import SimulationMapGroupBrowser from './SimulationMapGroupBrowser.vue';
 import ApplicationOptions from '@/interfaces/application-options';
+import SaplingListNumbering from './SaplingListNumbering.vue';
 
 @Component({
   components: {
@@ -153,6 +155,7 @@ import ApplicationOptions from '@/interfaces/application-options';
     Options,
     SaplingScreenCapture,
     SaplingListPreview,
+    SaplingListNumbering,
     ProgressIndicator,
     SimulationMapGroup,
     SimulationMapGroupBrowser

@@ -163,7 +163,8 @@ import SaplingListNumbering from './SaplingListNumbering.vue';
 })
 export default class CrossbreedingSimulator extends Vue {
   @Prop({ type: Boolean }) readonly cookiesAccepted: boolean;
-  placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`;
+  // fix for Safari not respecting new line in placehodler
+  placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`.replaceAll('\n', ' '.repeat(100));
   saplingGenes = ``;
   progressPercents: number[] = [];
   isSimulating = false;

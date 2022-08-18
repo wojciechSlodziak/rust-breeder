@@ -11,7 +11,7 @@
       </template>
 
       <v-card>
-        <v-card-title class="headline pl-5 pr-5" primary-title>
+        <v-card-title class="headline px-3 px-sm-5" primary-title>
           <h2 class="text-h5">Options</h2>
           <v-tooltip top open-delay="0">
             <template v-slot:activator="{ on, attrs }">
@@ -22,7 +22,7 @@
             <span>Resets options to default values. Don't forget to click Set/Save after.</span>
           </v-tooltip>
         </v-card-title>
-        <v-card-text class="pl-5 pr-5">
+        <v-card-text class="px-3 px-sm-5">
           <v-range-slider
             v-model="crossbreedingSaplingsNumberRange"
             min="2"
@@ -31,7 +31,7 @@
             ticks="always"
             tick-size="1"
             label="Crossbreeding Saplings Range"
-            hint="Controls how many spots in a planter to use around the Center Sapling. It seems that range from 2 to 5 is a sweet spot between effectiveness and speed. It is possible that we are missing some results if this value is not set to max, but it saves a lot of processing time."
+            hint="Controls the range of Saplings that can be used for a single Crossbreeding session. It seems that range from 2 to 5 is a sweet spot between effectiveness and calculation speed. It is possible that we are missing some results if this value is not set to the extremes, but it saves a lot of processing time."
             persistent-hint
           ></v-range-slider>
           <v-slider
@@ -47,7 +47,9 @@
           <v-text-field
             class="mt-6"
             type="number"
-            label="Number of best Saplings added to the next Generation"
+            label="Saplings added to next Generation"
+            hint="Number of best result Saplings from current Generation that are added to calculation for next Generation."
+            persistent-hint
             v-model.number="options.numberOfSaplingsAddedBetweenGenerations"
             :rules="numberOfSaplingsAddedBetweenGenerationsRules"
             min="1"

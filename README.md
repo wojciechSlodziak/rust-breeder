@@ -1,10 +1,14 @@
-# rust-crossbreeding-optimizer2
+# rust-breeder
+
+## Webpage address
+
+Available at: https://rustbreeder.com
 
 ## Required software
 
 1. Install NodeJS - https://nodejs.org/en/
 
-## Minimal commands to start the app locally:
+## Minimal commands to start the Production version of app locally:
 
 ```
 npm install
@@ -14,7 +18,10 @@ npm run start
 
 Go to: http://localhost:8080/
 
-## Dependencies
+## Commands
+Below is the list of commands required for development.
+
+### Dependencies
 
 ```
 npm run install

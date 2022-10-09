@@ -5,7 +5,7 @@ const express = require('express');
 const app = express();
 
 app.get('/audio/:fileName', (req, res) => {
-  console.log(req.path, req.params.fileName);
+  res.contentType('audio/mpeg3');
   res.download(path.join(__dirname, '../dist', req.path), req.params.fileName);
 });
 

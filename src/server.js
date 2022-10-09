@@ -1,13 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const path = require('path');
 const express = require('express');
-
 const app = express();
-
-app.get('/audio/:fileName', (req, res) => {
-  console.log(req.path, req.params.fileName);
-  res.download(path.join(__dirname, '../dist', req.path), req.params.fileName);
-});
 
 app.use(
   express.static('dist', {

@@ -4,24 +4,22 @@ import { createWorker, PSM } from 'tesseract.js';
 
 const TIME_MS_BETWEEEN_SCANS = 200;
 
-const DIMENSIONS: {
-  [key: string]: { [key: string]: number };
-} = {
-  REG1: {
+const REGIONS: { [key: string]: number }[] = [
+  {
     WIDTH: 0.008,
     HEIGHT: 0.015,
     X_POSITION_CENTER: 0.42,
     Y_POSITION_CENTER: 0.286,
     DISTANCE_BETWEEN: 0.01405
   },
-  REG2: {
+  {
     WIDTH: 0.01,
     HEIGHT: 0.0185,
     X_POSITION_CENTER: 0.617,
     Y_POSITION_CENTER: 0.3512,
     DISTANCE_BETWEEN: 0.0241
   }
-};
+];
 
 const SUPPORTED_ASPECT_RATIO = 16 / 9;
 
@@ -82,10 +80,12 @@ class ScreenCaptureService {
     });
     if (this.workers.length === 0) {
       this.workers = await Promise.all(
-        Array(12)
+        Array(REGIONS.length * 6)
           .fill(0)
           .map(async () => {
-            const worker = createWorker();
+            const worker = createWorker({
+              langPath: './tesseract-data'
+            });
             await worker.load();
             await worker.loadLanguage('eng');
             await worker.initialize('eng');
@@ -136,7 +136,12 @@ class ScreenCaptureService {
     });
 
     return Promise.all(promises).then((results) => {
-      [results.slice(0, 6), results.slice(6, 12)].forEach((regionGenes) => {
+      const regionResults: (string | null)[][] = [];
+      REGIONS.forEach(() => {
+        regionResults.push(results.slice(0, 6));
+      });
+
+      regionResults.forEach((regionGenes) => {
         const saplingGenesString = regionGenes.map((gene) => (gene ? gene : '')).join('');
         if (saplingGenesString.match(/^[GHYWX]{6}$/g)) {
           this.listeners.forEach((listenerCallback) => {
@@ -196,20 +201,18 @@ class ScreenCaptureService {
     const videoCanvasCtx = this.videoCanvas.getContext('2d');
     if (this.videoCanvas.width !== 0 && videoCanvasCtx) {
       videoCanvasCtx.drawImage(this.video, 0, yPXOffset, this.videoCanvas.width, this.videoCanvas.height - yPXOffset);
-      ['REG1', 'REG2'].forEach((key) => {
+      REGIONS.forEach((region) => {
         const geneScans = [];
         for (let genePosition = 0; genePosition < 6; genePosition++) {
           const saplingGenesXPixelsStart = Math.round(
             this.videoCanvas.width *
-              (DIMENSIONS[key].X_POSITION_CENTER -
-                DIMENSIONS[key].WIDTH / 2 +
-                DIMENSIONS[key].DISTANCE_BETWEEN * genePosition)
+              (region.X_POSITION_CENTER - region.WIDTH / 2 + region.DISTANCE_BETWEEN * genePosition)
           );
-          const saplingGenesXPixelsWidth = Math.round(this.videoCanvas.width * DIMENSIONS[key].WIDTH);
+          const saplingGenesXPixelsWidth = Math.round(this.videoCanvas.width * region.WIDTH);
           const saplingGenesYPixelsStart = Math.round(
-            this.videoCanvas.height * (DIMENSIONS[key].Y_POSITION_CENTER - DIMENSIONS[key].HEIGHT / 2)
+            this.videoCanvas.height * (region.Y_POSITION_CENTER - region.HEIGHT / 2)
           );
-          const saplingGenesYPixelsWidth = Math.round(this.videoCanvas.height * DIMENSIONS[key].HEIGHT);
+          const saplingGenesYPixelsWidth = Math.round(this.videoCanvas.height * region.HEIGHT);
           const imgData = videoCanvasCtx.getImageData(
             saplingGenesXPixelsStart,
             saplingGenesYPixelsStart,

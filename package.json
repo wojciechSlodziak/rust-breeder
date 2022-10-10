@@ -16,7 +16,7 @@
     "http-server": "^0.12.3",
     "jimp": "^0.16.1",
     "reflect-metadata": "^0.1.13",
-    "tesseract.js": "^2.1.5",
+    "tesseract.js": "^3.0.3",
     "typescript-cookie": "^1.0.3",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.3",

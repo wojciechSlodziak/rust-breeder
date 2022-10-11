@@ -79,24 +79,65 @@ class ScreenCaptureService {
       listenerCallback('INITIALIZING');
     });
     if (this.workers.length === 0) {
-      this.workers = await Promise.all(
-        Array(REGIONS.length * 6)
-          .fill(0)
-          .map(async () => {
-            const worker = createWorker({
-              langPath: './tesseract-data'
-            });
-            await worker.load();
-            await worker.loadLanguage('eng');
-            await worker.initialize('eng');
-            await worker.setParameters({
-              // eslint-disable-next-line @typescript-eslint/camelcase
-              tessedit_pageseg_mode: PSM.SINGLE_CHAR
-            });
-            return worker;
-          })
-      );
+      let firstWorker;
+      try {
+        firstWorker = await this.setupWorker();
+        const remainingWorkers = await Promise.all(
+          Array(REGIONS.length * 6 - 1)
+            .fill(0)
+            .map(this.setupWorker.bind(this))
+        );
+        this.workers = [firstWorker, ...remainingWorkers];
+      } catch (err) {
+        // It can happen that the data for Tesseract text recognition is corrupted.
+        // In this case we clear the database and reinitialize the workers.
+        await this.clearTesseractDB();
+        await this.setupRecognitionWorkers();
+      }
     }
+  }
+
+  private async setupWorker(): Promise<Tesseract.Worker> {
+    let worker;
+    try {
+      worker = createWorker({
+        langPath: './tesseract-data'
+      });
+
+      await worker.load();
+      await worker.loadLanguage('eng');
+      await worker.initialize('eng');
+      await worker.setParameters({
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        tessedit_pageseg_mode: PSM.SINGLE_CHAR
+      });
+      return worker;
+    } catch (err) {
+      if (worker) {
+        await worker.terminate();
+      }
+      throw err;
+    }
+  }
+
+  private async clearTesseractDB() {
+    await new Promise((resolve, reject) => {
+      const request = indexedDB.deleteDatabase('keyval-store');
+      request.onsuccess = () => {
+        resolve(null);
+      };
+      request.onerror = () => {
+        reject();
+      };
+      request.onblocked = () => {
+        reject();
+      };
+      request.onupgradeneeded = () => {
+        reject();
+      };
+    }).catch(() => {
+      return this.clearTesseractDB();
+    });
   }
 
   private startScanning() {
@@ -138,7 +179,7 @@ class ScreenCaptureService {
     return Promise.all(promises).then((results) => {
       const regionResults: (string | null)[][] = [];
       REGIONS.forEach(() => {
-        regionResults.push(results.slice(0, 6));
+        regionResults.push(results.splice(0, 6));
       });
 
       regionResults.forEach((regionGenes) => {

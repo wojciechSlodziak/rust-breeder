@@ -16,7 +16,7 @@
                 :disabled="!isFormValid || isScreenScanning"
                 >Calculate
               </v-btn>
-              <v-btn class="ma-1" color="red" v-if="isSimulating" @click="handleStopSimulationClick"
+              <v-btn class="ma-1 white--text" color="red" v-if="isSimulating" @click="handleStopSimulationClick"
                 >Cancel
                 <v-icon right>
                   mdi-cancel
@@ -110,7 +110,8 @@
     >
       <template
         v-if="
-          selectedBrowsingGroup &&
+          isSelectedBrowsingGroupFromHighlight &&
+            selectedBrowsingGroup &&
             !selectedBrowsingGroup2 &&
             selectedBrowsingGroup.mapList[0].resultSapling.generationIndex > 1
         "
@@ -165,7 +166,29 @@ export default class CrossbreedingSimulator extends Vue {
   @Prop({ type: Boolean }) readonly cookiesAccepted: boolean;
   // fix for Safari not respecting new line in placehodler
   placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`.replaceAll('\n', ' '.repeat(100));
-  saplingGenes = ``;
+  saplingGenes = `WGXYYW
+WGGXYW
+WGYXGW
+WYYXGW
+XYYXGW
+XYGXYW
+YWGYGX
+WGGWYX
+XGYWGG
+XGYWYX
+WYYWGW
+XYYGWX
+YXGWGX
+WYGXYW
+WGWGYW
+WYWXGG
+XYGWGW
+WGYWGW
+XYYWYW
+XYGWYX
+XYGXYX
+WGGXYX
+XYGWYW`;
   progressPercents: number[] = [];
   isSimulating = false;
   isFormValid = false;
@@ -211,6 +234,10 @@ export default class CrossbreedingSimulator extends Vue {
     optimizerService.addEventListener(this.onOptimizerServiceEvent);
   }
 
+  mounted() {
+    this.options = (this.$refs.options as Options).getOptions();
+  }
+
   handleSaplingGenesInput(value: string) {
     this.showNotEnoughSaplingsError = false;
     const textarea = (this.$refs.saplingGenesInput as Vue).$el.querySelector('textarea');
@@ -244,6 +271,7 @@ export default class CrossbreedingSimulator extends Vue {
       }
       this.saplingGenes += value;
       (this.$refs.saplingListPreview as SaplingListPreview)?.animateLastSapling();
+      this.playSaplingsScannedSound();
     }
   }
 
@@ -306,11 +334,6 @@ export default class CrossbreedingSimulator extends Vue {
     this.clearHighlight();
     const deduplicatedSaplingGeneList = this.getDeduplicatedSaplingGeneList();
     this.saplingGenes = deduplicatedSaplingGeneList.join('\n');
-
-    if (!this.options) {
-      this.options = (this.$refs.options as Options).getOptions();
-    }
-
     this.numberOfGenerations = this.options.numberOfGenerations;
     this.progressPercents = new Array(this.options.numberOfGenerations);
     this.resultMapGroups = null;
@@ -389,15 +412,25 @@ export default class CrossbreedingSimulator extends Vue {
   }
 
   playWrongKeySound() {
-    const audioElement = document.getElementById('headshotAudio');
-    if (audioElement) {
-      const headshotAudio = audioElement.cloneNode() as HTMLElement & {
-        volume: string;
-        play: () => void;
-      };
-      if (headshotAudio) {
-        headshotAudio.volume = '0.05';
-        headshotAudio.play();
+    this.playAudio('wrongKeyAudio', 0.02);
+  }
+
+  playSaplingsScannedSound() {
+    this.playAudio('saplingScannedAudio', 0.5);
+  }
+
+  playAudio(audioElementName: string, volume: number) {
+    if (this.options.sounds) {
+      const audioElement = document.getElementById(audioElementName);
+      if (audioElement) {
+        const headshotAudio = audioElement.cloneNode() as HTMLElement & {
+          volume: string;
+          play: () => void;
+        };
+        if (headshotAudio) {
+          headshotAudio.volume = volume.toString();
+          headshotAudio.play();
+        }
       }
     }
   }
@@ -462,7 +495,7 @@ export default class CrossbreedingSimulator extends Vue {
   }
 }
 .simulator_highlight-guide {
-  outline: 2px solid rgba(223, 145, 0, 0.3);
+  outline: 2px solid rgba(223, 145, 0, 0.4);
   outline-offset: 2px;
 }
 </style>

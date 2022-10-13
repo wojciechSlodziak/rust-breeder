@@ -10,11 +10,24 @@
         mdi-monitor-screenshot
       </v-icon>
     </v-btn>
-    <v-btn @click="stopCapturing" v-if="isInitializing || isScanning" color="red" :disabled="isInitializing">
+    <v-btn
+      class="white--text"
+      @click="stopCapturing"
+      v-if="isInitializing || isScanning"
+      color="red"
+      :disabled="isInitializing"
+    >
       {{ isScanning ? 'Stop Scanning' : 'Initializing...' }}
-      <v-progress-circular class="ml-2" indeterminate color="primary" size="20" v-if="isScanning"></v-progress-circular>
+      <v-progress-circular
+        class="ml-2"
+        indeterminate
+        color="white"
+        size="15"
+        width="2"
+        v-if="isScanning"
+      ></v-progress-circular>
     </v-btn>
-    <v-dialog v-model="isDialogOpen" width="600">
+    <v-dialog v-model="isDialogOpen" width="600" overlay-opacity="0.75">
       <v-card>
         <v-card-title class="headline" primary-title>
           <h2 class="text-h5">How to Scan Rust for Saplings?</h2>

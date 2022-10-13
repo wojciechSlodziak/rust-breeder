@@ -28,10 +28,11 @@
           <div v-bind="attrs" v-on="on">
             <div class="mb-1">
               Center Sapling:
-              <div class="white--text mb-4" v-if="!map.baseSapling">any extra random plant</div>
+              <div class="map_center-sapling-info mb-4" v-if="!map.baseSapling">any extra random plant</div>
             </div>
             <div class="map_base-sapling-container mb-4" v-if="map.baseSapling">
               <span
+                v-if="map.baseSapling.generationIndex > 0"
                 class="map_sapling-generation"
                 :class="{ 'map_sapling-generation--subtle': !enableComposingSaplingsSelection }"
                 >GEN.{{ map.baseSapling.generationIndex }}</span
@@ -83,6 +84,7 @@
                 :key="index"
               >
                 <span
+                  v-if="crossbreedingSapling.generationIndex > 0"
                   class="map_sapling-generation"
                   :class="{
                     'map_sapling-generation--subtle': !enableComposingSaplingsSelection
@@ -180,7 +182,6 @@ export default class SimulationMap extends Vue {
 
 <style scoped lang="scss">
 .map {
-  color: lightgray;
   text-align: center;
   user-select: none;
   width: 320px;
@@ -236,10 +237,14 @@ export default class SimulationMap extends Vue {
     font-size: 1rem;
     outline: 0px solid rgba(223, 145, 0, 0.3);
   }
+  .map_center-sapling-info {
+    font-weight: bold;
+    color: white;
+  }
   .map_sapling--selectable {
     transition: outline-color 0.15s;
     user-select: none;
-    outline: 2px solid rgba(223, 145, 0, 0.3);
+    outline: 2px solid rgba(223, 145, 0, 0.4);
     outline-offset: 2px;
   }
   .map_sapling--selectable:hover {
@@ -262,13 +267,13 @@ export default class SimulationMap extends Vue {
     user-select: none;
 
     &.map_sapling-generation--subtle {
-      opacity: 0.3;
+      opacity: 0.4;
     }
   }
   .map_sapling-generation {
     left: -0.5em;
     &.map_sapling-generation--subtle {
-      opacity: 0.3;
+      opacity: 0.4;
     }
   }
   .map_sapling-chance {
@@ -276,11 +281,35 @@ export default class SimulationMap extends Vue {
     width: 2.6em;
     text-align: left;
     &.map_sapling-chance--subtle {
-      opacity: 0.3;
+      opacity: 0.4;
     }
     &.map_sapling-chance--moderate {
       color: rgb(223, 145, 0);
     }
+  }
+}
+.theme--light .map {
+  background-color: #f5f5f5;
+  .map_result-sapling {
+    background-color: #e9e9e9;
+  }
+  .map_sapling-generation {
+    &.map_sapling-generation--subtle {
+      opacity: 0.8;
+    }
+  }
+  .map_sapling-chance {
+    &.map_sapling-chance--subtle {
+      opacity: 0.8;
+    }
+  }
+  .map_score {
+    span {
+      color: inherit;
+    }
+  }
+  .map_center-sapling-info {
+    color: inherit;
   }
 }
 </style>

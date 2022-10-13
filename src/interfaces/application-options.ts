@@ -9,4 +9,6 @@ export default interface ApplicationOptions {
   numberOfSaplingsAddedBetweenGenerations: number;
   minimumTrackedScore: number;
   geneScores: Record<GeneEnum, number>;
+  darkMode: boolean;
+  sounds: boolean;
 }

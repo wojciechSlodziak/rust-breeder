@@ -1,6 +1,6 @@
 <template>
   <v-form v-model="isFormValid">
-    <v-dialog v-model="isDialogOpen" width="600" @click:outside="undoChanges">
+    <v-dialog v-model="isDialogOpen" width="600" overlay-opacity="0.75" @click:outside="undoChanges">
       <template v-slot:activator="{ on, attrs }">
         <v-btn v-bind="attrs" v-on="on">
           Options
@@ -22,76 +22,102 @@
             <span>Resets options to default values. Don't forget to click Set/Save after.</span>
           </v-tooltip>
         </v-card-title>
-        <v-card-text class="px-3 px-sm-5">
-          <v-range-slider
-            v-model="crossbreedingSaplingsNumberRange"
-            min="2"
-            max="8"
-            :tick-labels="maxCrossbreedingSaplingsLabels"
-            ticks="always"
-            tick-size="1"
-            label="Crossbreeding Saplings Range"
-            hint="Controls the range of Saplings that can be used for a single Crossbreeding session. It seems that range from 2 to 5 is a sweet spot between effectiveness and calculation speed. It is possible that we are missing some results if this value is not set to the extremes, but it saves a lot of processing time."
-            persistent-hint
-          ></v-range-slider>
-          <v-slider
-            class="mt-8"
-            label="Number of Generations"
-            v-model.number="options.numberOfGenerations"
-            min="1"
-            max="3"
-            :tick-labels="numberOfGenerationLabels"
-            ticks="always"
-            tick-size="1"
-          ></v-slider>
-          <v-text-field
-            class="mt-6"
-            type="number"
-            label="Saplings added to next Generation"
-            hint="Number of best result Saplings from current Generation that are added to calculation for next Generation."
-            persistent-hint
-            v-model.number="options.numberOfSaplingsAddedBetweenGenerations"
-            :rules="numberOfSaplingsAddedBetweenGenerationsRules"
-            min="1"
-          ></v-text-field>
-          <v-checkbox
-            class="mt-5"
-            v-model="options.withRepetitions"
-            label="Check combinations with repetitions"
-            hint="Additionally, checks combinations where one plant is used more than once in one crossbreeding session. Slightly increases processing time."
-            persistent-hint
-          />
-          <v-container class="mt-10 pa-0">
-            <span class="v-label theme--dark">Gene Scores</span>
-            <v-row class="pl-2 pr-2">
-              <v-col class="pl-1 pr-1" v-for="geneScore in scoreInputs" :key="geneScore.key">
-                <v-text-field
-                  type="number"
-                  :label="geneScore.key"
-                  :rules="geneScoreRules"
-                  @input="handleGeneScoreChange"
-                  v-model.number="options.geneScores[geneScore.key]"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-          </v-container>
-          <v-checkbox
-            class="mt-0"
-            @change="handleModifyMinimumTrackedScoreManuallyChange"
-            v-model="options.modifyMinimumTrackedScoreManually"
-            label="Manual Minimum Tracked Score"
-            hint="Setting a lower Minimum Tracked Score can increase memory consumption."
-            persistent-hint
-          />
-          <v-text-field
-            class="mt-2"
-            type="number"
-            :disabled="!options.modifyMinimumTrackedScoreManually"
-            label="Minimum Tracked Score"
-            v-model.number="options.minimumTrackedScore"
-            :rules="minimumTrackedScoreRules"
-          ></v-text-field>
+
+        <v-tabs v-model="tab">
+          <v-tab>Crossbreeding</v-tab>
+          <v-tab>UI & Sounds</v-tab>
+        </v-tabs>
+        <v-divider></v-divider>
+
+        <v-card-text class="px-0">
+          <v-tabs-items v-model="tab">
+            <v-tab-item class="px-5">
+              <v-range-slider
+                class="mt-5"
+                v-model="crossbreedingSaplingsNumberRange"
+                min="2"
+                max="8"
+                :tick-labels="maxCrossbreedingSaplingsLabels"
+                ticks="always"
+                tick-size="1"
+                label="Crossbreeding Saplings Range"
+                hint="Controls the range of Saplings that can be used for a single Crossbreeding session. It seems that range from 2 to 5 is a sweet spot between effectiveness and calculation speed. It is possible that we are missing some results if this value is not set to the extremes, but it saves a lot of processing time."
+                persistent-hint
+              ></v-range-slider>
+              <v-slider
+                class="mt-8"
+                label="Number of Generations"
+                v-model.number="options.numberOfGenerations"
+                min="1"
+                max="3"
+                :tick-labels="numberOfGenerationLabels"
+                ticks="always"
+                tick-size="1"
+              ></v-slider>
+              <v-text-field
+                class="mt-6"
+                type="number"
+                label="Saplings added to next Generation"
+                hint="Number of best result Saplings from current Generation that are added to calculation for next Generation."
+                persistent-hint
+                v-model.number="options.numberOfSaplingsAddedBetweenGenerations"
+                :rules="numberOfSaplingsAddedBetweenGenerationsRules"
+                min="1"
+              ></v-text-field>
+              <v-checkbox
+                class="mt-5"
+                v-model="options.withRepetitions"
+                label="Check combinations with repetitions"
+                hint="Additionally, checks combinations where one plant is used more than once in one crossbreeding session. Slightly increases processing time."
+                persistent-hint
+              />
+              <v-container class="mt-10 pa-0">
+                <span class="v-label theme--dark">Gene Scores</span>
+                <v-row class="pl-2 pr-2">
+                  <v-col class="pl-1 pr-1" v-for="geneScore in scoreInputs" :key="geneScore.key">
+                    <v-text-field
+                      type="number"
+                      :label="geneScore.key"
+                      :rules="geneScoreRules"
+                      @input="handleGeneScoreChange"
+                      v-model.number="options.geneScores[geneScore.key]"
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
+              </v-container>
+              <v-checkbox
+                class="mt-0"
+                @change="handleModifyMinimumTrackedScoreManuallyChange"
+                v-model="options.modifyMinimumTrackedScoreManually"
+                label="Manual Minimum Tracked Score"
+                hint="Setting a lower Minimum Tracked Score can increase memory consumption."
+                persistent-hint
+              />
+              <v-text-field
+                class="mt-2"
+                type="number"
+                :disabled="!options.modifyMinimumTrackedScoreManually"
+                label="Minimum Tracked Score"
+                v-model.number="options.minimumTrackedScore"
+                :rules="minimumTrackedScoreRules"
+              ></v-text-field>
+            </v-tab-item>
+
+            <v-tab-item class="px-5">
+              <v-switch
+                v-model="options.darkMode"
+                :label="`UI Mode: ${options.darkMode ? 'Dark' : 'Light'}`"
+                @change="handleUIModeChange"
+              ></v-switch>
+              <v-switch
+                class="mt-0"
+                v-model="options.sounds"
+                :label="`Sounds: ${options.sounds ? 'Enabled' : 'Disabled'}`"
+              ></v-switch>
+            </v-tab-item>
+          </v-tabs-items>
         </v-card-text>
+
         <v-divider></v-divider>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -138,7 +164,7 @@ import { getCookie, setCookie } from 'typescript-cookie';
  * If the structure of the options would change in the future this value should be incremented
  * to invalidate obsolote options saved by the User.
  */
-const OPTIONS_VERSION = 1;
+const OPTIONS_VERSION = 2;
 const OPTIONS_COOKIE_KEY = `options-v${OPTIONS_VERSION}`;
 const DEFAULT_OPTIONS: ApplicationOptions = {
   withRepetitions: true,
@@ -154,7 +180,9 @@ const DEFAULT_OPTIONS: ApplicationOptions = {
     [GeneEnum.H]: 0.5,
     [GeneEnum.X]: 0,
     [GeneEnum.W]: 0
-  }
+  },
+  darkMode: false,
+  sounds: true
 };
 const STORED_OPTIONS = getCookie(OPTIONS_COOKIE_KEY);
 
@@ -163,6 +191,7 @@ export default class Options extends Vue {
   @Prop({ type: Boolean }) readonly cookiesAccepted: boolean;
   isDialogOpen = false;
   isFormValid = false;
+  tab = null;
 
   currentlySetOptions: ApplicationOptions = STORED_OPTIONS
     ? JSON.parse(STORED_OPTIONS)
@@ -196,6 +225,10 @@ export default class Options extends Vue {
     return highestGeneScore * 4;
   }
 
+  mounted() {
+    this.$vuetify.theme.dark = this.currentlySetOptions.darkMode;
+  }
+
   handleModifyMinimumTrackedScoreManuallyChange(value: boolean) {
     if (!value) {
       this.options.minimumTrackedScore = this.minimumTrackedScoreDerived;
@@ -209,19 +242,20 @@ export default class Options extends Vue {
   }
 
   undoChanges() {
-    this.options = JSON.parse(JSON.stringify(this.currentlySetOptions));
-    this.crossbreedingSaplingsNumberRange = [
-      this.currentlySetOptions.minCrossbreedingSaplingsNumber,
-      this.currentlySetOptions.maxCrossbreedingSaplingsNumber
-    ];
+    this.resetTo(this.currentlySetOptions);
   }
 
   resetToDefaults() {
-    this.options = JSON.parse(JSON.stringify(DEFAULT_OPTIONS));
+    this.resetTo(DEFAULT_OPTIONS);
+  }
+
+  resetTo(options: ApplicationOptions) {
+    this.options = JSON.parse(JSON.stringify(options));
     this.crossbreedingSaplingsNumberRange = [
       this.options.minCrossbreedingSaplingsNumber,
       this.options.maxCrossbreedingSaplingsNumber
     ];
+    this.$vuetify.theme.dark = this.options.darkMode;
   }
 
   getOptions() {
@@ -245,6 +279,10 @@ export default class Options extends Vue {
     this.setOptions();
     this.storeOptionsInCookie();
     this.isDialogOpen = false;
+  }
+
+  handleUIModeChange(checked: boolean) {
+    this.$vuetify.theme.dark = checked;
   }
 
   storeOptionsInCookie() {

@@ -7,7 +7,7 @@
   >
     <div class="group_container" ref="scrollContainer">
       <div class="group_helper-text-container" v-if="visibleGroup && visibleGroup.mapList.length > 1">
-        <div class="group_helper-text text-center pl-2 pr-2 d-none d-sm-block">
+        <div class="group_helper-text text-center pl-2 pr-2 d-none d-sm-block white--text">
           Here you can see all the different ways you can crossbreed the same selected Sapling.
           <div v-if="hasMessageSlotContent">
             <v-divider class="mt-2 mb-2"></v-divider>
@@ -24,7 +24,7 @@
               map.crossbreedingSaplings.map((sapling) => sapling.toString()).join('')
           "
         >
-          <div class="group_map-label mb-1" v-if="visibleGroup && visibleGroup.mapList.length > 1">
+          <div class="group_map-label mb-1 white--text" v-if="visibleGroup && visibleGroup.mapList.length > 1">
             {{ `${index === 0 ? 'Best' : 'Alternative'} Option ${index > 0 ? index + 1 : ''}` }}
           </div>
           <SimulationMap
@@ -46,7 +46,7 @@
         </div>
       </div>
     </div>
-    <v-overlay z-index="6" opacity="0.95" :value="isVisible"></v-overlay>
+    <v-overlay z-index="6" :opacity="$vuetify.theme.dark ? 0.95 : 0.75" :value="isVisible"></v-overlay>
   </div>
 </template>
 
@@ -303,8 +303,8 @@ export default class SimulationMapGroupBrowser extends Vue {
     position: relative;
     transform-origin: bottom right;
     &.group_map--highlighted {
-      box-shadow: 0px 0px 1px 2px white;
-      border: 1px solid white;
+      box-shadow: 0px 0px 1px 2px var(--v-cardHighlight-base);
+      border: 1px solid var(--v-cardHighlight-base);
     }
   }
 }

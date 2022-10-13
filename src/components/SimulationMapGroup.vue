@@ -143,8 +143,8 @@ export default class SimulationMapGroup extends Vue {
       top: 0;
     }
     &.group_map--highlighted {
-      box-shadow: 0px 0px 1px 2px white;
-      border: 1px solid white;
+      box-shadow: 0px 0px 1px 2px var(--v-cardHighlight-base);
+      border: 1px solid var(--v-cardHighlight-base);
     }
   }
   &:hover {

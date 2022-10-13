@@ -26,8 +26,8 @@
     "worker-loader": "^2.0.0"
   },
   "devDependencies": {
-    "@types/node": "^18.0.5",
     "@types/jest": "^24.0.19",
+    "@types/node": "^18.0.5",
     "@types/resemblejs": "^4.1.0",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
     "@typescript-eslint/parser": "^2.33.0",
@@ -36,6 +36,7 @@
     "@vue/cli-plugin-typescript": "~4.4.0",
     "@vue/cli-plugin-unit-jest": "~4.4.0",
     "@vue/cli-service": "~4.4.0",
+    "@vue/compiler-dom": "^3.2.40",
     "@vue/eslint-config-prettier": "^6.0.0",
     "@vue/eslint-config-typescript": "^5.0.2",
     "@vue/test-utils": "^1.0.3",

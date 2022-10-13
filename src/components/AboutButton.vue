@@ -1,7 +1,7 @@
 <template>
-  <v-dialog v-model="isDialogOpen" width="500">
+  <v-dialog v-model="isDialogOpen" width="500" overlay-opacity="0.75">
     <template v-slot:activator="{ on, attrs }">
-      <v-btn v-bind="attrs" v-on="on" class="grey darken-3">
+      <v-btn v-bind="attrs" v-on="on">
         About
       </v-btn>
     </template>
@@ -28,6 +28,7 @@
             If you want to appreciate my work and help me pay for the hosting, you can
             <a target="_blank" href="https://donorbox.org/rust-crossbreeding-optimizer?default_interval=o">donate</a>.
           </p>
+          <p>Rust Breeder is not affilated with Facepunch.</p>
         </article>
       </v-card-text>
       <v-divider></v-divider>

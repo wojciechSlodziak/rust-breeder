@@ -166,29 +166,7 @@ export default class CrossbreedingSimulator extends Vue {
   @Prop({ type: Boolean }) readonly cookiesAccepted: boolean;
   // fix for Safari not respecting new line in placehodler
   placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`.replaceAll('\n', ' '.repeat(100));
-  saplingGenes = `WGXYYW
-WGGXYW
-WGYXGW
-WYYXGW
-XYYXGW
-XYGXYW
-YWGYGX
-WGGWYX
-XGYWGG
-XGYWYX
-WYYWGW
-XYYGWX
-YXGWGX
-WYGXYW
-WGWGYW
-WYWXGG
-XYGWGW
-WGYWGW
-XYYWYW
-XYGWYX
-XYGXYX
-WGGXYX
-XYGWYW`;
+  saplingGenes = ``;
   progressPercents: number[] = [];
   isSimulating = false;
   isFormValid = false;

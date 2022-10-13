@@ -181,7 +181,7 @@ const DEFAULT_OPTIONS: ApplicationOptions = {
     [GeneEnum.X]: 0,
     [GeneEnum.W]: 0
   },
-  darkMode: false,
+  darkMode: true,
   sounds: true
 };
 const STORED_OPTIONS = getCookie(OPTIONS_COOKIE_KEY);

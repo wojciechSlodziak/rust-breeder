@@ -30,7 +30,6 @@ class ScreenCaptureService {
   video: HTMLVideoElement;
   workers: Tesseract.Worker[] = [];
   videoCanvas = document.createElement('canvas');
-  geneCanvas = document.createElement('canvas');
 
   startCapturing() {
     this.isActive = true;
@@ -193,9 +192,12 @@ class ScreenCaptureService {
     });
   }
 
-  private getRecognizedGene(imgData: string, workerIndex: number): Promise<string | null> {
+  private getRecognizedGene(imgData: ImageData, workerIndex: number): Promise<string | null> {
     const promise = new Promise<string | null>((resolve) => {
-      Jimp.read(imgData).then((image) => {
+      new Jimp({ data: Buffer.from(imgData.data), width: imgData.width, height: imgData.height }, (err, image) => {
+        if (err) {
+          resolve(null);
+        }
         image
           .greyscale()
           .invert()
@@ -225,8 +227,8 @@ class ScreenCaptureService {
     return promise;
   }
 
-  private getSaplingGenesScans(): string[][] {
-    const allGeneScans: string[][] = [];
+  private getSaplingGenesScans(): ImageData[][] {
+    const allGeneScans: ImageData[][] = [];
     const aspectRatio = this.video.videoWidth / this.video.videoHeight;
     let yPXOffset = 0;
     if (aspectRatio !== SUPPORTED_ASPECT_RATIO) {
@@ -260,13 +262,7 @@ class ScreenCaptureService {
             saplingGenesXPixelsWidth,
             saplingGenesYPixelsWidth
           );
-          const geneCanvasCtx = this.geneCanvas.getContext('2d');
-          this.geneCanvas.height = imgData.height;
-          this.geneCanvas.width = imgData.width;
-          if (geneCanvasCtx) {
-            geneCanvasCtx.putImageData(imgData, 0, 0);
-            geneScans.push(this.geneCanvas.toDataURL());
-          }
+          geneScans.push(imgData);
         }
         allGeneScans.push(geneScans);
       });

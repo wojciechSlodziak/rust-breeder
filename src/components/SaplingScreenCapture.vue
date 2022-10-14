@@ -38,20 +38,21 @@
             <ol>
               <li>
                 <p>
-                  For best results, use <strong>Chrome</strong> or <strong>Edge</strong>. Other browsers might not work
-                  correctly.
+                  For best results, use <strong>Chrome</strong>, <strong>Edge</strong> or <strong>Firefox</strong>.
+                  Other browsers might not work correctly.
                 </p>
               </li>
               <li>
                 <p>
                   Make sure your <v-chip outlined>USER INTERFACE SCALE</v-chip> setting is set to
-                  <v-chip outlined>1.0</v-chip> in Rust.
+                  <v-chip outlined>1.0</v-chip> in Rust. Sometimes the slider shows 1.0, but the value could be at 0.97.
+                  Run <v-chip outlined>graphics.uiscale</v-chip> command in the Rust console to see the actual value.
                 </p>
               </li>
               <li>
                 <p>
                   Make sure you run the game in <v-chip outlined>16:9</v-chip> aspect ratio resolution (1600x900,
-                  1920x1080, 2560x1440 or 4K) and <strong>borderless</strong> mode. If you have a different aspect ratio
+                  1920x1080, 2560x1440 or 4K) and <strong>borderless</strong> mode. If you have a different resolution
                   on your monitor, set Rust to <strong>windowed</strong> mode and select a 16:9 ratio resolution.
                 </p>
               </li>
@@ -60,7 +61,7 @@
               </li>
               <li>
                 <p class="mb-0">
-                  After the scanning begins, you need to display genes on the screen by either:
+                  After the scanning begins, you need to display the genes on the screen by either:
                 </p>
                 <ul class="mb-3">
                   <li>clicking on a Sapling in your inventory or storage,</li>

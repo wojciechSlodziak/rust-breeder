@@ -106,13 +106,13 @@
             <v-tab-item class="px-5">
               <v-switch
                 v-model="options.darkMode"
-                :label="`UI Mode: ${options.darkMode ? 'Dark' : 'Light'}`"
+                :label="`Switch to ${!options.darkMode ? 'Dark' : 'Light'} Mode`"
                 @change="handleUIModeChange"
               ></v-switch>
               <v-switch
                 class="mt-0"
                 v-model="options.sounds"
-                :label="`Sounds: ${options.sounds ? 'Enabled' : 'Disabled'}`"
+                :label="`Sounds: ${options.sounds ? 'On' : 'Off'}`"
               ></v-switch>
             </v-tab-item>
           </v-tabs-items>

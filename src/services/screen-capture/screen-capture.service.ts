@@ -1,23 +1,23 @@
 import Jimp from 'jimp';
-import { ScreenCaptureServiceEventListenerCallback } from './models';
+import { PreviewData, ScreenCaptureServiceEventListenerCallback, ScreenCaptureServiceEventType } from './models';
 import { createWorker, PSM } from 'tesseract.js';
 
 const TIME_MS_BETWEEEN_SCANS = 200;
 
 const REGIONS: { [key: string]: number }[] = [
   {
-    WIDTH: 0.008,
-    HEIGHT: 0.015,
-    X_POSITION_CENTER: 0.42,
-    Y_POSITION_CENTER: 0.286,
-    DISTANCE_BETWEEN: 0.01405
+    GENE_WIDTH: 0.008,
+    GENE_HEIGHT: 0.015,
+    FIRST_GENE_X_CENTER: 0.42,
+    FIRST_GENE_Y_CENTER: 0.286,
+    DISTANCE_BETWEEN_GENES: 0.01405
   },
   {
-    WIDTH: 0.01,
-    HEIGHT: 0.0185,
-    X_POSITION_CENTER: 0.617,
-    Y_POSITION_CENTER: 0.3512,
-    DISTANCE_BETWEEN: 0.0241
+    GENE_WIDTH: 0.01,
+    GENE_HEIGHT: 0.0185,
+    FIRST_GENE_X_CENTER: 0.617,
+    FIRST_GENE_Y_CENTER: 0.3512,
+    DISTANCE_BETWEEN_GENES: 0.0241
   }
 ];
 
@@ -74,9 +74,7 @@ class ScreenCaptureService {
   }
 
   async setupRecognitionWorkers() {
-    this.listeners.forEach((listenerCallback) => {
-      listenerCallback('INITIALIZING');
-    });
+    this.sendEventToListeners('INITIALIZING');
     if (this.workers.length === 0) {
       let firstWorker;
       try {
@@ -140,10 +138,7 @@ class ScreenCaptureService {
   }
 
   private startScanning() {
-    this.listeners.forEach((listenerCallback) => {
-      listenerCallback('STARTED');
-    });
-
+    this.sendEventToListeners('STARTED');
     this.scanFrameRecurrent();
   }
 
@@ -160,9 +155,7 @@ class ScreenCaptureService {
   }
 
   private async stopScanning() {
-    this.listeners.forEach((listenerCallback) => {
-      listenerCallback('STOPPED');
-    });
+    this.sendEventToListeners('STOPPED');
   }
 
   private scanFrame() {
@@ -184,9 +177,7 @@ class ScreenCaptureService {
       regionResults.forEach((regionGenes) => {
         const saplingGenesString = regionGenes.map((gene) => (gene ? gene : '')).join('');
         if (saplingGenesString.match(/^[GHYWX]{6}$/g)) {
-          this.listeners.forEach((listenerCallback) => {
-            listenerCallback('SAPLING-FOUND', saplingGenesString);
-          });
+          this.sendEventToListeners('SAPLING-FOUND', saplingGenesString);
         }
       });
     });
@@ -230,11 +221,11 @@ class ScreenCaptureService {
   private getSaplingGenesScans(): ImageData[][] {
     const allGeneScans: ImageData[][] = [];
     const aspectRatio = this.video.videoWidth / this.video.videoHeight;
-    let yPXOffset = 0;
+    let yPxOffset = 0;
     if (aspectRatio !== SUPPORTED_ASPECT_RATIO) {
       const expectedHeight = Math.round(this.video.videoWidth / SUPPORTED_ASPECT_RATIO);
       // If ratio is not 16:9 it means user should use windowed mode and that there is Application Bar at the top.
-      yPXOffset = -(this.video.videoHeight - expectedHeight);
+      yPxOffset = -(this.video.videoHeight - expectedHeight);
       this.videoCanvas.height = expectedHeight;
     } else {
       this.videoCanvas.height = this.video.videoHeight;
@@ -243,24 +234,25 @@ class ScreenCaptureService {
 
     const videoCanvasCtx = this.videoCanvas.getContext('2d');
     if (this.videoCanvas.width !== 0 && videoCanvasCtx) {
-      videoCanvasCtx.drawImage(this.video, 0, yPXOffset, this.videoCanvas.width, this.videoCanvas.height - yPXOffset);
-      REGIONS.forEach((region) => {
+      videoCanvasCtx.drawImage(this.video, 0, yPxOffset, this.videoCanvas.width, this.videoCanvas.height - yPxOffset);
+      REGIONS.forEach((region, regionIndex) => {
+        this.sendPreview(regionIndex, this.videoCanvas, videoCanvasCtx);
         const geneScans = [];
         for (let genePosition = 0; genePosition < 6; genePosition++) {
-          const saplingGenesXPixelsStart = Math.round(
+          const saplingGenesXPxStart = Math.round(
             this.videoCanvas.width *
-              (region.X_POSITION_CENTER - region.WIDTH / 2 + region.DISTANCE_BETWEEN * genePosition)
+              (region.FIRST_GENE_X_CENTER - region.GENE_WIDTH / 2 + region.DISTANCE_BETWEEN_GENES * genePosition)
           );
-          const saplingGenesXPixelsWidth = Math.round(this.videoCanvas.width * region.WIDTH);
-          const saplingGenesYPixelsStart = Math.round(
-            this.videoCanvas.height * (region.Y_POSITION_CENTER - region.HEIGHT / 2)
+          const saplingGenesXPxWidth = Math.round(this.videoCanvas.width * region.GENE_WIDTH);
+          const saplingGenesYPxStart = Math.round(
+            this.videoCanvas.height * (region.FIRST_GENE_Y_CENTER - region.GENE_HEIGHT / 2)
           );
-          const saplingGenesYPixelsWidth = Math.round(this.videoCanvas.height * region.HEIGHT);
+          const saplingGenesYPxWidth = Math.round(this.videoCanvas.height * region.GENE_HEIGHT);
           const imgData = videoCanvasCtx.getImageData(
-            saplingGenesXPixelsStart,
-            saplingGenesYPixelsStart,
-            saplingGenesXPixelsWidth,
-            saplingGenesYPixelsWidth
+            saplingGenesXPxStart,
+            saplingGenesYPxStart,
+            saplingGenesXPxWidth,
+            saplingGenesYPxWidth
           );
           geneScans.push(imgData);
         }
@@ -268,6 +260,37 @@ class ScreenCaptureService {
       });
     }
     return allGeneScans;
+  }
+
+  sendPreview(regionIndex: number, videoCanvas: HTMLCanvasElement, videoCanvasCtx: CanvasRenderingContext2D) {
+    const region = REGIONS[regionIndex];
+    const previewTopLeftCornerXPx = Math.round(
+      videoCanvas.width * (region.FIRST_GENE_X_CENTER - region.GENE_WIDTH / 2)
+    );
+    const previewTopLeftCornerYPx = Math.round(
+      videoCanvas.height * (region.FIRST_GENE_Y_CENTER - region.GENE_HEIGHT / 2)
+    );
+    const previewXPxWidth = Math.round(
+      this.videoCanvas.width *
+        (region.FIRST_GENE_X_CENTER + 5 * region.DISTANCE_BETWEEN_GENES + region.GENE_WIDTH / 2) -
+        previewTopLeftCornerXPx
+    );
+    const previewYPxWidth = Math.round(this.videoCanvas.height * region.GENE_HEIGHT);
+    const padding = Math.round(previewYPxWidth * 0.2);
+    const imgData = videoCanvasCtx.getImageData(
+      previewTopLeftCornerXPx - padding,
+      previewTopLeftCornerYPx - padding,
+      previewXPxWidth + padding * 2,
+      previewYPxWidth + padding * 2
+    );
+
+    this.sendEventToListeners('PREVIEW', { imgData, regionIndex });
+  }
+
+  sendEventToListeners(eventName: ScreenCaptureServiceEventType, data?: string | PreviewData) {
+    this.listeners.forEach((listenerCallback) => {
+      listenerCallback(eventName, data);
+    });
   }
 
   addEventListener(callback: ScreenCaptureServiceEventListenerCallback) {

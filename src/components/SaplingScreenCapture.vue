@@ -93,10 +93,28 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-snackbar class="scanner_preview" v-model="isScanning" timeout="-1" right>
+      <p class="text-center">
+        Scanner Preview
+        <v-icon right>
+          mdi-monitor-screenshot
+        </v-icon>
+      </p>
+      <div class="scanner_preview-region pa-2">
+        <p class="mb-2">Inventory Region</p>
+        <canvas ref="scannerPreview1"></canvas>
+      </div>
+      <div class="scanner_preview-region mt-4 pa-2">
+        <p class="mb-2">Planted Region</p>
+        <canvas ref="scannerPreview2"></canvas>
+      </div>
+    </v-snackbar>
   </span>
 </template>
 
 <script lang="ts">
+import { PreviewData, ScreenCaptureServiceEventType } from '@/services/screen-capture/models';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import screenCaptureService from '../services/screen-capture/screen-capture.service';
 
@@ -125,7 +143,17 @@ export default class SaplingScreenCapture extends Vue {
     screenCaptureService.stopCapturing();
   }
 
-  onScreenCaptureServiceEvent(eventType: string, data?: string) {
+  setPreview(regionIndex: number, imgData: ImageData) {
+    const previewCanvas = this.$refs[`scannerPreview${regionIndex + 1}`] as HTMLCanvasElement;
+    const previewCanvasCtx = previewCanvas.getContext('2d');
+    if (previewCanvasCtx) {
+      previewCanvas.width = imgData.width;
+      previewCanvas.height = imgData.height;
+      previewCanvasCtx.putImageData(imgData, 0, 0);
+    }
+  }
+
+  onScreenCaptureServiceEvent(eventType: ScreenCaptureServiceEventType, data?: string | PreviewData) {
     if (eventType === 'INITIALIZING') {
       this.isInitializing = true;
     } else if (eventType === 'STARTED') {
@@ -138,7 +166,32 @@ export default class SaplingScreenCapture extends Vue {
       this.$emit('stopped-scanning');
     } else if (eventType === 'SAPLING-FOUND') {
       this.$emit('sapling-scanned', data);
+    } else if (eventType === 'PREVIEW') {
+      this.setPreview((data as PreviewData).regionIndex, (data as PreviewData).imgData);
     }
   }
 }
 </script>
+
+<style scoped lang="scss">
+.scanner_preview {
+  .v-snack__action {
+    display: none;
+  }
+  .scanner_preview-region {
+    border: 2px solid black;
+  }
+  canvas {
+    width: 100%;
+    display: block;
+  }
+}
+</style>
+
+<style lang="scss">
+.scanner_preview {
+  .v-snack__action {
+    display: none;
+  }
+}
+</style>

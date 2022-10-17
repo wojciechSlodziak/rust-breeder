@@ -47,7 +47,7 @@ ul {
     line-height: 1.75rem;
     text-align: center;
     font-size: 0.625rem;
-    color: rgba(255, 255, 255, 0.5);
+    opacity: 0.5;
     &.sapling-list-numbering_number--special {
       border-top: 1px solid rgba(255, 166, 0, 0.75);
       margin-top: -1px;

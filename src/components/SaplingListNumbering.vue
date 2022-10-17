@@ -49,8 +49,8 @@ ul {
     font-size: 0.625rem;
     opacity: 0.5;
     &.sapling-list-numbering_number--special {
-      border-top: 1px solid rgba(255, 166, 0, 0.75);
-      margin-top: -1px;
+      border-top: 2px solid rgb(255, 166, 0);
+      margin-top: -2px;
     }
   }
 }

@@ -13,7 +13,7 @@
       <v-card>
         <v-card-title class="headline px-3 px-sm-5" primary-title>
           <h2 class="text-h5">Options</h2>
-          <v-tooltip top open-delay="0">
+          <v-tooltip top open-delay="0" z-index="1001" max-width="600">
             <template v-slot:activator="{ on, attrs }">
               <v-btn v-bind="attrs" text v-on="on" class="ml-auto" color="primary" @click="resetToDefaults">
                 Reset
@@ -124,7 +124,7 @@
           <v-btn color="primary" text @click="handleCloseButtonClick">
             Close
           </v-btn>
-          <v-tooltip top open-delay="0">
+          <v-tooltip top open-delay="0" z-index="1001" max-width="600">
             <template v-slot:activator="{ on, attrs }">
               <v-btn v-bind="attrs" v-on="on" class="ml-2" color="primary" @click="setOptions" :disabled="!isFormValid">
                 Set
@@ -132,7 +132,7 @@
             </template>
             <span>Sets the selected options for as long as the App is open.</span>
           </v-tooltip>
-          <v-tooltip top open-delay="0" v-if="cookiesAccepted">
+          <v-tooltip top open-delay="0" v-if="cookiesAccepted" z-index="1001" max-width="600">
             <template v-slot:activator="{ on, attrs }">
               <v-btn
                 v-bind="attrs"

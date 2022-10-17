@@ -27,12 +27,14 @@ class ScreenCaptureService {
   listeners: ScreenCaptureServiceEventListenerCallback[] = [];
 
   isActive = false;
+  withPreview = false;
   video: HTMLVideoElement;
   workers: Tesseract.Worker[] = [];
   videoCanvas = document.createElement('canvas');
 
-  startCapturing() {
+  startCapturing(withPreview: boolean) {
     this.isActive = true;
+    this.withPreview = withPreview;
     navigator.mediaDevices
       .getDisplayMedia({
         video: {
@@ -236,7 +238,9 @@ class ScreenCaptureService {
     if (this.videoCanvas.width !== 0 && videoCanvasCtx) {
       videoCanvasCtx.drawImage(this.video, 0, yPxOffset, this.videoCanvas.width, this.videoCanvas.height - yPxOffset);
       REGIONS.forEach((region, regionIndex) => {
-        this.sendPreview(regionIndex, this.videoCanvas, videoCanvasCtx);
+        if (this.withPreview) {
+          this.sendPreview(regionIndex, this.videoCanvas, videoCanvasCtx);
+        }
         const geneScans = [];
         for (let genePosition = 0; genePosition < 6; genePosition++) {
           const saplingGenesXPxStart = Math.round(
@@ -276,12 +280,11 @@ class ScreenCaptureService {
         previewTopLeftCornerXPx
     );
     const previewYPxWidth = Math.round(this.videoCanvas.height * region.GENE_HEIGHT);
-    const padding = Math.round(previewYPxWidth * 0.2);
     const imgData = videoCanvasCtx.getImageData(
-      previewTopLeftCornerXPx - padding,
-      previewTopLeftCornerYPx - padding,
-      previewXPxWidth + padding * 2,
-      previewYPxWidth + padding * 2
+      previewTopLeftCornerXPx,
+      previewTopLeftCornerYPx,
+      previewXPxWidth,
+      previewYPxWidth
     );
 
     this.sendEventToListeners('PREVIEW', { imgData, regionIndex });

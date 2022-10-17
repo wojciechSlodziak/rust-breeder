@@ -71,12 +71,18 @@
                   It takes about a second to capture each Sapling.
                 </p>
               </li>
-              <li><p class="mb-0">Enjoy! If it doesn't work, let me know on Discord!</p></li>
+              <li>
+                <p class="mb-0">
+                  Enjoy! If it doesn't work, let me know on Discord! You can also try scanning with
+                  <b>Display Preview</b> active to find out what is wrong.
+                </p>
+              </li>
             </ol>
           </v-container>
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions>
+          <v-switch v-model="showPreview" label="Display Preview" class="mt-0" hide-details></v-switch>
           <v-spacer></v-spacer>
           <v-btn color="primary" text @click="isDialogOpen = false">
             Close
@@ -94,22 +100,7 @@
       </v-card>
     </v-dialog>
 
-    <v-snackbar class="scanner_preview" v-model="isScanning" timeout="-1" right>
-      <p class="text-center">
-        Scanner Preview
-        <v-icon right>
-          mdi-monitor-screenshot
-        </v-icon>
-      </p>
-      <div class="scanner_preview-region pa-2">
-        <p class="mb-2">Inventory Region</p>
-        <canvas ref="scannerPreview1"></canvas>
-      </div>
-      <div class="scanner_preview-region mt-4 pa-2">
-        <p class="mb-2">Planted Region</p>
-        <canvas ref="scannerPreview2"></canvas>
-      </div>
-    </v-snackbar>
+    <sapling-screen-capture-preview ref="preview" :is-open="isScanning && showPreview"></sapling-screen-capture-preview>
   </span>
 </template>
 
@@ -117,12 +108,14 @@
 import { PreviewData, ScreenCaptureServiceEventType } from '@/services/screen-capture/models';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import screenCaptureService from '../services/screen-capture/screen-capture.service';
+import SaplingScreenCapturePreview from './SaplingScreenCapturePreview.vue';
 
-@Component
+@Component({ components: { SaplingScreenCapturePreview } })
 export default class SaplingScreenCapture extends Vue {
   @Prop({ type: Boolean }) isDisabled: boolean;
 
   isDialogOpen = false;
+  showPreview = false;
   isScanning = false;
   isInitializing = false;
   shouldDisplayScreenCaptureButton = false;
@@ -136,7 +129,7 @@ export default class SaplingScreenCapture extends Vue {
   }
 
   startCapturing() {
-    screenCaptureService.startCapturing();
+    screenCaptureService.startCapturing(this.showPreview);
   }
 
   stopCapturing() {
@@ -144,13 +137,7 @@ export default class SaplingScreenCapture extends Vue {
   }
 
   setPreview(regionIndex: number, imgData: ImageData) {
-    const previewCanvas = this.$refs[`scannerPreview${regionIndex + 1}`] as HTMLCanvasElement;
-    const previewCanvasCtx = previewCanvas.getContext('2d');
-    if (previewCanvasCtx) {
-      previewCanvas.width = imgData.width;
-      previewCanvas.height = imgData.height;
-      previewCanvasCtx.putImageData(imgData, 0, 0);
-    }
+    (this.$refs.preview as SaplingScreenCapturePreview)?.setPreview(regionIndex, imgData);
   }
 
   onScreenCaptureServiceEvent(eventType: ScreenCaptureServiceEventType, data?: string | PreviewData) {
@@ -167,7 +154,8 @@ export default class SaplingScreenCapture extends Vue {
     } else if (eventType === 'SAPLING-FOUND') {
       this.$emit('sapling-scanned', data);
     } else if (eventType === 'PREVIEW') {
-      this.setPreview((data as PreviewData).regionIndex, (data as PreviewData).imgData);
+      const previewData = data as PreviewData;
+      this.setPreview(previewData.regionIndex, previewData.imgData);
     }
   }
 }

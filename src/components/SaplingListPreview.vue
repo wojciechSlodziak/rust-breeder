@@ -12,6 +12,7 @@
 import Sapling from '@/models/sapling.model';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import SaplingGeneRepresentation from './SaplingGeneRepresentation.vue';
+import goTo from 'vuetify/lib/services/goto';
 
 @Component({
   components: { SaplingGeneRepresentation }
@@ -23,7 +24,7 @@ export default class SaplingListPreview extends Vue {
     return this.saplingGeneList.map((genes) => new Sapling(genes));
   }
 
-  animateLastSapling() {
+  animateAndScrollToLastSapling() {
     this.$nextTick(() => {
       const lastSaplingGeneRepresentationElement = this.$el.querySelector(
         'li:last-child .sapling-list-preview_sapling'
@@ -32,6 +33,20 @@ export default class SaplingListPreview extends Vue {
       setTimeout(() => {
         lastSaplingGeneRepresentationElement?.classList.remove('sapling-list-preview_sapling--animate');
       }, 400);
+
+      if (lastSaplingGeneRepresentationElement) {
+        const rect = lastSaplingGeneRepresentationElement.getBoundingClientRect();
+        const isInView =
+          rect.top >= 0 &&
+          rect.left >= 0 &&
+          rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+          rect.right <= (window.innerWidth || document.documentElement.clientWidth);
+        if (!isInView) {
+          const topDistanceToCenterize =
+            rect.top + window.scrollY - (window.innerHeight || document.documentElement.clientHeight) / 2;
+          goTo(topDistanceToCenterize, { duration: 100 });
+        }
+      }
     });
   }
 }
@@ -72,4 +87,3 @@ ul {
   }
 }
 </style>
-4

@@ -51,7 +51,7 @@
                     @keydown="handleSaplingGenesInputKeyDown($event)"
                     outlined
                     :disabled="isScreenScanning || isSimulating"
-                    auto-grow
+                    :rows="Math.max(5, saplingGenes.split(`\n`).length || 0)"
                     :rules="sourceSaplingRules"
                     autocomplete="off"
                   ></v-textarea>
@@ -248,7 +248,7 @@ export default class CrossbreedingSimulator extends Vue {
         this.saplingGenes += '\n';
       }
       this.saplingGenes += value;
-      (this.$refs.saplingListPreview as SaplingListPreview)?.animateLastSapling();
+      (this.$refs.saplingListPreview as SaplingListPreview)?.animateAndScrollToLastSapling();
       this.playSaplingsScannedSound();
     }
   }

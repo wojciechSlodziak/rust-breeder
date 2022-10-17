@@ -23,7 +23,13 @@
     </v-list-item>
     <v-divider class="mx-4"></v-divider>
     <v-card-text class="map_detail">
-      <v-tooltip bottom open-delay="250" :disabled="!enableTooltip || $vuetify.breakpoint.xsOnly">
+      <v-tooltip
+        bottom
+        open-delay="250"
+        :disabled="!enableTooltip || $vuetify.breakpoint.xsOnly"
+        z-index="1001"
+        max-width="600"
+      >
         <template v-slot:activator="{ on, attrs }">
           <div v-bind="attrs" v-on="on">
             <div class="mb-1">
@@ -73,7 +79,13 @@
         >
       </v-tooltip>
       <v-divider class="mb-5"></v-divider>
-      <v-tooltip bottom open-delay="250" :disabled="!enableTooltip || $vuetify.breakpoint.xsOnly">
+      <v-tooltip
+        bottom
+        open-delay="250"
+        :disabled="!enableTooltip || $vuetify.breakpoint.xsOnly"
+        max-width="600"
+        z-index="1001"
+      >
         <template v-slot:activator="{ on, attrs }">
           <div v-bind="attrs" v-on="on">
             <div class="mb-1">Surrounding Saplings:</div>

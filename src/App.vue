@@ -17,7 +17,7 @@
         :cookies-accepted="cookiesAccepted"
         @estimated-time-updated="handleEstimatedTimeUpdated"
       />
-      <InfoButtons class="d-flex justify-center d-xs-flex d-sm-none mb-3" />
+      <InfoButtons class="d-flex justify-center d-xs-flex d-sm-none mb-3 flex-wrap" />
     </v-main>
     <CookieConsent v-on:cookies-accepted="handleCookiesAccepted" />
   </v-app>

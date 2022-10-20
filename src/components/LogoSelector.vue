@@ -93,7 +93,7 @@ export default class LogoSelector extends Vue {
     });
   }
 
-  private handleImageClick(imageName: string) {
+  handleImageClick(imageName: string) {
     if (this.isExpanded) {
       this.activeImageName = imageName;
       this.setImageAsFavicon(imageName);

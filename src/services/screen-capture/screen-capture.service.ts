@@ -99,9 +99,7 @@ class ScreenCaptureService {
   private async setupWorker(): Promise<Tesseract.Worker> {
     let worker;
     try {
-      worker = createWorker({
-        langPath: './tesseract-data'
-      });
+      worker = createWorker();
 
       await worker.load();
       await worker.loadLanguage('eng');

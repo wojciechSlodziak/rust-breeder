@@ -1,16 +1,7 @@
 <template>
   <v-app>
     <v-app-bar app>
-      <a href="/" title="RustBreeder" class="mr-4">
-        <img
-          src="https://files.facepunch.com/s/c0444ba57c9a.svg"
-          alt="Rust Logo"
-          width="112"
-          height="28"
-          class="d-block"
-        />
-      </a>
-      <v-toolbar-title>Breeder</v-toolbar-title>
+      <logo-selector></logo-selector>
       <div class="d-flex align-center ml-auto">
         <div v-if="estimatedTime" class="mr-2 estimated-time">
           <v-icon small>
@@ -37,10 +28,12 @@ import { Component, Vue } from 'vue-property-decorator';
 import CrossbreedingSimulator from './components/CrossbreedingSimulator.vue';
 import InfoButtons from './components/InfoButtons.vue';
 import CookieConsent from './components/CookieConsent.vue';
+import LogoSelector from './components/LogoSelector.vue';
 import 'cookie-store';
 
 @Component({
   components: {
+    LogoSelector,
     CrossbreedingSimulator,
     InfoButtons,
     CookieConsent

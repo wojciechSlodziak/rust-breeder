@@ -72,7 +72,7 @@
                 persistent-hint
               />
               <v-container class="mt-10 pa-0">
-                <span class="v-label theme--dark">Gene Scores</span>
+                <span class="v-label">Gene Scores</span>
                 <v-row class="pl-2 pr-2">
                   <v-col class="pl-1 pr-1" v-for="geneScore in scoreInputs" :key="geneScore.key">
                     <v-text-field

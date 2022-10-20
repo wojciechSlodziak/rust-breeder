@@ -13,6 +13,7 @@
         open-delay="200"
         z-index="1001"
         max-width="600"
+        :open-on-focus="false"
         :disabled="isExpanded || $vuetify.breakpoint.xsOnly"
         bottom
       >
@@ -36,7 +37,11 @@
         >
       </v-tooltip>
     </div>
-    <v-toolbar-title class="ml-3">RustBreeder</v-toolbar-title>
+    <v-toolbar-title class="ml-3">
+      <a href="/" title="RustBreeder">
+        RustBreeder
+      </a>
+    </v-toolbar-title>
   </div>
 </template>
 
@@ -61,7 +66,25 @@ export default class LogoSelector extends Vue {
   isExpanded = false;
   animateIn = false;
 
+  get displayedImageNames() {
+    return this.activeImageName !== this.imagesNames[0] || this.isExpanded
+      ? this.imagesNames.slice(1)
+      : this.imagesNames;
+  }
+
   mounted() {
+    if (document.hidden) {
+      const functionRef = () => {
+        this.animateLogo();
+        document.removeEventListener('visibilitychange', functionRef);
+      };
+      document.addEventListener('visibilitychange', functionRef);
+    } else {
+      this.animateLogo();
+    }
+  }
+
+  private animateLogo() {
     this.onNextTickRerender(() => {
       this.animateIn = true;
       setTimeout(() => {
@@ -70,13 +93,7 @@ export default class LogoSelector extends Vue {
     });
   }
 
-  get displayedImageNames() {
-    return this.activeImageName !== this.imagesNames[0] || this.isExpanded
-      ? this.imagesNames.slice(1)
-      : this.imagesNames;
-  }
-
-  handleImageClick(imageName: string) {
+  private handleImageClick(imageName: string) {
     if (this.isExpanded) {
       this.activeImageName = imageName;
       this.setImageAsFavicon(imageName);
@@ -86,7 +103,7 @@ export default class LogoSelector extends Vue {
     }
   }
 
-  setImageAsFavicon(imageName: string) {
+  private setImageAsFavicon(imageName: string) {
     const link = document.querySelector("link[rel~='icon']") as HTMLAnchorElement;
     if (link) {
       link.href = `/img/${imageName}.png`;
@@ -104,8 +121,11 @@ export default class LogoSelector extends Vue {
     opacity: 1;
     transform: scale(1);
     transition: transform 0.2s ease 0.2s, opacity 0.2s ease 0.2s, visibility 0s linear 0.15s, width 0s linear 0.15s;
+    a {
+      color: inherit;
+      text-decoration: inherit;
+    }
   }
-
   .logo__image-container {
     height: 100%;
     border-radius: 5px;

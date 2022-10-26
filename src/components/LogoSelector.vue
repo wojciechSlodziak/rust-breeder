@@ -10,7 +10,7 @@
       <v-tooltip
         v-for="imageName in displayedImageNames"
         :key="imageName"
-        open-delay="200"
+        open-delay="400"
         z-index="1001"
         max-width="600"
         :open-on-focus="false"

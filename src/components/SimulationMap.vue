@@ -25,7 +25,7 @@
     <v-card-text class="map_detail">
       <v-tooltip
         bottom
-        open-delay="250"
+        open-delay="400"
         :disabled="!enableTooltip || $vuetify.breakpoint.xsOnly"
         z-index="1001"
         max-width="600"
@@ -81,7 +81,7 @@
       <v-divider class="mb-5"></v-divider>
       <v-tooltip
         bottom
-        open-delay="250"
+        open-delay="400"
         :disabled="!enableTooltip || $vuetify.breakpoint.xsOnly"
         max-width="600"
         z-index="1001"

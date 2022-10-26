@@ -9,7 +9,7 @@
     <div class="scanner_preview-region pa-2">
       <p class="mb-3">
         Inventory Region
-        <v-tooltip top open-delay="0" z-index="1001" max-width="600">
+        <v-tooltip top open-delay="400" z-index="1001" max-width="600">
           <template v-slot:activator="{ on, attrs }">
             <v-icon class="float-end" v-bind="attrs" text v-on="on">
               mdi-information-outline
@@ -27,7 +27,7 @@
     <div class="scanner_preview-region mt-4 pa-2">
       <p class="mb-3">
         Planter Region
-        <v-tooltip top open-delay="0" z-index="1001" max-width="600">
+        <v-tooltip top open-delay="400" z-index="1001" max-width="600">
           <template v-slot:activator="{ on, attrs }">
             <v-icon class="float-end" v-bind="attrs" text v-on="on">
               mdi-information-outline

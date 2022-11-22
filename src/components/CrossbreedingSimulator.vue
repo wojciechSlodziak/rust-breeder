@@ -319,7 +319,7 @@ export default class CrossbreedingSimulator extends Vue {
     this.calcEndTime = null;
     try {
       optimizerService.simulateBestGenetics(
-        deduplicatedSaplingGeneList.map((geneString) => new Sapling(geneString)),
+        deduplicatedSaplingGeneList.map((geneString, index) => new Sapling(geneString, 0, index)),
         undefined,
         this.options
       );

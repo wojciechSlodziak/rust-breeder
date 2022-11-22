@@ -5,10 +5,16 @@ import GeneEnum from '../enums/gene.enum';
 export default class Sapling {
   genes: Gene[];
   generationIndex: number;
+  /**
+   * Only applies to Saplings that are provided by the User.
+   * Corresponds to the order of Saplings as provided in the input.
+   */
+  index?: number;
   [key: string]: unknown;
 
-  constructor(genes: Gene[] | string | null = null, generationIndex = 0) {
+  constructor(genes: Gene[] | string | null = null, generationIndex = 0, index?: number) {
     this.generationIndex = generationIndex;
+    this.index = index;
     if (typeof genes === 'string') {
       this.genes = genes.split('').map((gene) => new Gene(gene as GeneEnum));
     } else if (genes !== null) {
@@ -43,6 +49,6 @@ export default class Sapling {
   }
 
   clone(): Sapling {
-    return new Sapling([...this.genes], this.generationIndex);
+    return new Sapling([...this.genes], this.generationIndex, this.index);
   }
 }

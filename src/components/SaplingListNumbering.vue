@@ -1,5 +1,6 @@
 <template>
   <div class="sapling-list-numbering">
+    <span class="sapling-list-numbering_legend" v-if="showLegend">#</span>
     <ul>
       <li
         class="sapling-list-numbering_number"
@@ -25,6 +26,10 @@ import SaplingGeneRepresentation from './SaplingGeneRepresentation.vue';
 export default class SaplingListNumbering extends Vue {
   @Prop({ type: Array, required: true }) readonly saplingGeneList!: string[];
 
+  get showLegend() {
+    return this.saplingGeneList && this.saplingGeneList.length > 0;
+  }
+
   get showSpecial() {
     return this.saplingGeneList && this.saplingGeneList.length > 6;
   }
@@ -33,11 +38,23 @@ export default class SaplingListNumbering extends Vue {
 
 <style scoped lang="scss">
 .sapling-list-numbering {
-  margin-top: 11px;
+  padding-top: 11px;
   position: absolute;
   top: 0px;
   left: 1px;
   width: 25px;
+  opacity: 0.5;
+  text-align: center;
+  .sapling-list-numbering_legend {
+    position: absolute;
+    opacity: 0.75;
+    line-height: 1em;
+    left: 0;
+    top: -5px;
+    transform: translateY(-100%);
+    width: 100%;
+    user-select: none;
+  }
 }
 ul {
   list-style: none;
@@ -47,7 +64,6 @@ ul {
     line-height: 1.75rem;
     text-align: center;
     font-size: 0.625rem;
-    opacity: 0.5;
     &.sapling-list-numbering_number--special {
       border-top: 2px solid rgb(255, 166, 0);
       margin-top: -2px;

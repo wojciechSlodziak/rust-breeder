@@ -1,10 +1,9 @@
 <template>
   <div class="sapling-detailed">
-    <span
-      class="sapling-detailed_sapling-detail"
-      :class="{ 'sapling-detailed_sapling-detail--subtle': subtleDetails }"
-      >{{ sapling.index !== undefined ? sapling.index + 1 : 'GEN.' + sapling.generationIndex }}</span
-    >
+    <span class="sapling-detailed_sapling-detail" :class="{ 'sapling-detailed_sapling-detail--subtle': subtleDetails }">
+      <template v-if="sapling.index !== undefined">#{{ sapling.index + 1 }}</template>
+      <template v-if="sapling.index === undefined">{{ 'GEN.' + sapling.generationIndex }}</template>
+    </span>
     <SaplingGeneRepresentation
       class="sapling-detailed_sapling"
       :class="{

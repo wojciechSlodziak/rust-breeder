@@ -367,7 +367,8 @@ export default class CrossbreedingSimulator extends Vue {
       'Home',
       'Shift',
       'Alt',
-      'Control'
+      'Control',
+      'Tab'
     ];
     if (
       event.key &&
@@ -389,7 +390,7 @@ export default class CrossbreedingSimulator extends Vue {
   }
 
   playWrongKeySound() {
-    this.playAudio('wrongKeyAudio', 0.02);
+    this.playAudio('wrongKeyAudio', 0.04);
   }
 
   playSaplingsScannedSound() {

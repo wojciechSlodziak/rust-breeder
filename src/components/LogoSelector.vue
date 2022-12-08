@@ -37,7 +37,7 @@
         >
       </v-tooltip>
     </div>
-    <v-toolbar-title class="ml-3">
+    <v-toolbar-title class="ml-3 overflow-visible">
       <a href="/" title="RustBreeder">
         RustBreeder
       </a>
@@ -150,6 +150,9 @@ export default class LogoSelector extends Vue {
       }
       &:not([disabled]):hover {
         transform: scale(1.15);
+      }
+      &:focus {
+        outline: 2px solid var(--v-primary-base);
       }
     }
   }

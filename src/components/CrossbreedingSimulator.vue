@@ -147,6 +147,7 @@ import SimulationMapGroup from './SimulationMapGroup.vue';
 import SimulationMapGroupBrowser from './SimulationMapGroupBrowser.vue';
 import ApplicationOptions from '@/interfaces/application-options';
 import SaplingListNumbering from './SaplingListNumbering.vue';
+import { timeMsToTimeString } from '@/lib/time-utils';
 
 @Component({
   components: {
@@ -200,9 +201,7 @@ export default class CrossbreedingSimulator extends Vue {
   get calcTotalTime() {
     if (this.calcStartTime && this.calcEndTime) {
       const timeDiff = this.calcEndTime - this.calcStartTime;
-      const minutes = Math.floor(timeDiff / 60000);
-      const seconds = (timeDiff % 60000) / 1000;
-      return `${minutes}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
+      return timeMsToTimeString(timeDiff);
     }
     return null;
   }

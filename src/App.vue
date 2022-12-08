@@ -30,6 +30,7 @@ import InfoButtons from './components/InfoButtons.vue';
 import CookieConsent from './components/CookieConsent.vue';
 import LogoSelector from './components/LogoSelector.vue';
 import 'cookie-store';
+import { timeMsToTimeString } from './lib/time-utils';
 
 @Component({
   components: {
@@ -45,9 +46,7 @@ export default class App extends Vue {
 
   get calcEstimatedTime() {
     if (this.estimatedTime) {
-      const minutes = Math.floor(this.estimatedTime / 60000);
-      const seconds = Math.round((this.estimatedTime % 60000) / 1000);
-      return `${minutes}:${seconds < 10 ? '0' : ''}${seconds.toFixed(0)}`;
+      return timeMsToTimeString(this.estimatedTime);
     }
     return null;
   }

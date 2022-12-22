@@ -49,7 +49,7 @@
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import SimulationMap from './SimulationMap.vue';
-import { GeneticsMapGroup, GeneticsMap } from '@/services/optimizer-service/models';
+import { GeneticsMapGroup, GeneticsMap } from '@/services/crossbreeding-service/models';
 
 @Component({
   components: { SimulationMap }

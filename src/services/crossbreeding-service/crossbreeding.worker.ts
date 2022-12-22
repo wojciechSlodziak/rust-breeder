@@ -1,8 +1,8 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ctx: Worker = self as any;
 import Sapling from '@/models/sapling.model';
-import geneticsSimulatorService from './genetics-simulator.service';
-import { fixSaplingPrototypeAssignments, createMapGroupMap } from './optimizer.helper';
+import geneticsSimulatorService from './crossbreeding.service';
+import { fixSaplingPrototypeAssignments, createMapGroupMap } from './helper';
 
 ctx.addEventListener('message', (event) => {
   geneticsSimulatorService.simulateCrossbreeding(

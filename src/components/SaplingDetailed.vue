@@ -26,7 +26,7 @@
 </template>
 <script lang="ts">
 import Sapling from '@/models/sapling.model';
-import { GeneticsMapGroup } from '@/services/optimizer-service/models';
+import { GeneticsMapGroup } from '@/services/crossbreeding-service/models';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import SaplingGeneRepresentation from './SaplingGeneRepresentation.vue';
 

@@ -90,7 +90,7 @@
 </template>
 
 <script lang="ts">
-import { GeneticsMap } from '@/services/optimizer-service/models';
+import { GeneticsMap } from '@/services/crossbreeding-service/models';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import SaplingGeneRepresentation from './SaplingGeneRepresentation.vue';
 import SimulationMapGroup from './SimulationMapGroup.vue';

@@ -127,7 +127,7 @@
 
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
-import optimizerService from '../services/optimizer-service/optimizer.service';
+import crossbreedingOrchestrator from '../services/crossbreeding-service/crossbreeding-orchestrator';
 import SimulationResults from './SimulationResults.vue';
 import SimulationMap from './SimulationMap.vue';
 import SaplingInputHighlights from './SaplingInputHighlights.vue';
@@ -136,10 +136,10 @@ import SaplingListPreview from './SaplingListPreview.vue';
 import SaplingScreenCapture from './SaplingScreenCapture.vue';
 import {
   GeneticsMap,
-  OptimizerServiceEventListenerCallbackData,
+  CrossbreedingOrchestratorEventListenerCallbackData,
   GeneticsMapGroup,
   NotEnoughSourceSaplingsError
-} from '@/services/optimizer-service/models';
+} from '@/services/crossbreeding-service/models';
 import Sapling from '@/models/sapling.model';
 import goTo from 'vuetify/lib/services/goto';
 import ProgressIndicator from './ProgressIndicator.vue';
@@ -208,7 +208,7 @@ export default class CrossbreedingSimulator extends Vue {
 
   constructor() {
     super();
-    optimizerService.addEventListener(this.onOptimizerServiceEvent);
+    crossbreedingOrchestrator.addEventListener(this.onCrossbreedingServiceEvent);
   }
 
   mounted() {
@@ -252,7 +252,7 @@ export default class CrossbreedingSimulator extends Vue {
     }
   }
 
-  onOptimizerServiceEvent(type: string, data: OptimizerServiceEventListenerCallbackData) {
+  onCrossbreedingServiceEvent(type: string, data: CrossbreedingOrchestratorEventListenerCallbackData) {
     if (type === 'PROGRESS_UPDATE') {
       this.setProgress(data.generationIndex, Math.round(data.progressPercent || 0));
       this.updateEstimatedTime(data.estimatedTimeMs);
@@ -317,7 +317,7 @@ export default class CrossbreedingSimulator extends Vue {
     this.calcStartTime = Date.now();
     this.calcEndTime = null;
     try {
-      optimizerService.simulateBestGenetics(
+      crossbreedingOrchestrator.simulateBestGenetics(
         deduplicatedSaplingGeneList.map((geneString, index) => new Sapling(geneString, 0, index)),
         undefined,
         this.options
@@ -336,7 +336,7 @@ export default class CrossbreedingSimulator extends Vue {
     this.isSimulating = false;
     this.updateEstimatedTime(null);
     this.updateTitle();
-    optimizerService.cancelSimulation();
+    crossbreedingOrchestrator.cancelSimulation();
   }
 
   handleSaplingGenesInputBlur() {

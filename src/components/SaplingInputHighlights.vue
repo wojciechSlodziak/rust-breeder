@@ -16,7 +16,7 @@
 
 <script lang="ts">
 import Sapling from '@/models/sapling.model';
-import { GeneticsMap } from '@/services/optimizer-service/models';
+import { GeneticsMap } from '@/services/crossbreeding-service/models';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 
 @Component

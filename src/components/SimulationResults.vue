@@ -72,7 +72,7 @@
 
 <script lang="ts">
 import GeneEnum from '@/enums/gene.enum';
-import { GeneticsMap, GeneticsMapGroup } from '@/services/optimizer-service/models';
+import { GeneticsMap, GeneticsMapGroup } from '@/services/crossbreeding-service/models';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import InViewAnchor from './InViewAnchor.vue';
 import SimulationMapGroup from './SimulationMapGroup.vue';

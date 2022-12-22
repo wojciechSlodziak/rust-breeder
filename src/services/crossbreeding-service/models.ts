@@ -1,8 +1,11 @@
 import GeneEnum from '@/enums/gene.enum';
 import Sapling from '@/models/sapling.model';
 
-export interface OptimizerServiceEventListenerCallback {
-  (eventType: 'PROGRESS_UPDATE' | 'DONE_GENERATION' | 'DONE', data: OptimizerServiceEventListenerCallbackData): void;
+export interface CrossbreedingOrchestratorEventListenerCallback {
+  (
+    eventType: 'PROGRESS_UPDATE' | 'DONE_GENERATION' | 'DONE',
+    data: CrossbreedingOrchestratorEventListenerCallbackData
+  ): void;
 }
 
 export class NotEnoughSourceSaplingsError extends Error {}
@@ -108,7 +111,7 @@ export class GenerationInfo {
   addedSaplings?: number;
 }
 
-export interface OptimizerServiceEventListenerCallbackData {
+export interface CrossbreedingOrchestratorEventListenerCallbackData {
   progressPercent?: number;
   generationIndex: number;
   estimatedTimeMs: number | null;

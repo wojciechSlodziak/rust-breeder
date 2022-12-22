@@ -1,4 +1,4 @@
-import Worker from 'worker-loader!./optimizer-service.worker';
+import Worker from 'worker-loader!./crossbreeding.worker';
 import ApplicationOptions from '@/interfaces/application-options';
 import {
   getWorkChunks,
@@ -7,11 +7,11 @@ import {
   fixPrototypeAssignmentsAfterSerialization,
   getBestSaplingsForNextGeneration,
   linkGenerationTree
-} from './optimizer.helper';
+} from './helper';
 import {
-  OptimizerServiceEventListenerCallback,
+  CrossbreedingOrchestratorEventListenerCallback,
   NotEnoughSourceSaplingsError,
-  OptimizerServiceEventListenerCallbackData,
+  CrossbreedingOrchestratorEventListenerCallbackData,
   GenerationInfo,
   GeneticsMapGroup,
   ProcessingStat
@@ -21,8 +21,8 @@ import Sapling from '@/models/sapling.model';
 const ESTIMATION_TIME_UNIT = 10000;
 const ESTIMATION_SENT_AFTER = ESTIMATION_TIME_UNIT / 10;
 
-class OptimizerService {
-  listeners: OptimizerServiceEventListenerCallback[] = [];
+class CrossbreedingOrchestrator {
+  listeners: CrossbreedingOrchestratorEventListenerCallback[] = [];
 
   workers: Worker[];
   workerProgress: number[] = [];
@@ -178,7 +178,7 @@ class OptimizerService {
 
   sendEvent(
     eventType: 'PROGRESS_UPDATE' | 'DONE_GENERATION' | 'DONE',
-    data: OptimizerServiceEventListenerCallbackData
+    data: CrossbreedingOrchestratorEventListenerCallbackData
   ) {
     this.listeners.forEach((listenerCallback) => {
       listenerCallback(eventType, data);
@@ -191,9 +191,9 @@ class OptimizerService {
     });
   }
 
-  addEventListener(callback: OptimizerServiceEventListenerCallback) {
+  addEventListener(callback: CrossbreedingOrchestratorEventListenerCallback) {
     this.listeners.push(callback);
   }
 }
 
-export default new OptimizerService();
+export default new CrossbreedingOrchestrator();

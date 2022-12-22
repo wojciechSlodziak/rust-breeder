@@ -8,6 +8,12 @@ export interface CrossbreedingOrchestratorEventListenerCallback {
   ): void;
 }
 
+export class WorkChunk {
+  startingPositions: number[];
+  combinationsToProcess: number;
+  allCombinationsCount: number;
+}
+
 export class NotEnoughSourceSaplingsError extends Error {}
 
 export class ProcessingStat {

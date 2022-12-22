@@ -1,7 +1,7 @@
 import GeneEnum from '@/enums/gene.enum';
 import Gene from '../../models/gene.model';
 import Sapling from '../../models/sapling.model';
-import { GeneticsMap, GeneticsMapGroup } from './models';
+import { GeneticsMap, GeneticsMapGroup, WorkChunk } from './models';
 
 /**
  * Used for sorting Maps that yield the same result Sapling.
@@ -167,7 +167,7 @@ export function getWorkChunks(
   minCrossbreedingSaplings: number,
   maxCrossbreedingSaplings: number,
   mandatorySaplingsCount?: number
-) {
+): WorkChunk[] {
   let allCombinationsCount = getNumberOfCrossbreedingCombinations(
     sourceSaplingsCount,
     withRepetitions,

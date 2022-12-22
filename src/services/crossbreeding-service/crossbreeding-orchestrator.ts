@@ -1,7 +1,7 @@
-import Worker from 'worker-loader!./crossbreeding.worker';
+import ChunksWorker from 'worker-loader!./chunks.worker';
+import CrossbreedingWorker from 'worker-loader!./crossbreeding.worker';
 import ApplicationOptions from '@/interfaces/application-options';
 import {
-  getWorkChunks,
   resultMapGroupsSortingFunction,
   joinMapGroupMaps,
   fixPrototypeAssignmentsAfterSerialization,
@@ -14,7 +14,8 @@ import {
   CrossbreedingOrchestratorEventListenerCallbackData,
   GenerationInfo,
   GeneticsMapGroup,
-  ProcessingStat
+  ProcessingStat,
+  WorkChunk
 } from './models';
 import Sapling from '@/models/sapling.model';
 
@@ -24,7 +25,8 @@ const ESTIMATION_SENT_AFTER = ESTIMATION_TIME_UNIT / 10;
 class CrossbreedingOrchestrator {
   listeners: CrossbreedingOrchestratorEventListenerCallback[] = [];
 
-  workers: Worker[];
+  chunksWorker: ChunksWorker;
+  workers: CrossbreedingWorker[];
   workerProgress: number[] = [];
   mapGroupMap: { [key: string]: GeneticsMapGroup } = {};
 
@@ -55,27 +57,38 @@ class CrossbreedingOrchestrator {
     this.workers = [];
     this.processingStats = [];
 
-    const workChunks = getWorkChunks(
-      sourceSaplings.length,
-      options.withRepetitions,
-      options.minCrossbreedingSaplingsNumber,
-      options.maxCrossbreedingSaplingsNumber,
-      generationInfo.addedSaplings
-    );
+    this.chunksWorker = new ChunksWorker();
+    this.chunksWorker.postMessage({
+      sourceSaplings,
+      options,
+      generationInfo
+    });
 
-    workChunks.forEach((workChunk, workerIndex) => {
-      const worker = new Worker();
-      this.workers.push(worker);
+    this.chunksWorker.addEventListener('message', (event) => {
+      const { workChunks } = event.data as { workChunks: WorkChunk[] };
 
-      worker.postMessage({
-        sourceSaplings: sourceSaplings,
-        ...workChunk,
-        generationInfo,
-        options
-      });
+      workChunks.forEach((workChunk, workerIndex) => {
+        const worker = new CrossbreedingWorker();
+        this.workers.push(worker);
 
-      worker.addEventListener('message', (e) => {
-        this.handleWorkerMessage(e, worker, workerIndex, sourceSaplings, generationInfo.index, workChunk, options);
+        worker.postMessage({
+          sourceSaplings: sourceSaplings,
+          ...workChunk,
+          generationInfo,
+          options
+        });
+
+        worker.addEventListener('message', (event) => {
+          this.handleWorkerMessage(
+            event,
+            worker,
+            workerIndex,
+            sourceSaplings,
+            generationInfo.index,
+            workChunk,
+            options
+          );
+        });
       });
     });
   }
@@ -186,6 +199,9 @@ class CrossbreedingOrchestrator {
   }
 
   cancelSimulation() {
+    if (this.chunksWorker) {
+      this.chunksWorker.terminate();
+    }
     this.workers.forEach((worker) => {
       worker.terminate();
     });

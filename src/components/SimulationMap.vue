@@ -34,7 +34,7 @@
           <div v-bind="attrs" v-on="on">
             <div class="mb-1">
               Center Sapling:
-              <div class="map_center-sapling-info mb-4" v-if="!map.baseSapling">any extra random plant</div>
+              <div class="map_center-sapling-info mb-4" v-if="!map.baseSapling">any extra plant of same type</div>
             </div>
             <SaplingDetailed
               class="mb-4"

@@ -25,16 +25,23 @@
     <v-card-text class="map_detail px-0">
       <v-tooltip
         bottom
-        open-delay="400"
+        open-delay="150"
         :disabled="!enableTooltip || $vuetify.breakpoint.xsOnly"
         z-index="1001"
         max-width="600"
       >
         <template v-slot:activator="{ on, attrs }">
-          <div v-bind="attrs" v-on="on">
+          <div
+            class="map_center-sapling-container"
+            :class="{ 'map_center-sapling-container--tooltip-enabled': enableTooltip && !$vuetify.breakpoint.xsOnly }"
+            v-bind="attrs"
+            v-on="on"
+          >
             <div class="mb-1">
               Center Sapling:
-              <div class="map_center-sapling-info mb-4" v-if="!map.baseSapling">any extra plant of same type</div>
+              <div class="map_center-sapling-info mb-4" v-if="!map.baseSapling">
+                <span>any extra plant of same type</span>
+              </div>
             </div>
             <SaplingDetailed
               class="mb-4"
@@ -47,17 +54,33 @@
             />
           </div>
         </template>
-        <span
-          >Sapling that should be placed in the middle of the Surrounding Saplings. It has to reach Crossbreeding stage
-          <strong>before</strong> the Surrounding Saplings reach it. As a rule of thumb let it grow alone until it
-          reaches about 50% progress in <strong>Sapling</strong> stage. After that, plant the Surrounding
-          Saplings.</span
-        >
+        <p>
+          Sapling that takes the genes from Surrounding Saplings during Crossbreeding stage. Plant it in the center and
+          let it grow alone until it reaches about 50% progress in the <strong>Sapling</strong> stage. After that, plant
+          the Surrounding Saplings around it.
+        </p>
+        <p>
+          It is always an <strong>extra plant</strong>, so if the app shows <strong>five</strong> Surrounding Saplings
+          you will have to plant <strong>six</strong> plants in total.
+        </p>
+        <p v-if="map.baseSapling">
+          You have to plant the exact plant that the app tells you to, otherwise crossbreeding will not work as
+          expected.
+        </p>
+        <p v-if="!map.baseSapling">
+          The genes of the plant don't matter. Using one with more Gs will help you finish the process quicker as it
+          grows faster.
+        </p>
+        <p v-if="!map.baseSapling">
+          Term "same type" means that if you are crossbreeding yellow berries, then your center seed/clone
+          <strong>has to be</strong> a yellow berry and if you are planting potatoes then
+          <strong>you have to</strong> plant a potato seed/clone.
+        </p>
       </v-tooltip>
       <v-divider class="mb-5"></v-divider>
       <v-tooltip
         bottom
-        open-delay="400"
+        open-delay="150"
         :disabled="!enableTooltip || $vuetify.breakpoint.xsOnly"
         max-width="600"
         z-index="1001"
@@ -80,10 +103,15 @@
             </ul>
           </div>
         </template>
-        <span
-          >Saplings that should be planted around the Center Sapling before it goes into
-          <strong>Crossbreeding</strong> stage. All Saplings have to be of the same type!</span
-        >
+        <p>
+          Saplings that have be planted around the Center Sapling before it goes into
+          <strong>Crossbreeding</strong> stage. All Saplings have to be of the same type.
+        </p>
+        <p>
+          It does not matter where you place your Surrounding Saplings if your Center Sapling is in the middle of the
+          planter. Center Sapling will reach horizontally, vertically and diagonally during the crossbreeding phase. You
+          are allowed to use any and all of the eight remaining planter slots to plant your Surrounding Saplings.
+        </p>
       </v-tooltip>
     </v-card-text>
   </v-card>
@@ -182,10 +210,16 @@ export default class SimulationMap extends Vue {
     font-weight: bold;
     color: white;
   }
-
   .map_result-sapling {
     background-color: #191919;
     padding: 5px 0;
+  }
+  &:hover {
+    .map_center-sapling-container.map_center-sapling-container--tooltip-enabled {
+      .map_center-sapling-info span {
+        border-bottom: 1px dashed white;
+      }
+    }
   }
 }
 .theme--light .map {
@@ -200,6 +234,13 @@ export default class SimulationMap extends Vue {
   }
   .map_center-sapling-info {
     color: inherit;
+  }
+  &:hover {
+    .map_center-sapling-container.map_center-sapling-container--tooltip-enabled {
+      .map_center-sapling-info span {
+        border-bottom: 1px dashed rgba(0, 0, 0, 0.6);
+      }
+    }
   }
 }
 </style>

@@ -39,6 +39,7 @@
                 map.crossbreedingSaplings.map((sapling) => sapling.toString()).join('')
             "
             :map="map"
+            enable-tooltip
             :enable-ripple="enableMapSelection"
             :enable-map-selection="enableMapSelection"
             :enable-composing-saplings-selection="enableComposingSaplingsSelection"

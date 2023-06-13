@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex justify-center mx-3">
     <a class="d-block" href="https://pinehosting.com/clientarea/aff.php?aff=298" target="_blank" title="Pine Hosting"
-      ><img src="/img/pine-hosting-ad.png"
+      ><img src="/img/pine-hosting-ad.webp"
     /></a>
   </div>
 </template>

@@ -4,10 +4,18 @@
     <span class="app_version mr-1" v-if="!isSimulating && !calcTotalTime">v{{ appVersion }}</span>
     <ProgressIndicator :is-active="isSimulating" :progress-percents="progressPercents"></ProgressIndicator>
     <v-container fluid>
-      <v-row>
-        <v-col cols="12" :md="showHighlight ? 12 : 4" :lg="showHighlight ? 6 : 3" class="pa-0">
+      <v-row class="justify-center">
+        <v-col
+          cols="12"
+          :md="!hasResults ? 12 : showHighlight ? 12 : 4"
+          :lg="!hasResults ? 12 : showHighlight ? 6 : 3"
+          class="pa-0 simulator_controls"
+          :class="{
+            'simulator_controls--with-highlight': showHighlight
+          }"
+        >
           <v-form ref="form" v-model="isFormValid" spellcheck="false">
-            <div class="d-flex flex-wrap justify-center my-4 px-3">
+            <div class="d-flex flex-wrap justify-center my-5 px-3">
               <v-btn
                 class="ma-1"
                 color="primary"
@@ -59,7 +67,7 @@
                 </div>
               </v-col>
 
-              <v-col ref="highlightedMap" v-if="showHighlight" class="d-flex flex-column align-center mx-sm-3">
+              <v-col ref="highlightedMap" v-if="showHighlight" class="d-flex flex-column align-center mx-sm-3 mb-3">
                 <SimulationMap
                   :map="highlightedMap"
                   enable-tooltip
@@ -68,7 +76,7 @@
                 />
                 <v-btn class="mt-3" @click="handleClearHighlightClick">Clear Selection</v-btn>
                 <div
-                  class="mt-2 mb-2 px-2 px-sm-0"
+                  class="mt-2 mb-2 px-3 px-sm-0"
                   v-if="highlightedMap && highlightedMap.resultSapling.generationIndex > 1"
                 >
                   The Sapling you selected comes from the
@@ -79,8 +87,16 @@
               </v-col>
             </v-row>
           </v-form>
+          <pine-hosting-ad></pine-hosting-ad>
         </v-col>
-        <v-col ref="results" class="pa-0 pa-md-3" cols="12" :md="showHighlight ? 12 : 8" :lg="showHighlight ? 6 : 9">
+        <v-col
+          ref="results"
+          v-if="hasResults"
+          class="pa-0 pa-md-3"
+          cols="12"
+          :md="showHighlight ? 12 : 8"
+          :lg="showHighlight ? 6 : 9"
+        >
           <SimulationResults
             :map-groups="resultMapGroups"
             :highlighted-map="highlightedMap"
@@ -143,6 +159,7 @@ import {
 } from '@/services/crossbreeding-service/models';
 import Sapling from '@/models/sapling.model';
 import goTo from 'vuetify/lib/services/goto';
+import PineHostingAd from './PineHostingAd.vue';
 import ProgressIndicator from './ProgressIndicator.vue';
 import SimulationMapGroup from './SimulationMapGroup.vue';
 import SimulationMapGroupBrowser from './SimulationMapGroupBrowser.vue';
@@ -161,7 +178,8 @@ import { timeMsToTimeString } from '@/lib/time-utils';
     SaplingListNumbering,
     ProgressIndicator,
     SimulationMapGroup,
-    SimulationMapGroupBrowser
+    SimulationMapGroupBrowser,
+    PineHostingAd
   }
 })
 export default class CrossbreedingSimulator extends Vue {
@@ -172,6 +190,7 @@ export default class CrossbreedingSimulator extends Vue {
   progressPercents: number[] = [];
   isSimulating = false;
   isFormValid = false;
+  hasResults = false;
   lastEstimatedTimeUpdateTimestamp = new Date().getTime();
   numberOfGenerations = 0;
   calcStartTime: number | null = null;
@@ -259,6 +278,7 @@ export default class CrossbreedingSimulator extends Vue {
       this.updateEstimatedTime(data.estimatedTimeMs);
     } else if (type === 'DONE_GENERATION') {
       if (data.generationIndex === 1) {
+        this.hasResults = true;
         this.scrollToResults();
       }
       this.setData(data.mapGroups as GeneticsMapGroup[], data.generationIndex === this.numberOfGenerations);
@@ -418,7 +438,8 @@ export default class CrossbreedingSimulator extends Vue {
     this.highlightedMap = map;
     this.selectedBrowsingGroup = null;
     this.onNextTickRerender(() => {
-      const topDistance = (this.$refs.highlightedMap as HTMLElement)?.getBoundingClientRect().top + window.scrollY - 20;
+      const rect = (this.$refs.highlightedMap as HTMLElement)?.getBoundingClientRect();
+      const topDistance = rect.top + rect.height / 2 + window.scrollY - window.innerHeight / 2;
       goTo(topDistance, { duration: 200 });
     });
   }
@@ -465,6 +486,9 @@ export default class CrossbreedingSimulator extends Vue {
   right: 0;
   font-size: 0.75rem;
   opacity: 0.5;
+}
+.simulator_controls:not(.simulator_controls--with-highlight) {
+  max-width: 500px;
 }
 .simulator_sapling-input-container {
   position: relative;

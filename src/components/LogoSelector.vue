@@ -3,7 +3,8 @@
     class="logo__container d-flex align-center"
     :class="{
       'logo__container--expanded': isExpanded,
-      'logo__container--animate-in': animateIn
+      'logo__container--animate-in': animateIn && !$vuetify.breakpoint.xsOnly,
+      'logo__container--animate-heartbeat': animateHeartbeat && !$vuetify.breakpoint.xsOnly
     }"
   >
     <div class="logo__image-container d-flex align-center">
@@ -22,8 +23,8 @@
             :disabled="$vuetify.breakpoint.xsOnly"
             v-bind="attrs"
             v-on="on"
+            class="logo__image"
             :class="{
-              'logo__image--active': activeImageName === imageName,
               'logo__image--hidden': activeImageName !== imageName && !isExpanded
             }"
             @click="!$vuetify.breakpoint.xsOnly && handleImageClick(imageName)"
@@ -65,6 +66,7 @@ export default class LogoSelector extends Vue {
   activeImageName = this.imagesNames[0];
   isExpanded = false;
   animateIn = false;
+  animateHeartbeat = false;
 
   get displayedImageNames() {
     return this.activeImageName !== this.imagesNames[0] || this.isExpanded
@@ -89,6 +91,7 @@ export default class LogoSelector extends Vue {
       this.animateIn = true;
       setTimeout(() => {
         this.animateIn = false;
+        this.animateHeartbeat = true;
       }, 800);
     });
   }
@@ -130,7 +133,7 @@ export default class LogoSelector extends Vue {
     height: 100%;
     border-radius: 5px;
     background-color: rgba(0, 0, 0, 0.15);
-    button {
+    .logo__image {
       margin: 0 4px;
       padding: 3px 0;
       display: inline-block;
@@ -138,7 +141,10 @@ export default class LogoSelector extends Vue {
       border: 0px;
       background: transparent;
       max-width: 46px;
-      transition: all 0.15s ease;
+      transition: all 0.25s ease;
+      &:first-child {
+        transition: all 0.25s ease 0.1s;
+      }
       &.logo__image--hidden {
         visibility: hidden;
         max-width: 0;
@@ -156,14 +162,30 @@ export default class LogoSelector extends Vue {
       }
     }
   }
+  &.logo__container--animate-heartbeat {
+    .logo__image-container {
+      animation: heartbeat 0.65s 0.4s ease both;
+    }
+  }
   &.logo__container--animate-in {
     .logo__image-container {
-      button:first-child:not(:hover) {
-        animation: heartbeat 0.5s 0.3s ease both;
+      .logo__image:first-child {
+        transition: all 0s ease;
+        visibility: hidden;
+        max-width: 0;
+        opacity: 0;
+        margin: 0;
+      }
+      .logo__image:not(:first-child) {
+        visibility: visible;
+        max-width: 46px;
+        opacity: 1;
+        margin: 0 4px;
       }
     }
   }
-  &.logo__container--expanded {
+  &.logo__container--expanded,
+  &.logo__container--animate-in {
     .v-toolbar__title {
       transition: opacity 0s, visibility 0s, width 0s;
       opacity: 0;
@@ -193,12 +215,14 @@ export default class LogoSelector extends Vue {
 
 @keyframes heartbeat {
   0%,
-  50%,
+  33%,
+  66%,
   100% {
     transform: scale(1);
   }
-  25%,
-  75% {
+  17%,
+  50%,
+  83% {
     transform: scale(1.15);
   }
 }

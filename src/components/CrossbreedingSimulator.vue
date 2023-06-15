@@ -14,67 +14,66 @@
             'simulator_controls--with-highlight': showHighlight
           }"
         >
-          <v-form ref="form" v-model="isFormValid" spellcheck="false">
-            <div class="d-flex flex-wrap justify-center my-5 px-3">
-              <v-btn
-                class="ma-1"
-                color="primary"
-                @click="handleSimulateClick"
-                v-if="!isSimulating"
-                :disabled="!isFormValid || isScreenScanning"
-                >Calculate
-              </v-btn>
-              <v-btn class="ma-1 white--text" color="red" v-if="isSimulating" @click="handleStopSimulationClick"
-                >Cancel
-                <v-icon right>
-                  mdi-cancel
-                </v-icon></v-btn
-              >
-              <span class="ma-1">
-                <SaplingScreenCapture
-                  @sapling-scanned="handleSaplingScannedEvent"
-                  :is-disabled="isSimulating"
-                  @started-scanning="isScreenScanning = true"
-                  @stopped-scanning="isScreenScanning = false"
-                  :skip-scanner-guide="options ? options.skipScannerGuide : false"
-                />
-              </span>
-              <span class="ma-1">
-                <Options ref="options" :cookies-accepted="cookiesAccepted" @options-set="handleOptionsSetEvent" />
-              </span>
-            </div>
-            <v-row no-gutters>
-              <v-col>
-                <GeneInputs
-                  class="simulator_sapling-input-container mx-3"
-                  ref="geneInputs"
-                  @genes-change="handleInputGenesChange"
-                  :highlightedMap="highlightedMap"
-                  :disabled="isScreenScanning || isSimulating"
-                  :soundsEnabled="options ? options.sounds : false"
-                ></GeneInputs>
-              </v-col>
+          <div class="d-flex flex-wrap justify-center my-5 px-3">
+            <v-btn
+              class="ma-1"
+              color="primary"
+              @click="handleSimulateClick"
+              v-if="!isSimulating"
+              :disabled="!areInputsValid || isScreenScanning"
+              >Calculate
+            </v-btn>
+            <v-btn class="ma-1 white--text" color="red" v-if="isSimulating" @click="handleStopSimulationClick"
+              >Cancel
+              <v-icon right>
+                mdi-cancel
+              </v-icon></v-btn
+            >
+            <span class="ma-1">
+              <SaplingScreenCapture
+                @sapling-scanned="handleSaplingScannedEvent"
+                :is-disabled="isSimulating"
+                @started-scanning="isScreenScanning = true"
+                @stopped-scanning="isScreenScanning = false"
+                :skip-scanner-guide="options ? options.skipScannerGuide : false"
+              />
+            </span>
+            <span class="ma-1">
+              <Options ref="options" :cookies-accepted="cookiesAccepted" @options-set="handleOptionsSetEvent" />
+            </span>
+          </div>
+          <v-row no-gutters>
+            <v-col>
+              <GeneInputs
+                class="simulator_sapling-input-container mx-3"
+                ref="geneInputs"
+                @genes-change="handleInputGenesChange"
+                @validity-change="handleInputsValidityChange"
+                :highlightedMap="highlightedMap"
+                :disabled="isScreenScanning || isSimulating"
+                :soundsEnabled="options ? options.sounds : false"
+              ></GeneInputs>
+            </v-col>
 
-              <v-col ref="highlightedMap" v-if="showHighlight" class="d-flex flex-column align-center mx-sm-3 mb-3">
-                <SimulationMap
-                  :map="highlightedMap"
-                  enable-tooltip
-                  enable-composing-saplings-selection
-                  @composing-sapling-selected="handleHighlightComposingSaplingSelectedEvent"
-                />
-                <v-btn class="mt-3" @click="handleClearHighlightClick">Clear Selection</v-btn>
-                <div
-                  class="mt-2 mb-2 px-3 px-sm-0"
-                  v-if="highlightedMap && highlightedMap.resultSapling.generationIndex > 1"
-                >
-                  The Sapling you selected comes from the
-                  <strong>{{ highlightedMap.resultSapling.generationIndex === 2 ? '2nd' : '3rd' }}</strong> generation.
-                  You will first need to crossbreed Saplings that it requires. Click on
-                  <span class="simulator_highlight-guide">highlighted</span> Saplings to see how to crossbreed them.
-                </div>
-              </v-col>
-            </v-row>
-          </v-form>
+            <v-col ref="highlightedMap" v-if="showHighlight" class="d-flex flex-column align-center mx-sm-3 mb-3">
+              <SimulationMap
+                :map="highlightedMap"
+                enable-tooltip
+                enable-composing-saplings-selection
+                @composing-sapling-selected="handleHighlightComposingSaplingSelectedEvent"
+              />
+              <v-btn class="mt-3" @click="handleClearHighlightClick">Clear Selection</v-btn>
+              <div
+                class="mt-2 mb-2 px-3 px-sm-0"
+                v-if="highlightedMap && highlightedMap.resultSapling.generationIndex > 1"
+              >
+                The Sapling you selected comes from the
+                <strong>{{ highlightedMap.resultSapling.generationIndex === 2 ? '2nd' : '3rd' }}</strong> generation.
+                You will first need to crossbreed Saplings that it requires. Click on
+                <span class="simulator_highlight-guide">highlighted</span> Saplings to see how to crossbreed them.
+              </div>
+            </v-col>
+          </v-row>
           <pine-hosting-ad></pine-hosting-ad>
         </v-col>
         <v-col
@@ -170,10 +169,10 @@ export default class CrossbreedingSimulator extends Vue {
   @Prop({ type: Boolean }) readonly cookiesAccepted: boolean;
   progressPercents: number[] = [];
   isSimulating = false;
-  isFormValid = false;
   hasResults = false;
   lastEstimatedTimeUpdateTimestamp = new Date().getTime();
   numberOfGenerations = 0;
+  areInputsValid = false;
   calcStartTime: number | null = null;
   calcEndTime: number | null = null;
   options: ApplicationOptions | null = null;
@@ -265,11 +264,6 @@ export default class CrossbreedingSimulator extends Vue {
 
   handleInputGenesChange() {
     this.showNotEnoughSaplingsError = false;
-    this.onNextTickRerender(() => {
-      if ((this.$refs.form as Vue & { validate: () => boolean }).validate()) {
-        (this.$refs.form as Vue & { resetValidation: () => boolean }).resetValidation();
-      }
-    });
   }
 
   handleSimulateClick() {
@@ -307,6 +301,10 @@ export default class CrossbreedingSimulator extends Vue {
 
   handleSaplingScannedEvent(value: string) {
     (this.$refs.geneInputs as GeneInputs).handleSaplingScannedEvent(value);
+  }
+
+  handleInputsValidityChange(valid: boolean) {
+    this.areInputsValid = valid;
   }
 
   handleClearHighlightClick() {

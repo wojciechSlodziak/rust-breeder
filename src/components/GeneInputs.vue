@@ -1,24 +1,26 @@
 <template>
   <div>
-    <SaplingInputHighlights :inputString="saplingGenes" :highlightedMap="highlightedMap" />
-    <SaplingListNumbering :saplingGeneList="saplingGeneList"></SaplingListNumbering>
-    <v-textarea
-      full-width
-      ref="saplingGenesInput"
-      class="simulator_sapling-input"
-      :placeholder="placeholder"
-      label="Add your genes here..."
-      :value="saplingGenes"
-      @input="handleSaplingGenesInput($event)"
-      @blur="handleSaplingGenesInputBlur"
-      @keydown="handleSaplingGenesInputKeyDown($event)"
-      outlined
-      :disabled="disabled"
-      :rows="Math.max(5, saplingGenes.split(`\n`).length || 0)"
-      :rules="sourceSaplingRules"
-      autocomplete="off"
-    ></v-textarea>
-    <SaplingListPreview :saplingGeneList="saplingGeneList" ref="saplingListPreview"></SaplingListPreview>
+    <v-form ref="form" v-model="isFormValid" spellcheck="false">
+      <SaplingInputHighlights :inputString="saplingGenes" :highlightedMap="highlightedMap" />
+      <SaplingListNumbering :saplingGeneList="saplingGeneList"></SaplingListNumbering>
+      <v-textarea
+        full-width
+        ref="saplingGenesInput"
+        class="simulator_sapling-input"
+        :placeholder="placeholder"
+        label="Add your genes here..."
+        :value="saplingGenes"
+        @input="handleSaplingGenesInput($event)"
+        @blur="handleSaplingGenesInputBlur"
+        @keydown="handleSaplingGenesInputKeyDown($event)"
+        outlined
+        :disabled="disabled"
+        :rows="Math.max(5, saplingGenes.split(`\n`).length || 0)"
+        :rules="sourceSaplingRules"
+        autocomplete="off"
+      ></v-textarea>
+      <SaplingListPreview :saplingGeneList="saplingGeneList" ref="saplingListPreview"></SaplingListPreview>
+    </v-form>
   </div>
 </template>
 
@@ -46,6 +48,7 @@ export default class GeneInputs extends Vue {
   // fix for Safari not respecting new line in placeholder
   placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`.replaceAll('\n', ' '.repeat(100));
   saplingGenes = ``;
+  isFormValid = false;
 
   sourceSaplingRules = [
     (v: string) => v !== '' || 'Give me some plants to work with!',
@@ -66,18 +69,29 @@ export default class GeneInputs extends Vue {
         if (this.saplingGenes.length !== 0 && this.saplingGenes.charAt(0).match(/\r?\n/)) {
           this.saplingGenes = this.saplingGenes.slice(1);
         }
+        this.checkFormValidity();
+        this.$emit('genes-change');
         this.onNextTickRerender(() => {
           textarea.selectionEnd = caretPosition + (this.saplingGenes.length - value.length);
         });
       });
     }
-    this.$emit('genes-change', this.saplingGenes);
   }
 
   handleSaplingGenesInputBlur() {
     this.saplingGenes = this.saplingGenes.replaceAll(/[\n]{2,}/g, '\n');
     this.saplingGenes = this.getDeduplicatedSaplingGeneList().join('\n');
+    this.checkFormValidity();
     this.$emit('genes-change', this.saplingGenes);
+  }
+
+  checkFormValidity() {
+    this.onNextTickRerender(() => {
+      if ((this.$refs.form as Vue & { validate: () => boolean }).validate()) {
+        (this.$refs.form as Vue & { resetValidation: () => boolean }).resetValidation();
+      }
+      this.$emit('validity-change', this.isFormValid);
+    });
   }
 
   handleSaplingScannedEvent(value: string) {

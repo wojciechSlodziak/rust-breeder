@@ -156,6 +156,7 @@ export default class LogoSelector extends Vue {
       }
       &:not([disabled]):hover {
         transform: scale(1.15);
+        transition: transform 0.15s;
       }
       &:focus {
         outline: 2px solid var(--v-primary-base);

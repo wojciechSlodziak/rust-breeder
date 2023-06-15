@@ -374,9 +374,6 @@ export default class CrossbreedingSimulator extends Vue {
 .simulator_sapling-input-container {
   position: relative;
   min-width: 260px;
-  .simulator_sapling-input {
-    z-index: 1;
-  }
 }
 .simulator_highlight-guide {
   outline: 2px solid rgba(223, 145, 0, 0.4);

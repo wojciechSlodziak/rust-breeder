@@ -1,13 +1,13 @@
 <template>
   <div
-    class="logo__container d-flex align-center"
+    class="logo_container d-flex align-center"
     :class="{
-      'logo__container--expanded': isExpanded,
-      'logo__container--animate-in': animateIn && !$vuetify.breakpoint.xsOnly,
-      'logo__container--animate-heartbeat': animateHeartbeat && !$vuetify.breakpoint.xsOnly
+      'logo_container--expanded': isExpanded,
+      'logo_container--animate-in': animateIn && !$vuetify.breakpoint.xsOnly,
+      'logo_container--animate-heartbeat': animateHeartbeat && !$vuetify.breakpoint.xsOnly
     }"
   >
-    <div class="logo__image-container d-flex align-center">
+    <div class="logo_image-container d-flex align-center">
       <v-tooltip
         v-for="imageName in displayedImageNames"
         :key="imageName"
@@ -23,9 +23,9 @@
             :disabled="$vuetify.breakpoint.xsOnly"
             v-bind="attrs"
             v-on="on"
-            class="logo__image"
+            class="logo_image"
             :class="{
-              'logo__image--hidden': activeImageName !== imageName && !isExpanded
+              'logo_image--hidden': activeImageName !== imageName && !isExpanded
             }"
             @click="!$vuetify.breakpoint.xsOnly && handleImageClick(imageName)"
           >
@@ -116,7 +116,7 @@ export default class LogoSelector extends Vue {
 </script>
 
 <style scoped lang="scss">
-.logo__container {
+.logo_container {
   height: 100%;
   padding: 2px 0;
   margin-left: -5px;
@@ -129,11 +129,11 @@ export default class LogoSelector extends Vue {
       text-decoration: inherit;
     }
   }
-  .logo__image-container {
+  .logo_image-container {
     height: 100%;
     border-radius: 5px;
     background-color: rgba(0, 0, 0, 0.15);
-    .logo__image {
+    .logo_image {
       margin: 0 4px;
       padding: 3px 0;
       display: inline-block;
@@ -145,7 +145,7 @@ export default class LogoSelector extends Vue {
       &:first-child {
         transition: all 0.25s ease 0.1s;
       }
-      &.logo__image--hidden {
+      &.logo_image--hidden {
         visibility: hidden;
         max-width: 0;
         opacity: 0;
@@ -163,21 +163,21 @@ export default class LogoSelector extends Vue {
       }
     }
   }
-  &.logo__container--animate-heartbeat {
-    .logo__image-container {
+  &.logo_container--animate-heartbeat {
+    .logo_image-container {
       animation: heartbeat 0.65s 0.4s ease both;
     }
   }
-  &.logo__container--animate-in {
-    .logo__image-container {
-      .logo__image:first-child {
+  &.logo_container--animate-in {
+    .logo_image-container {
+      .logo_image:first-child {
         transition: all 0s ease;
         visibility: hidden;
         max-width: 0;
         opacity: 0;
         margin: 0;
       }
-      .logo__image:not(:first-child) {
+      .logo_image:not(:first-child) {
         visibility: visible;
         max-width: 46px;
         opacity: 1;
@@ -185,8 +185,8 @@ export default class LogoSelector extends Vue {
       }
     }
   }
-  &.logo__container--expanded,
-  &.logo__container--animate-in {
+  &.logo_container--expanded,
+  &.logo_container--animate-in {
     .v-toolbar__title {
       transition: opacity 0s, visibility 0s, width 0s;
       opacity: 0;
@@ -195,19 +195,19 @@ export default class LogoSelector extends Vue {
       visibility: hidden;
     }
 
-    .logo__image-container {
+    .logo_image-container {
       background-color: rgba(0, 0, 0, 0.25);
     }
   }
 }
 
 .theme--light {
-  .logo__container {
-    .logo__image-container {
+  .logo_container {
+    .logo_image-container {
       background-color: rgba(0, 0, 0, 0.1);
     }
-    &.logo__container--expanded {
-      .logo__image-container {
+    &.logo_container--expanded {
+      .logo_image-container {
         background-color: rgba(0, 0, 0, 0.1);
       }
     }

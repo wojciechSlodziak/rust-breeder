@@ -6,7 +6,7 @@
       <v-textarea
         full-width
         ref="saplingGenesInput"
-        class="simulator_sapling-input"
+        class="gene-inputs_input"
         :placeholder="placeholder"
         label="Add your genes here..."
         :value="saplingGenes"
@@ -162,3 +162,9 @@ export default class GeneInputs extends Vue {
   }
 }
 </script>
+
+<style scoped lang="scss">
+.gene-inputs_input {
+  z-index: 1;
+}
+</style>

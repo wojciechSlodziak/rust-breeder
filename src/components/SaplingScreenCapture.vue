@@ -1,7 +1,7 @@
 <template>
   <span>
     <v-btn
-      @click="isDialogOpen = true"
+      @click="handleScanClick"
       :disabled="isDisabled"
       v-if="shouldDisplayScreenCaptureButton && !isScanning && !isInitializing"
     >
@@ -113,6 +113,7 @@ import SaplingScreenCapturePreview from './SaplingScreenCapturePreview.vue';
 @Component({ components: { SaplingScreenCapturePreview } })
 export default class SaplingScreenCapture extends Vue {
   @Prop({ type: Boolean }) isDisabled: boolean;
+  @Prop({ type: Boolean }) skipScannerGuide: boolean;
 
   isDialogOpen = false;
   showPreview = false;
@@ -126,6 +127,14 @@ export default class SaplingScreenCapture extends Vue {
 
   mounted() {
     screenCaptureService.addEventListener(this.onScreenCaptureServiceEvent);
+  }
+
+  handleScanClick() {
+    if (this.skipScannerGuide) {
+      this.startCapturing();
+    } else {
+      this.isDialogOpen = true;
+    }
   }
 
   startCapturing() {

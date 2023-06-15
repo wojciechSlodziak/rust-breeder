@@ -11,4 +11,6 @@ export default interface ApplicationOptions {
   geneScores: Record<GeneEnum, number>;
   darkMode: boolean;
   sounds: boolean;
+  skipScannerGuide: boolean;
+  autoAddCalculatedInputSetsToHistory: boolean;
 }

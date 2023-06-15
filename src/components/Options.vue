@@ -114,6 +114,20 @@
                 v-model="options.sounds"
                 :label="`Sounds: ${options.sounds ? 'On' : 'Off'}`"
               ></v-switch>
+              <v-switch
+                class="mt-0"
+                v-model="options.skipScannerGuide"
+                :label="`Skip Scanning Guide: ${options.skipScannerGuide ? 'Yes' : 'No'}`"
+              ></v-switch>
+              <v-switch
+                class="mt-0"
+                v-model="options.autoAddCalculatedInputSetsToHistory"
+                :label="
+                  `Auto-add calculated input genes to History: ${
+                    options.autoAddCalculatedInputSetsToHistory ? 'Yes' : 'No'
+                  }`
+                "
+              ></v-switch>
             </v-tab-item>
           </v-tabs-items>
         </v-card-text>
@@ -164,7 +178,7 @@ import { getCookie, setCookie } from 'typescript-cookie';
  * If the structure of the options would change in the future this value should be incremented
  * to invalidate obsolote options saved by the User.
  */
-const OPTIONS_VERSION = 2;
+const OPTIONS_VERSION = 3;
 const OPTIONS_COOKIE_KEY = `options-v${OPTIONS_VERSION}`;
 const DEFAULT_OPTIONS: ApplicationOptions = {
   withRepetitions: true,
@@ -182,6 +196,8 @@ const DEFAULT_OPTIONS: ApplicationOptions = {
     [GeneEnum.W]: 0
   },
   darkMode: true,
+  skipScannerGuide: false,
+  autoAddCalculatedInputSetsToHistory: true,
   sounds: true
 };
 const STORED_OPTIONS = getCookie(OPTIONS_COOKIE_KEY);

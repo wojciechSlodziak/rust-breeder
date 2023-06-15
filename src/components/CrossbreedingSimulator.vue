@@ -36,6 +36,7 @@
                   :is-disabled="isSimulating"
                   @started-scanning="isScreenScanning = true"
                   @stopped-scanning="isScreenScanning = false"
+                  :skip-scanner-guide="options ? options.skipScannerGuide : false"
                 />
               </span>
               <span class="ma-1">
@@ -44,27 +45,14 @@
             </div>
             <v-row no-gutters>
               <v-col>
-                <div class="simulator_sapling-input-container mx-3">
-                  <SaplingInputHighlights :inputString="saplingGenes" :highlightedMap="highlightedMap" />
-                  <SaplingListNumbering :saplingGeneList="saplingGeneList"></SaplingListNumbering>
-                  <v-textarea
-                    full-width
-                    ref="saplingGenesInput"
-                    class="simulator_sapling-input"
-                    :placeholder="placeholder"
-                    label="Add your genes here..."
-                    :value="saplingGenes"
-                    @input="handleSaplingGenesInput($event)"
-                    @blur="handleSaplingGenesInputBlur"
-                    @keydown="handleSaplingGenesInputKeyDown($event)"
-                    outlined
-                    :disabled="isScreenScanning || isSimulating"
-                    :rows="Math.max(5, saplingGenes.split(`\n`).length || 0)"
-                    :rules="sourceSaplingRules"
-                    autocomplete="off"
-                  ></v-textarea>
-                  <SaplingListPreview :saplingGeneList="saplingGeneList" ref="saplingListPreview"></SaplingListPreview>
-                </div>
+                <GeneInputs
+                  class="simulator_sapling-input-container mx-3"
+                  ref="geneInputs"
+                  @genes-change="handleInputGenesChange"
+                  :highlightedMap="highlightedMap"
+                  :disabled="isScreenScanning || isSimulating"
+                  :soundsEnabled="options ? options.sounds : false"
+                ></GeneInputs>
               </v-col>
 
               <v-col ref="highlightedMap" v-if="showHighlight" class="d-flex flex-column align-center mx-sm-3 mb-3">
@@ -147,9 +135,8 @@ import { Component, Vue, Prop } from 'vue-property-decorator';
 import crossbreedingOrchestrator from '../services/crossbreeding-service/crossbreeding-orchestrator';
 import SimulationResults from './SimulationResults.vue';
 import SimulationMap from './SimulationMap.vue';
-import SaplingInputHighlights from './SaplingInputHighlights.vue';
 import Options from './Options.vue';
-import SaplingListPreview from './SaplingListPreview.vue';
+import GeneInputs from './GeneInputs.vue';
 import SaplingScreenCapture from './SaplingScreenCapture.vue';
 import {
   GeneticsMap,
@@ -164,18 +151,15 @@ import ProgressIndicator from './ProgressIndicator.vue';
 import SimulationMapGroup from './SimulationMapGroup.vue';
 import SimulationMapGroupBrowser from './SimulationMapGroupBrowser.vue';
 import ApplicationOptions from '@/interfaces/application-options';
-import SaplingListNumbering from './SaplingListNumbering.vue';
 import { timeMsToTimeString } from '@/lib/time-utils';
 
 @Component({
   components: {
     SimulationResults,
     SimulationMap,
-    SaplingInputHighlights,
     Options,
+    GeneInputs,
     SaplingScreenCapture,
-    SaplingListPreview,
-    SaplingListNumbering,
     ProgressIndicator,
     SimulationMapGroup,
     SimulationMapGroupBrowser,
@@ -184,9 +168,6 @@ import { timeMsToTimeString } from '@/lib/time-utils';
 })
 export default class CrossbreedingSimulator extends Vue {
   @Prop({ type: Boolean }) readonly cookiesAccepted: boolean;
-  // fix for Safari not respecting new line in placeholder
-  placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`.replaceAll('\n', ' '.repeat(100));
-  saplingGenes = ``;
   progressPercents: number[] = [];
   isSimulating = false;
   isFormValid = false;
@@ -195,7 +176,7 @@ export default class CrossbreedingSimulator extends Vue {
   numberOfGenerations = 0;
   calcStartTime: number | null = null;
   calcEndTime: number | null = null;
-  options: ApplicationOptions;
+  options: ApplicationOptions | null = null;
   showNotEnoughSaplingsError = false;
   highlightedMap: GeneticsMap | null = null;
   selectedBrowsingGroup: GeneticsMapGroup | null = null;
@@ -205,17 +186,8 @@ export default class CrossbreedingSimulator extends Vue {
   isScreenScanning = false;
   appVersion = process.env.VUE_APP_VERSION;
 
-  sourceSaplingRules = [
-    (v: string) => v !== '' || 'Give me some plants to work with!',
-    (v: string) => /^([GHWYX]{6}\n{1})*([GHWYX]{6}\n{0})*\n*$/.test(v) || 'You are almost there...'
-  ];
-
   get showHighlight() {
     return this.highlightedMap !== null;
-  }
-
-  get saplingGeneList() {
-    return this.saplingGenes === '' ? [] : this.saplingGenes.trim().split(/\r?\n/);
   }
 
   get calcTotalTime() {
@@ -233,43 +205,6 @@ export default class CrossbreedingSimulator extends Vue {
 
   mounted() {
     this.options = (this.$refs.options as Options).getOptions();
-  }
-
-  handleSaplingGenesInput(value: string) {
-    this.showNotEnoughSaplingsError = false;
-    const textarea = (this.$refs.saplingGenesInput as Vue).$el.querySelector('textarea');
-    if (textarea) {
-      const caretPosition = textarea.selectionStart;
-      this.saplingGenes = value;
-      this.onNextTickRerender(() => {
-        this.saplingGenes = value.toUpperCase().replace(/[^GHWYX\n]/g, '');
-        if (this.saplingGenes.length !== 0 && this.saplingGenes.charAt(0).match(/\r?\n/)) {
-          this.saplingGenes = this.saplingGenes.slice(1);
-        }
-        this.onNextTickRerender(() => {
-          textarea.selectionEnd = caretPosition + (this.saplingGenes.length - value.length);
-        });
-      });
-    }
-  }
-
-  getDeduplicatedSaplingGeneList() {
-    const splitSaplingGenes: string[] = this.saplingGeneList;
-    const deduplicatedSaplingGenes: string[] = splitSaplingGenes.filter(
-      (genes, index, self) => index === self.findIndex((otherGenes) => otherGenes === genes)
-    );
-    return deduplicatedSaplingGenes;
-  }
-
-  handleSaplingScannedEvent(value: string) {
-    if (this.saplingGenes.indexOf(value) === -1) {
-      if (!this.saplingGenes.charAt(this.saplingGenes.length - 1).match(/\r?\n/) && this.saplingGenes.length !== 0) {
-        this.saplingGenes += '\n';
-      }
-      this.saplingGenes += value;
-      (this.$refs.saplingListPreview as SaplingListPreview)?.animateAndScrollToLastSapling();
-      this.playSaplingsScannedSound();
-    }
   }
 
   onCrossbreedingServiceEvent(type: string, data: CrossbreedingOrchestratorEventListenerCallbackData) {
@@ -311,7 +246,7 @@ export default class CrossbreedingSimulator extends Vue {
 
   updateTitle(generationIndex?: number | undefined, progressPercent?: number | undefined) {
     if (
-      (progressPercent === 100 && generationIndex === this.options.numberOfGenerations) ||
+      (progressPercent === 100 && generationIndex === this.options?.numberOfGenerations) ||
       generationIndex === undefined
     ) {
       document.title = 'Rust Breeder - Crossbreeding Optimizer';
@@ -328,27 +263,37 @@ export default class CrossbreedingSimulator extends Vue {
     }
   }
 
+  handleInputGenesChange() {
+    this.showNotEnoughSaplingsError = false;
+    this.onNextTickRerender(() => {
+      if ((this.$refs.form as Vue & { validate: () => boolean }).validate()) {
+        (this.$refs.form as Vue & { resetValidation: () => boolean }).resetValidation();
+      }
+    });
+  }
+
   handleSimulateClick() {
-    this.clearHighlight();
-    const deduplicatedSaplingGeneList = this.getDeduplicatedSaplingGeneList();
-    this.saplingGenes = deduplicatedSaplingGeneList.join('\n');
-    this.numberOfGenerations = this.options.numberOfGenerations;
-    this.progressPercents = new Array(this.options.numberOfGenerations);
-    this.resultMapGroups = null;
-    this.calcStartTime = Date.now();
-    this.calcEndTime = null;
-    try {
-      crossbreedingOrchestrator.simulateBestGenetics(
-        deduplicatedSaplingGeneList.map((geneString, index) => new Sapling(geneString, 0, index)),
-        undefined,
-        this.options
-      );
-      this.isSimulating = true;
-    } catch (e) {
-      if (e instanceof NotEnoughSourceSaplingsError) {
-        this.showNotEnoughSaplingsError = true;
-      } else {
-        throw e;
+    if (this.options) {
+      this.clearHighlight();
+      const deduplicatedSaplingGeneList = (this.$refs.geneInputs as GeneInputs).getDeduplicatedSaplingGeneList();
+      this.numberOfGenerations = this.options.numberOfGenerations;
+      this.progressPercents = new Array(this.options.numberOfGenerations);
+      this.resultMapGroups = null;
+      this.calcStartTime = Date.now();
+      this.calcEndTime = null;
+      try {
+        crossbreedingOrchestrator.simulateBestGenetics(
+          deduplicatedSaplingGeneList.map((geneString, index) => new Sapling(geneString, 0, index)),
+          undefined,
+          this.options
+        );
+        this.isSimulating = true;
+      } catch (e) {
+        if (e instanceof NotEnoughSourceSaplingsError) {
+          this.showNotEnoughSaplingsError = true;
+        } else {
+          throw e;
+        }
       }
     }
   }
@@ -360,46 +305,8 @@ export default class CrossbreedingSimulator extends Vue {
     crossbreedingOrchestrator.cancelSimulation();
   }
 
-  handleSaplingGenesInputBlur() {
-    this.saplingGenes = this.saplingGenes.replaceAll(/[\n]{2,}/g, '\n');
-    this.saplingGenes = this.getDeduplicatedSaplingGeneList().join('\n');
-    this.onNextTickRerender(() => {
-      if ((this.$refs.form as Vue & { validate: () => boolean }).validate()) {
-        (this.$refs.form as Vue & { resetValidation: () => boolean }).resetValidation();
-      }
-    });
-  }
-
-  handleSaplingGenesInputKeyDown(event: KeyboardEvent) {
-    const allowedKeys = [
-      'H',
-      'G',
-      'Y',
-      'X',
-      'W',
-      'Enter',
-      'Backspace',
-      'ArrowRight',
-      'ArrowLeft',
-      'ArrowUp',
-      'ArrowDown',
-      'End',
-      'Delete',
-      'Home',
-      'Shift',
-      'Alt',
-      'Control',
-      'Tab'
-    ];
-    if (
-      event.key &&
-      event.key !== 'Unidentified' &&
-      !(event.altKey || event.ctrlKey) &&
-      allowedKeys.indexOf(event.key) === -1 &&
-      allowedKeys.indexOf(event.key.toUpperCase()) === -1
-    ) {
-      this.playWrongKeySound();
-    }
+  handleSaplingScannedEvent(value: string) {
+    (this.$refs.geneInputs as GeneInputs).handleSaplingScannedEvent(value);
   }
 
   handleClearHighlightClick() {
@@ -408,30 +315,6 @@ export default class CrossbreedingSimulator extends Vue {
 
   clearHighlight() {
     this.highlightedMap = null;
-  }
-
-  playWrongKeySound() {
-    this.playAudio('wrongKeyAudio', 0.04);
-  }
-
-  playSaplingsScannedSound() {
-    this.playAudio('saplingScannedAudio', 0.5);
-  }
-
-  playAudio(audioElementName: string, volume: number) {
-    if (this.options.sounds) {
-      const audioElement = document.getElementById(audioElementName);
-      if (audioElement) {
-        const headshotAudio = audioElement.cloneNode() as HTMLElement & {
-          volume: string;
-          play: () => void;
-        };
-        if (headshotAudio) {
-          headshotAudio.volume = volume.toString();
-          headshotAudio.play();
-        }
-      }
-    }
   }
 
   handleMapSelectedEvent(map: GeneticsMap) {

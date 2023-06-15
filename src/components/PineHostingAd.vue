@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex justify-center mx-3">
+  <div class="d-flex justify-center mx-3 mb-6">
     <a class="d-block" href="https://pinehosting.com/clientarea/aff.php?aff=298" target="_blank" title="Pine Hosting"
       ><img src="/img/pine-hosting-ad.webp"
     /></a>

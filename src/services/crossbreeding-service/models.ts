@@ -14,8 +14,6 @@ export class WorkChunk {
   allCombinationsCount: number;
 }
 
-export class NotEnoughSourceSaplingsError extends Error {}
-
 export class ProcessingStat {
   timestamp: number;
   combinationsProcessed: number;

@@ -143,6 +143,21 @@ export default class PreviousGenes extends Vue {
 .theme--light {
   .previous-genes {
     border: 1px solid rgba(0, 0, 0, 0.38);
+
+    ul {
+      &::-webkit-scrollbar-thumb {
+        background: #aeaeae;
+      }
+      &::-webkit-scrollbar-thumb:hover {
+        background: #9b9b9b;
+      }
+      &::-webkit-scrollbar-thumb:active {
+        background: #787878;
+      }
+      &::-webkit-scrollbar-track {
+        background: #ededed;
+      }
+    }
   }
 }
 </style>

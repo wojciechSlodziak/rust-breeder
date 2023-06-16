@@ -110,7 +110,6 @@ export default class GeneInputs extends Vue {
           this.saplingGenes = this.saplingGenes.slice(1);
         }
         this.checkFormValidity();
-        this.$emit('genes-change');
         this.onNextTickRerender(() => {
           textarea.selectionEnd = caretPosition + (this.saplingGenes.length - value.length);
         });
@@ -122,7 +121,6 @@ export default class GeneInputs extends Vue {
     this.saplingGenes = this.saplingGenes.replaceAll(/[\n]{2,}/g, '\n');
     this.saplingGenes = this.getDeduplicatedSaplingGeneList().join('\n');
     this.checkFormValidity();
-    this.$emit('genes-change', this.saplingGenes);
   }
 
   handleStoreSetClick() {

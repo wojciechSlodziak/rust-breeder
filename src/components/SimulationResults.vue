@@ -1,5 +1,5 @@
 <template>
-  <div :class="{ 'd-none': !mapGroups }">
+  <div :class="{ 'd-none': !mapGroups || mapGroups.length === 0 }">
     <v-container class="px-3 py-0">
       <v-row>
         <v-col class="px-2 py-0">

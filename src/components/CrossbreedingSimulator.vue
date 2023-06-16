@@ -47,7 +47,6 @@
               <GeneInputs
                 class="simulator_sapling-input-container mx-3"
                 ref="geneInputs"
-                @genes-change="handleInputGenesChange"
                 @validity-change="handleInputsValidityChange"
                 :highlightedMap="highlightedMap"
                 :disabled="isScreenScanning || isSimulating"
@@ -93,13 +92,11 @@
             v-on:group-selected="handleGroupSelectedEvent"
           />
           <div
-            class="text-center mt-5"
+            class="simulator_error-text text-center mt-5"
             v-if="resultMapGroups !== null && resultMapGroups.length === 0 && !isSimulating"
           >
-            You'll need to find more plants. Try to pick the <strong>good</strong> ones!
-          </div>
-          <div class="text-center py-md-6 mb-10" v-if="showNotEnoughSaplingsError">
-            More plants are needed to crossbreed!
+            The genes that you provided did not return any useful results. You'll need to find more plants. Try to pick
+            the <strong>good</strong> ones!
           </div>
         </v-col>
       </v-row>
@@ -142,8 +139,7 @@ import SaplingScreenCapture from './SaplingScreenCapture.vue';
 import {
   GeneticsMap,
   CrossbreedingOrchestratorEventListenerCallbackData,
-  GeneticsMapGroup,
-  NotEnoughSourceSaplingsError
+  GeneticsMapGroup
 } from '@/services/crossbreeding-service/models';
 import Sapling from '@/models/sapling.model';
 import goTo from 'vuetify/lib/services/goto';
@@ -179,7 +175,6 @@ export default class CrossbreedingSimulator extends Vue {
   calcStartTime: number | null = null;
   calcEndTime: number | null = null;
   options: ApplicationOptions | null = null;
-  showNotEnoughSaplingsError = false;
   highlightedMap: GeneticsMap | null = null;
   selectedBrowsingGroup: GeneticsMapGroup | null = null;
   isSelectedBrowsingGroupFromHighlight = false;
@@ -265,10 +260,6 @@ export default class CrossbreedingSimulator extends Vue {
     }
   }
 
-  handleInputGenesChange() {
-    this.showNotEnoughSaplingsError = false;
-  }
-
   handleSimulateClick() {
     if (this.options) {
       this.clearHighlight();
@@ -278,20 +269,12 @@ export default class CrossbreedingSimulator extends Vue {
       this.resultMapGroups = null;
       this.calcStartTime = Date.now();
       this.calcEndTime = null;
-      try {
-        crossbreedingOrchestrator.simulateBestGenetics(
-          deduplicatedSaplingGeneList.map((geneString, index) => new Sapling(geneString, 0, index)),
-          undefined,
-          this.options
-        );
-        this.isSimulating = true;
-      } catch (e) {
-        if (e instanceof NotEnoughSourceSaplingsError) {
-          this.showNotEnoughSaplingsError = true;
-        } else {
-          throw e;
-        }
-      }
+      crossbreedingOrchestrator.simulateBestGenetics(
+        deduplicatedSaplingGeneList.map((geneString, index) => new Sapling(geneString, 0, index)),
+        undefined,
+        this.options
+      );
+      this.isSimulating = true;
 
       if (this.options.autoSaveInputSets) {
         (this.$refs.geneInputs as GeneInputs).storeCurrentSet();
@@ -359,10 +342,10 @@ export default class CrossbreedingSimulator extends Vue {
   }
 
   scrollToResults() {
-    this.onNextTickRerender(() => {
-      const topDistance = (this.$refs.results as HTMLElement)?.getBoundingClientRect().top + window.scrollY;
-      goTo(topDistance - this.numberOfGenerations * 5, { duration: 300 });
-    });
+    setTimeout(() => {
+      const rect = (this.$refs.results as HTMLElement)?.getBoundingClientRect();
+      goTo(rect.top, { duration: 300 });
+    }, 200);
   }
 }
 </script>
@@ -381,6 +364,9 @@ export default class CrossbreedingSimulator extends Vue {
 .simulator_sapling-input-container {
   position: relative;
   min-width: 260px;
+}
+.simulator_error-text {
+  min-height: 600px;
 }
 .simulator_highlight-guide {
   outline: 2px solid rgba(223, 145, 0, 0.4);

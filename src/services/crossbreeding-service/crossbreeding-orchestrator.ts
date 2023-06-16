@@ -10,7 +10,6 @@ import {
 } from './helper';
 import {
   CrossbreedingOrchestratorEventListenerCallback,
-  NotEnoughSourceSaplingsError,
   CrossbreedingOrchestratorEventListenerCallbackData,
   GenerationInfo,
   GeneticsMapGroup,
@@ -48,10 +47,6 @@ class CrossbreedingOrchestrator {
     this.workerProgress = [];
     if (generationInfo.index === 1) {
       this.mapGroupMap = {};
-    }
-
-    if (sourceSaplings.length < options.minCrossbreedingSaplingsNumber) {
-      throw new NotEnoughSourceSaplingsError();
     }
 
     this.workers = [];

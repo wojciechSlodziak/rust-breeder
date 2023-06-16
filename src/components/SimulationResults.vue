@@ -48,7 +48,7 @@
       </div>
       <div class="mt-5 px-2" v-if="visibleMapGroups.length > 0">
         <div class="mt-5">Click on a Card to see more details about generations and crossbreeding!</div>
-        <div class="hidden-md-and-up mt-2">Press and hold Card to view alternative variants.</div>
+        <div class="hidden-md-and-up mt-2">Press and hold a Card to view alternative variants.</div>
       </div>
     </div>
     <ul class="mt-3 mb-12" v-if="visibleMapGroups.length > 0">

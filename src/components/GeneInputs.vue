@@ -145,6 +145,7 @@ export default class GeneInputs extends Vue {
       this.saplingGenes += value;
       this.animateAndScrollToLastSapling();
       this.playSaplingsScannedSound();
+      this.checkFormValidity();
     }
   }
 

@@ -152,6 +152,15 @@ export default class GeneInputs extends Vue {
     eventBus.$emit(GLOBAL_EVENT_SELECTED_PLANT_TYPE_CHANGED, set.selectedPlantTypeName);
     this.tab = 0;
     this.checkFormValidity();
+    this.focusTextArea();
+  }
+
+  focusTextArea() {
+    this.onNextTickRerender(() => {
+      const textArea = (this.$refs.saplingGenesInput as Vue).$refs?.input as HTMLTextAreaElement;
+      textArea.focus();
+      textArea.setSelectionRange(textArea.value.length, textArea.value.length);
+    });
   }
 
   storeCurrentSet() {

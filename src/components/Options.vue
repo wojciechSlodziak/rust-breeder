@@ -115,6 +115,7 @@
                 :label="`Sounds: ${options.sounds ? 'On' : 'Off'}`"
               ></v-switch>
               <v-switch
+                v-if="shouldDisplayScreenCaptureOptions"
                 class="mt-0"
                 v-model="options.skipScannerGuide"
                 :label="`Skip Scanning Guide: ${options.skipScannerGuide ? 'Yes' : 'No'}`"
@@ -170,6 +171,7 @@ import { Component, Vue, Prop } from 'vue-property-decorator';
 import GeneEnum from '../enums/gene.enum';
 import ApplicationOptions from '../interfaces/application-options';
 import { getCookie, setCookie } from 'typescript-cookie';
+import { isScanningAvailable } from '@/lib/ui-utils';
 
 /**
  * This property is used to version the options saved in the cookies.
@@ -219,6 +221,7 @@ export default class Options extends Vue {
 
   numberOfGenerationLabels = ['one', 'two', 'three'];
   maxCrossbreedingSaplingsLabels = ['2', '3', '4', '5', '6', '7', '8'];
+  shouldDisplayScreenCaptureOptions = false;
 
   geneScoreRules = [
     (v: number | string) => (v !== '' && Number(v) >= -1 && Number(v) <= 1) || 'It has to be a number between -1 and 1.'
@@ -239,6 +242,10 @@ export default class Options extends Vue {
   get minimumTrackedScoreDerived() {
     const highestGeneScore = Math.max(...Object.values(this.options.geneScores));
     return highestGeneScore * 4;
+  }
+
+  created() {
+    this.shouldDisplayScreenCaptureOptions = isScanningAvailable();
   }
 
   mounted() {

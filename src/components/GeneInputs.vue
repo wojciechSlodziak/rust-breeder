@@ -92,7 +92,8 @@ export default class GeneInputs extends Vue {
 
   sourceSaplingRules = [
     (v: string) => /^([GHWYX]{6}\n{1})*([GHWYX]{6}\n{0})*\n*$/.test(v) || 'You are almost there...',
-    (v: string) => (v !== '' && !/^([GHWYX]{6}\n{0})*\n*$/.test(v)) || 'Give me some genes to work with!'
+    (v: string) => v !== '' || 'Give me some genes to work with!',
+    (v: string) => !/^([GHWYX]{6}\n{0})*\n*$/.test(v) || 'Give me some more genes to work with!'
   ];
 
   get saplingGeneList() {

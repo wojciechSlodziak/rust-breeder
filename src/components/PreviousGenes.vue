@@ -1,6 +1,6 @@
 <template>
   <div class="previous-genes mb-7">
-    <div class="text-center my-6" v-if="storedSets.length === 0">You don't have any previous gene sets.</div>
+    <div class="text-center my-6" v-if="storedSets.length === 0">You don't have any saved gene sets.</div>
     <ul class="pl-0">
       <li v-for="(storedSet, index) in storedSetsDetailed" :key="index">
         <v-card

@@ -11,3 +11,7 @@ export function playAudio(audioElementName: string, volume: number) {
     }
   }
 }
+
+export function isScanningAvailable() {
+  return navigator.mediaDevices && 'getDisplayMedia' in navigator.mediaDevices;
+}

@@ -105,6 +105,7 @@
 </template>
 
 <script lang="ts">
+import { isScanningAvailable } from '@/lib/ui-utils';
 import { PreviewData, ScreenCaptureServiceEventType } from '@/services/screen-capture/models';
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import screenCaptureService from '../services/screen-capture/screen-capture.service';
@@ -122,7 +123,7 @@ export default class SaplingScreenCapture extends Vue {
   shouldDisplayScreenCaptureButton = false;
 
   created() {
-    this.shouldDisplayScreenCaptureButton = navigator.mediaDevices && 'getDisplayMedia' in navigator.mediaDevices;
+    this.shouldDisplayScreenCaptureButton = isScanningAvailable();
   }
 
   mounted() {

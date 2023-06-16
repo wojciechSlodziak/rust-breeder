@@ -6,7 +6,8 @@
         <v-card
           class="previous-genes_card d-flex align-center justify-space-between"
           v-ripple
-          @click="handleSetSelectClick(index)"
+          @click="handleSetSelect(index)"
+          @keyup.enter="handleSetSelect(index)"
         >
           <img class="mx-2" :src="`/img/${storedSet.imgName}.png`" />
           <span class="px-1">Genes: {{ storedSet.saplingsCount }}</span>
@@ -83,7 +84,7 @@ export default class PreviousGenes extends Vue {
     return false;
   }
 
-  handleSetSelectClick(index: number) {
+  handleSetSelect(index: number) {
     this.$emit('genes-selected', this.storedSets[index]);
   }
 

@@ -1,26 +1,58 @@
 <template>
-  <div>
-    <v-form ref="form" v-model="isFormValid" spellcheck="false">
-      <SaplingInputHighlights :inputString="saplingGenes" :highlightedMap="highlightedMap" />
-      <SaplingListNumbering :saplingGeneList="saplingGeneList"></SaplingListNumbering>
-      <v-textarea
-        full-width
-        ref="saplingGenesInput"
-        class="gene-inputs_input"
-        :placeholder="placeholder"
-        label="Add your genes here..."
-        :value="saplingGenes"
-        @input="handleSaplingGenesInput($event)"
-        @blur="handleSaplingGenesInputBlur"
-        @keydown="handleSaplingGenesInputKeyDown($event)"
-        outlined
-        :disabled="disabled"
-        :rows="Math.max(5, saplingGenes.split(`\n`).length || 0)"
-        :rules="sourceSaplingRules"
-        autocomplete="off"
-      ></v-textarea>
-      <SaplingListPreview :saplingGeneList="saplingGeneList" ref="saplingListPreview"></SaplingListPreview>
-    </v-form>
+  <div class="gene-inputs">
+    <div class="gene-inputs_tabs-container">
+      <v-tabs v-model="tab">
+        <v-tab>Current</v-tab>
+        <v-tab :class="{ 'gene-inputs_tab--animate': animatePreviousGenesTabIn }">Saved</v-tab>
+      </v-tabs>
+      <v-btn
+        :tile="!$vuetify.breakpoint.xsOnly"
+        :icon="$vuetify.breakpoint.xsOnly"
+        :disabled="!isFormValid"
+        v-if="!autoSaveInputSets && tab !== 1"
+        class="gene-inputs_store-button"
+        plain
+        @click="handleStoreSetClick"
+      >
+        <v-icon :left="!$vuetify.breakpoint.xsOnly" :class="{ 'mr-1': !$vuetify.breakpoint.xsOnly }">
+          mdi-plus
+        </v-icon>
+        <span v-if="!$vuetify.breakpoint.xsOnly">Save</span>
+      </v-btn>
+    </div>
+
+    <v-tabs-items v-model="tab">
+      <v-tab-item>
+        <v-form ref="form" v-model="isFormValid" spellcheck="false">
+          <SaplingInputHighlights :inputString="saplingGenes" :highlightedMap="highlightedMap" />
+          <SaplingListNumbering :saplingGeneList="saplingGeneList"></SaplingListNumbering>
+          <v-textarea
+            full-width
+            ref="saplingGenesInput"
+            class="gene-inputs_input"
+            :placeholder="placeholder"
+            label="Add your genes here..."
+            :value="saplingGenes"
+            @input="handleSaplingGenesInput($event)"
+            @blur="handleSaplingGenesInputBlur"
+            @keydown="handleSaplingGenesInputKeyDown($event)"
+            outlined
+            :disabled="disabled"
+            :rows="Math.max(5, saplingGenes.split(`\n`).length || 0)"
+            :rules="sourceSaplingRules"
+            autocomplete="off"
+          ></v-textarea>
+          <SaplingListPreview :saplingGeneList="saplingGeneList" ref="saplingListPreview"></SaplingListPreview>
+        </v-form>
+      </v-tab-item>
+      <v-tab-item eager>
+        <PreviousGenes
+          ref="previousGenes"
+          :selectedPlantTypeName="selectedPlantTypeName"
+          @genes-selected="handlePreviousGenesSelectedEvent"
+        ></PreviousGenes>
+      </v-tab-item>
+    </v-tabs-items>
   </div>
 </template>
 
@@ -28,31 +60,39 @@
 import SaplingInputHighlights from './SaplingInputHighlights.vue';
 import SaplingListPreview from './SaplingListPreview.vue';
 import SaplingListNumbering from './SaplingListNumbering.vue';
+import PreviousGenes from './PreviousGenes.vue';
 
 import { Component, Prop, Vue } from 'vue-property-decorator';
 import { GeneticsMap } from '@/services/crossbreeding-service/models';
 import { playAudio } from '@/lib/ui-utils';
+import StoredSet from '@/interfaces/stored-set';
+import eventBus, { GLOBAL_EVENT_SELECTED_PLANT_TYPE_CHANGED } from '@/lib/global-event-bus';
 
 @Component({
   components: {
     SaplingInputHighlights,
     SaplingListPreview,
-    SaplingListNumbering
+    SaplingListNumbering,
+    PreviousGenes
   }
 })
 export default class GeneInputs extends Vue {
   @Prop({ type: Boolean }) readonly disabled: boolean;
   @Prop({ type: Boolean }) readonly soundsEnabled: boolean;
+  @Prop({ type: Boolean }) readonly autoSaveInputSets: boolean;
+  @Prop({ type: String }) readonly selectedPlantTypeName: string;
   @Prop({ type: GeneticsMap, required: false }) readonly highlightedMap: GeneticsMap | null;
 
   // fix for Safari not respecting new line in placeholder
   placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`.replaceAll('\n', ' '.repeat(100));
   saplingGenes = ``;
   isFormValid = false;
+  animatePreviousGenesTabIn = false;
+  tab = 0;
 
   sourceSaplingRules = [
-    (v: string) => v !== '' || 'Give me some plants to work with!',
-    (v: string) => /^([GHWYX]{6}\n{1})*([GHWYX]{6}\n{0})*\n*$/.test(v) || 'You are almost there...'
+    (v: string) => /^([GHWYX]{6}\n{1})*([GHWYX]{6}\n{0})*\n*$/.test(v) || 'You are almost there...',
+    (v: string) => (v !== '' && !/^([GHWYX]{6}\n{0})*\n*$/.test(v)) || 'Give me some genes to work with!'
   ];
 
   get saplingGeneList() {
@@ -85,6 +125,10 @@ export default class GeneInputs extends Vue {
     this.$emit('genes-change', this.saplingGenes);
   }
 
+  handleStoreSetClick() {
+    this.storeCurrentSet();
+  }
+
   checkFormValidity() {
     this.onNextTickRerender(() => {
       if ((this.$refs.form as Vue & { validate: () => boolean }).validate()) {
@@ -103,6 +147,27 @@ export default class GeneInputs extends Vue {
       this.animateAndScrollToLastSapling();
       this.playSaplingsScannedSound();
     }
+  }
+
+  handlePreviousGenesSelectedEvent(set: StoredSet) {
+    this.saplingGenes = set.genes;
+    eventBus.$emit(GLOBAL_EVENT_SELECTED_PLANT_TYPE_CHANGED, set.selectedPlantTypeName);
+    this.tab = 0;
+    this.checkFormValidity();
+  }
+
+  storeCurrentSet() {
+    const wasAdded = (this.$refs.previousGenes as PreviousGenes).addNewSet(this.saplingGenes);
+    if (wasAdded) {
+      this.animatePreviousGenesTab();
+    }
+  }
+
+  animatePreviousGenesTab() {
+    this.animatePreviousGenesTabIn = true;
+    setTimeout(() => {
+      this.animatePreviousGenesTabIn = false;
+    }, 700);
   }
 
   getDeduplicatedSaplingGeneList() {
@@ -166,5 +231,44 @@ export default class GeneInputs extends Vue {
 <style scoped lang="scss">
 .gene-inputs_input {
   z-index: 1;
+}
+.gene-inputs_tabs-container {
+  position: relative;
+  .gene-inputs_store-button {
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+  .gene-inputs_tab--animate {
+    animation: highlight-tab 0.7s ease-in;
+  }
+}
+.v-tabs-items {
+  background-color: transparent;
+}
+
+@keyframes highlight-tab {
+  0%,
+  25%,
+  100% {
+    transform: scale(1);
+  }
+
+  15%,
+  35%,
+  80% {
+    transform: scale(1.15);
+    color: var(--v-primary-base);
+  }
+}
+</style>
+
+<style lang="scss">
+.gene-inputs .v-tabs-bar {
+  height: 36px;
+  background-color: transparent !important;
+}
+.gene-inputs .v-input__control {
+  border-radius: 0;
 }
 </style>

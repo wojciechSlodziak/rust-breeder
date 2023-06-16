@@ -121,12 +121,10 @@
               ></v-switch>
               <v-switch
                 class="mt-0"
-                v-model="options.autoAddCalculatedInputSetsToHistory"
-                :label="
-                  `Auto-add calculated input genes to History: ${
-                    options.autoAddCalculatedInputSetsToHistory ? 'Yes' : 'No'
-                  }`
-                "
+                v-model="options.autoSaveInputSets"
+                :label="`Automatically save calculated input genes: ${options.autoSaveInputSets ? 'Yes' : 'No'}`"
+                hint="Turning this off enables a save button that allows you to decide which genes you want to save."
+                persistent-hint
               ></v-switch>
             </v-tab-item>
           </v-tabs-items>
@@ -197,7 +195,7 @@ const DEFAULT_OPTIONS: ApplicationOptions = {
   },
   darkMode: true,
   skipScannerGuide: false,
-  autoAddCalculatedInputSetsToHistory: true,
+  autoSaveInputSets: true,
   sounds: true
 };
 const STORED_OPTIONS = getCookie(OPTIONS_COOKIE_KEY);
@@ -223,12 +221,14 @@ export default class Options extends Vue {
   maxCrossbreedingSaplingsLabels = ['2', '3', '4', '5', '6', '7', '8'];
 
   geneScoreRules = [
-    (v: number | string) => (v !== '' && v >= -1 && v <= 1) || 'It has to be a number between -1 and 1.'
+    (v: number | string) => (v !== '' && Number(v) >= -1 && Number(v) <= 1) || 'It has to be a number between -1 and 1.'
   ];
   numberOfSaplingsAddedBetweenGenerationsRules = [
-    (v: number | string) => (v !== '' && v >= 1 && Number.isInteger(Number(v))) || 'Must be a positive integer.'
+    (v: number | string) => (v !== '' && Number(v) >= 1 && Number.isInteger(Number(v))) || 'Must be a positive integer.'
   ];
-  minimumTrackedScoreRules = [(v: number | string) => (v !== '' && v >= -6 && v <= 6) || `Acceptable range: -6 to 6.`];
+  minimumTrackedScoreRules = [
+    (v: number | string) => (v !== '' && Number(v) >= -6 && Number(v) <= 6) || `Acceptable range: -6 to 6.`
+  ];
 
   get scoreInputs() {
     return Object.keys(this.options.geneScores || {})

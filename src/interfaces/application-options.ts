@@ -12,5 +12,5 @@ export default interface ApplicationOptions {
   darkMode: boolean;
   sounds: boolean;
   skipScannerGuide: boolean;
-  autoAddCalculatedInputSetsToHistory: boolean;
+  autoSaveInputSets: boolean;
 }

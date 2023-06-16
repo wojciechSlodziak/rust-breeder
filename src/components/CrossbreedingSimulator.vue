@@ -52,6 +52,8 @@
                 :highlightedMap="highlightedMap"
                 :disabled="isScreenScanning || isSimulating"
                 :soundsEnabled="options ? options.sounds : false"
+                :autoSaveInputSets="options ? options.autoSaveInputSets : false"
+                :selectedPlantTypeName="selectedPlantTypeName"
               ></GeneInputs>
             </v-col>
 
@@ -167,6 +169,7 @@ import { timeMsToTimeString } from '@/lib/time-utils';
 })
 export default class CrossbreedingSimulator extends Vue {
   @Prop({ type: Boolean }) readonly cookiesAccepted: boolean;
+  @Prop({ type: String }) readonly selectedPlantTypeName: string;
   progressPercents: number[] = [];
   isSimulating = false;
   hasResults = false;
@@ -288,6 +291,10 @@ export default class CrossbreedingSimulator extends Vue {
         } else {
           throw e;
         }
+      }
+
+      if (this.options.autoSaveInputSets) {
+        (this.$refs.geneInputs as GeneInputs).storeCurrentSet();
       }
     }
   }

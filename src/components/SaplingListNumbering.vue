@@ -48,9 +48,10 @@ export default class SaplingListNumbering extends Vue {
   .sapling-list-numbering_legend {
     position: absolute;
     opacity: 0.75;
+    font-size: 0.625rem;
     line-height: 1em;
     left: 0;
-    top: -5px;
+    top: 15px;
     transform: translateY(-100%);
     width: 100%;
     user-select: none;

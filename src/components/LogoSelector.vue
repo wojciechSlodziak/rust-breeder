@@ -9,7 +9,7 @@
   >
     <div class="logo_image-container d-flex align-center">
       <v-tooltip
-        v-for="imageName in displayedImageNames"
+        v-for="(imageName, index) in displayedImageNames"
         :key="imageName"
         open-delay="400"
         z-index="1001"
@@ -24,6 +24,7 @@
             v-bind="attrs"
             v-on="on"
             class="logo_image"
+            :data-index="index"
             :class="{
               'logo_image--hidden': activeImageName !== imageName && !isExpanded
             }"
@@ -47,6 +48,7 @@
 </template>
 
 <script lang="ts">
+import eventBus, { GLOBAL_EVENT_SELECTED_PLANT_TYPE_CHANGED } from '@/lib/global-event-bus';
 import { Component, Vue } from 'vue-property-decorator';
 
 @Component
@@ -69,9 +71,7 @@ export default class LogoSelector extends Vue {
   animateHeartbeat = false;
 
   get displayedImageNames() {
-    return this.activeImageName !== this.imagesNames[0] || this.isExpanded
-      ? this.imagesNames.slice(1)
-      : this.imagesNames;
+    return this.isExpanded ? this.imagesNames.slice(1) : this.imagesNames;
   }
 
   mounted() {
@@ -84,6 +84,8 @@ export default class LogoSelector extends Vue {
     } else {
       this.animateLogo();
     }
+
+    eventBus.$on(GLOBAL_EVENT_SELECTED_PLANT_TYPE_CHANGED, this.selectPlant);
   }
 
   private animateLogo() {
@@ -98,12 +100,18 @@ export default class LogoSelector extends Vue {
 
   handleImageClick(imageName: string) {
     if (this.isExpanded) {
-      this.activeImageName = imageName;
-      this.setImageAsFavicon(imageName);
+      this.selectPlant(imageName);
       this.isExpanded = false;
     } else {
       this.isExpanded = true;
     }
+  }
+
+  selectPlant(selectedPlantTypeName: string) {
+    const imageName = selectedPlantTypeName || this.imagesNames[0];
+    this.activeImageName = imageName;
+    this.setImageAsFavicon(imageName);
+    this.$emit('plant-type-change', selectedPlantTypeName);
   }
 
   private setImageAsFavicon(imageName: string) {
@@ -117,6 +125,7 @@ export default class LogoSelector extends Vue {
 
 <style scoped lang="scss">
 .logo_container {
+  user-select: none;
   height: 100%;
   padding: 2px 0;
   margin-left: -5px;
@@ -142,9 +151,7 @@ export default class LogoSelector extends Vue {
       background: transparent;
       max-width: 46px;
       transition: all 0.25s ease;
-      &:first-child {
-        transition: all 0.25s ease 0.1s;
-      }
+
       &.logo_image--hidden {
         visibility: hidden;
         max-width: 0;
@@ -170,14 +177,13 @@ export default class LogoSelector extends Vue {
   }
   &.logo_container--animate-in {
     .logo_image-container {
-      .logo_image:first-child {
-        transition: all 0s ease;
+      .logo_image[data-index='0'] {
         visibility: hidden;
         max-width: 0;
         opacity: 0;
         margin: 0;
       }
-      .logo_image:not(:first-child) {
+      .logo_image:not([data-index='0']) {
         visibility: visible;
         max-width: 46px;
         opacity: 1;

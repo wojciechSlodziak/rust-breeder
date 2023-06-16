@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-app-bar app>
-      <logo-selector></logo-selector>
+      <LogoSelector @plant-type-change="handlePlantTypeChange"></LogoSelector>
       <div class="d-flex align-center ml-auto">
         <div v-if="estimatedTime" class="mr-2 estimated-time">
           <v-icon small>
@@ -14,7 +14,8 @@
     </v-app-bar>
     <v-main>
       <CrossbreedingSimulator
-        :cookies-accepted="cookiesAccepted"
+        :selectedPlantTypeName="selectedPlantTypeName"
+        :cookiesAccepted="cookiesAccepted"
         @estimated-time-updated="handleEstimatedTimeUpdated"
       />
       <InfoButtons class="d-flex justify-center d-xs-flex d-sm-none mb-3 flex-wrap" />
@@ -42,6 +43,7 @@ import { timeMsToTimeString } from './lib/time-utils';
 })
 export default class App extends Vue {
   cookiesAccepted = false;
+  selectedPlantTypeName: string | null = null;
   estimatedTime: number | null = null;
 
   get calcEstimatedTime() {
@@ -55,6 +57,10 @@ export default class App extends Vue {
     this.cookiesAccepted = true;
     // eslint-disable-next-line no-undef
     enableGtag();
+  }
+
+  handlePlantTypeChange(name: string) {
+    this.selectedPlantTypeName = name;
   }
 
   handleEstimatedTimeUpdated(value: number | null) {

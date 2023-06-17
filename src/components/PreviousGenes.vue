@@ -10,8 +10,8 @@
           @keyup.enter="handleSetSelect(index)"
         >
           <img class="mx-2" :src="`/img/${storedSet.imgName}.png`" />
-          <span class="px-1">Genes: {{ storedSet.saplingsCount }}</span>
-          <span class="px-1">{{ storedSet.dateString }}</span>
+          <span class="px-2 previous-genes_count">Genes: {{ storedSet.saplingsCount }}</span>
+          <span>{{ storedSet.dateString }}</span>
           <v-btn class="mx-1" icon @click="handleRemoveSetClick($event, index)">
             <v-icon>mdi-close</v-icon>
           </v-btn>
@@ -133,6 +133,10 @@ export default class PreviousGenes extends Vue {
       user-select: none;
       .previous-genes_card {
         margin: 5px;
+        .previous-genes_count {
+          white-space: nowrap;
+          min-width: 100px;
+        }
       }
       img {
         max-height: 30px;

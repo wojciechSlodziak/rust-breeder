@@ -5,13 +5,15 @@ import { createWorker, PSM } from 'tesseract.js';
 const TIME_MS_BETWEEEN_SCANS = 200;
 
 const REGIONS: { [key: string]: number }[] = [
+  // World UI region.
   {
     GENE_WIDTH: 0.008,
     GENE_HEIGHT: 0.015,
     FIRST_GENE_X_CENTER: 0.42,
-    FIRST_GENE_Y_CENTER: 0.286,
+    FIRST_GENE_Y_CENTER: 0.2845,
     DISTANCE_BETWEEN_GENES: 0.01405
   },
+  // Inventory region.
   {
     GENE_WIDTH: 0.01,
     GENE_HEIGHT: 0.0185,

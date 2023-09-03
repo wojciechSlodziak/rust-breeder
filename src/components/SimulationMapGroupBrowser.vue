@@ -43,6 +43,7 @@
             :enable-ripple="enableMapSelection"
             :enable-map-selection="enableMapSelection"
             :enable-composing-saplings-selection="enableComposingSaplingsSelection"
+            :enable-geographical-direction-tips="enableGeographicalDirectionTips"
           />
         </div>
       </div>
@@ -65,6 +66,7 @@ export default class SimulationMapGroupBrowser extends Vue {
   @Prop({ type: Object }) readonly highlightedMap: GeneticsMap | null;
   @Prop({ type: Boolean }) readonly enableMapSelection: boolean;
   @Prop({ type: Boolean }) readonly enableComposingSaplingsSelection: boolean;
+  @Prop({ type: Boolean }) readonly enableGeographicalDirectionTips: boolean;
 
   @Watch('group')
   onGroupPropertyChanged(value: GeneticsMapGroup | null) {

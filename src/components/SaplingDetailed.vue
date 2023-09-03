@@ -13,6 +13,7 @@
       @click.native="selectable && sapling.generationIndex > 0 && handleSaplingClick()"
     />
     <span
+      v-if="!(showGeographicalDirectionTipEast || showGeographicalDirectionTipWest)"
       class="sapling-detailed_sapling-chance"
       :class="{
         'sapling-detailed_sapling-chance--subtle': subtleDetails,
@@ -21,6 +22,11 @@
       >{{
         sapling.generationIndex > 0 && saplingVariants ? Math.round(saplingVariants.mapList[0].chance * 100) + '%' : ''
       }}</span
+    >
+    <span
+      v-if="showGeographicalDirectionTipEast || showGeographicalDirectionTipWest"
+      class="sapling-detailed_sapling-geo-direction"
+      >{{ showGeographicalDirectionTipEast ? 'east' : 'west' }}</span
     >
   </div>
 </template>
@@ -38,6 +44,8 @@ export default class SimulationMap extends Vue {
   @Prop({ type: Object }) readonly saplingVariants?: GeneticsMapGroup;
   @Prop({ type: Boolean }) readonly subtleDetails: boolean;
   @Prop({ type: Boolean }) readonly selectable: boolean;
+  @Prop({ type: Boolean }) readonly showGeographicalDirectionTipEast: boolean;
+  @Prop({ type: Boolean }) readonly showGeographicalDirectionTipWest: boolean;
 
   handleSaplingClick() {
     this.$emit('click');
@@ -73,7 +81,8 @@ export default class SimulationMap extends Vue {
 }
 
 .sapling-detailed_sapling-detail,
-.sapling-detailed_sapling-chance {
+.sapling-detailed_sapling-chance,
+.sapling-detailed_sapling-geo-direction {
   font-size: 0.75em;
   user-select: none;
   flex: 1;

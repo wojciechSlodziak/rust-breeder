@@ -85,7 +85,22 @@ export default class GeneInputs extends Vue {
 
   // fix for Safari not respecting new line in placeholder
   placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`.replaceAll('\n', ' '.repeat(100));
-  saplingGenes = ``;
+  saplingGenes = `XYGWYW
+WHYWHY
+XYXWGH
+WYGXYW
+XHHWHH
+WWGXYH
+WWXXYX
+WYHHHH
+XYYWYW
+YYXWXW
+GHGWYG
+HGGXYW
+XGGXHW
+WGGWHG
+XYGXGW
+WGGWGX`;
   isFormValid = false;
   animatePreviousGenesTabIn = false;
   tab = 0;

@@ -87,6 +87,8 @@
       >
         <template v-slot:activator="{ on, attrs }">
           <div v-bind="attrs" v-on="on">
+            {{ Array.from(map.fightWinningCrossbreedingSaplingIndexes || []) }}
+            {{ Array.from(map.fightLosingCrossbreedingSaplingIndexes || []) }}
             <div class="mb-1">Surrounding Saplings:</div>
             <ul>
               <li v-for="(crossbreedingSapling, index) in map.crossbreedingSaplings" :key="index">
@@ -97,6 +99,16 @@
                   "
                   :subtleDetails="!enableComposingSaplingsSelection"
                   :selectable="enableComposingSaplingsSelection"
+                  :showGeographicalDirectionTipEast="
+                    enableGeographicalDirectionTips && map.chance < 1 && map.fightWinningCrossbreedingSaplingIndexes
+                      ? map.fightWinningCrossbreedingSaplingIndexes.has(index)
+                      : false
+                  "
+                  :showGeographicalDirectionTipWest="
+                    enableGeographicalDirectionTips && map.chance < 1 && map.fightLosingCrossbreedingSaplingIndexes
+                      ? map.fightLosingCrossbreedingSaplingIndexes.has(index)
+                      : false
+                  "
                   @click="handleCrossbreedingSaplingSelection(index)"
                 />
               </li>
@@ -131,6 +143,7 @@ export default class SimulationMap extends Vue {
   @Prop({ type: Object, required: true }) readonly map!: GeneticsMap;
   @Prop({ type: Boolean }) readonly enableComposingSaplingsSelection: boolean;
   @Prop({ type: Boolean }) readonly enableMapSelection: boolean;
+  @Prop({ type: Boolean }) readonly enableGeographicalDirectionTips: boolean;
   @Prop({ type: Boolean }) readonly enableTooltip: boolean;
   @Prop({ type: Boolean }) readonly enableRipple: boolean;
   @Prop({ type: Number }) readonly forcedHeight: number;

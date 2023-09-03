@@ -59,8 +59,9 @@
             <v-col ref="highlightedMap" v-if="showHighlight" class="d-flex flex-column align-center mx-sm-3 mb-3">
               <SimulationMap
                 :map="highlightedMap"
-                enable-tooltip
-                enable-composing-saplings-selection
+                enableTooltip
+                enableComposingSaplingsSelection
+                enableGeographicalDirectionTips
                 @composing-sapling-selected="handleHighlightComposingSaplingSelectedEvent"
               />
               <v-btn class="mt-3" @click="handleClearHighlightClick">Clear Selection</v-btn>
@@ -106,6 +107,7 @@
       :group2="selectedBrowsingGroup2"
       :enable-map-selection="!isSelectedBrowsingGroupFromHighlight"
       :enable-composing-saplings-selection="isSelectedBrowsingGroupFromHighlight"
+      :enable-geographical-direction-tips="isSelectedBrowsingGroupFromHighlight"
       :highlighted-map="highlightedMap"
       @map-selected="handleMapSelectedEvent"
       @composing-sapling-selected="handleBrowsingGroupComposingSaplingSelected"

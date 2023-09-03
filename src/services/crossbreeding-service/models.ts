@@ -25,6 +25,12 @@ export class CrossbreedingGeneDetails {
   contributingCrossbreedingSaplingIndexes = new Set<number>();
 }
 
+export class CrossbreedingResultWithDetails {
+  sapling: Sapling;
+  fightWinningCrossbreedingSaplingIndexes?: Set<number>;
+  fightLosingCrossbreedingSaplingIndexes?: Set<number>;
+}
+
 export class GeneWeightMap {
   [geneType: string]: CrossbreedingGeneDetails;
 }
@@ -38,6 +44,8 @@ export class GeneticsMap {
   score!: number;
   chance!: number;
   sumOfComposingSaplingsGenerations!: number;
+  fightWinningCrossbreedingSaplingIndexes?: Set<number>;
+  fightLosingCrossbreedingSaplingIndexes?: Set<number>;
 
   constructor(
     resultSapling: Sapling,
@@ -45,7 +53,9 @@ export class GeneticsMap {
     score: number,
     chance: number,
     sumOfComposingSaplingsGenerations: number,
-    baseSapling?: Sapling
+    baseSapling?: Sapling,
+    fightWinningCrossbreedingSaplingIndexes?: Set<number>,
+    fightLosingCrossbreedingSaplingIndexes?: Set<number>
   ) {
     this.resultSapling = resultSapling;
     this.baseSapling = baseSapling;
@@ -53,6 +63,8 @@ export class GeneticsMap {
     this.score = score;
     this.chance = chance;
     this.sumOfComposingSaplingsGenerations = sumOfComposingSaplingsGenerations;
+    this.fightWinningCrossbreedingSaplingIndexes = fightWinningCrossbreedingSaplingIndexes;
+    this.fightLosingCrossbreedingSaplingIndexes = fightLosingCrossbreedingSaplingIndexes;
   }
 
   clone(): GeneticsMap {
@@ -71,6 +83,12 @@ export class GeneticsMap {
       clone.crossbreedingSaplingsVariants = this.crossbreedingSaplingsVariants.map((crossbreedingSaplingsVariants) =>
         crossbreedingSaplingsVariants.clone()
       );
+    }
+    if (this.fightWinningCrossbreedingSaplingIndexes) {
+      clone.fightWinningCrossbreedingSaplingIndexes = new Set(this.fightWinningCrossbreedingSaplingIndexes);
+    }
+    if (this.fightLosingCrossbreedingSaplingIndexes) {
+      clone.fightLosingCrossbreedingSaplingIndexes = new Set(this.fightLosingCrossbreedingSaplingIndexes);
     }
     return clone;
   }

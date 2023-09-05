@@ -101,10 +101,21 @@
       @composing-sapling-selected="handleBrowsingGroupComposingSaplingSelected"
       @leave-group-browsing="handleBrowserLeaveEvent"
     >
-      <template v-if="shouldDisplayGenInfoOnMapBrowser" v-slot:message>
-        The Sapling you selected comes from the <strong>2nd</strong> generation. You will need to crossbreed the
-        Saplings that it requires first. Click on <span class="simulator_highlight-guide">highlighted</span> Saplings to
-        see how to crossbreed them.
+      <template v-if="shouldDisplayGenInfoOnMapBrowser || shouldDisplayGeoInfoOnMapBrowser" v-slot:message>
+        <template v-if="shouldDisplayGenInfoOnMapBrowser">
+          The Sapling you selected comes from the <strong>2nd</strong> generation. You will need to crossbreed the
+          Saplings that it requires first. Click on <span class="simulator_highlight-guide">highlighted</span> Saplings
+          to see how to crossbreed them.
+        </template>
+        <v-divider
+          class="mt-2 mb-2"
+          v-if="shouldDisplayGenInfoOnMapBrowser && shouldDisplayGeoInfoOnMapBrowser"
+        ></v-divider>
+        <template v-if="shouldDisplayGeoInfoOnMapBrowser">
+          Place plants with an "E" next to the <v-icon size="large" color="white">mdi-compass-rose</v-icon> (compass) in
+          the most east slot of the planter box, and plants with a "W" in the most west slot to influence the
+          crossbreeding for the desired result.
+        </template>
       </template>
     </SimulationMapGroupBrowser>
   </div>
@@ -185,6 +196,15 @@ export default class CrossbreedingSimulator extends Vue {
       this.selectedBrowsingGroup &&
       !this.selectedBrowsingGroup2 &&
       this.selectedBrowsingGroup.mapList[0].resultSapling.generationIndex > 1
+    );
+  }
+
+  get shouldDisplayGeoInfoOnMapBrowser() {
+    return (
+      this.selectedBrowsingGroup &&
+      (this.selectedBrowsingGroup.mapList[0]?.chance < 1 ||
+        this.selectedBrowsingGroup.mapList[1]?.chance < 1 ||
+        this.selectedBrowsingGroup.mapList[2]?.chance < 1)
     );
   }
 

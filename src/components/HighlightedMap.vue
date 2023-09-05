@@ -58,7 +58,7 @@ export default class HighlightedMap extends Vue {
 .highlighted-map_tip {
   text-align: justify;
   i {
-    opacity: 0.25;
+    opacity: 0.35;
   }
 }
 .highlighted-map_highlight-guide {

@@ -24,8 +24,8 @@
     <v-tabs-items v-model="tab">
       <v-tab-item>
         <v-form ref="form" v-model="isFormValid" spellcheck="false">
-          <SaplingInputHighlights :inputString="saplingGenes" :highlightedMap="highlightedMap" />
-          <SaplingListNumbering :saplingGeneList="saplingGeneList"></SaplingListNumbering>
+          <SaplingInputHighlights :input-string="saplingGenes" :highlighted-map="highlightedMap" />
+          <SaplingListNumbering :sapling-gene-list="saplingGeneList"></SaplingListNumbering>
           <v-textarea
             full-width
             ref="saplingGenesInput"
@@ -42,13 +42,13 @@
             :rules="sourceSaplingRules"
             autocomplete="off"
           ></v-textarea>
-          <SaplingListPreview :saplingGeneList="saplingGeneList" ref="saplingListPreview"></SaplingListPreview>
+          <SaplingListPreview :sapling-gene-list="saplingGeneList" ref="saplingListPreview"></SaplingListPreview>
         </v-form>
       </v-tab-item>
       <v-tab-item eager>
         <PreviousGenes
           ref="previousGenes"
-          :selectedPlantTypeName="selectedPlantTypeName"
+          :selected-plant-type-name="selectedPlantTypeName"
           @genes-selected="handlePreviousGenesSelectedEvent"
         ></PreviousGenes>
       </v-tab-item>
@@ -85,22 +85,7 @@ export default class GeneInputs extends Vue {
 
   // fix for Safari not respecting new line in placeholder
   placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`.replaceAll('\n', ' '.repeat(100));
-  saplingGenes = `XYGWYW
-WHYWHY
-XYXWGH
-WYGXYW
-XHHWHH
-WWGXYH
-WWXXYX
-WYHHHH
-XYYWYW
-YYXWXW
-GHGWYG
-HGGXYW
-XGGXHW
-WGGWHG
-XYGXGW
-WGGWGX`;
+  saplingGenes = ``;
   isFormValid = false;
   animatePreviousGenesTabIn = false;
   tab = 0;

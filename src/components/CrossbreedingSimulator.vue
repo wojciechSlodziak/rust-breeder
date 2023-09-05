@@ -48,33 +48,21 @@
                 class="simulator_sapling-input-container mx-3"
                 ref="geneInputs"
                 @validity-change="handleInputsValidityChange"
-                :highlightedMap="highlightedMap"
+                :highlighted-map="highlightedMap"
                 :disabled="isScreenScanning || isSimulating"
-                :soundsEnabled="options ? options.sounds : false"
-                :autoSaveInputSets="options ? options.autoSaveInputSets : false"
-                :selectedPlantTypeName="selectedPlantTypeName"
+                :sounds-enabled="options ? options.sounds : false"
+                :auto-save-input-sets="options ? options.autoSaveInputSets : false"
+                :selected-plant-type-name="selectedPlantTypeName"
               ></GeneInputs>
             </v-col>
 
-            <v-col ref="highlightedMap" v-if="showHighlight" class="d-flex flex-column align-center mx-sm-3 mb-3">
-              <SimulationMap
+            <v-col ref="highlightedMap" v-if="showHighlight" class="mx-sm-3 mb-3">
+              <HighlightedMap
                 :map="highlightedMap"
-                enableTooltip
-                enableComposingSaplingsSelection
-                enableGeographicalDirectionTips
+                @clear-highlight-clicked="handleClearHighlightClick"
                 @composing-sapling-selected="handleHighlightComposingSaplingSelectedEvent"
-              />
-              <v-btn class="mt-3" @click="handleClearHighlightClick">Clear Selection</v-btn>
-              <div
-                class="mt-2 mb-2 px-3 px-sm-0"
-                v-if="highlightedMap && highlightedMap.resultSapling.generationIndex > 1"
-              >
-                The Sapling you selected comes from the
-                <strong>{{ highlightedMap.resultSapling.generationIndex === 2 ? '2nd' : '3rd' }}</strong> generation.
-                You will first need to crossbreed Saplings that it requires. Click on
-                <span class="simulator_highlight-guide">highlighted</span> Saplings to see how to crossbreed them.
-              </div>
-            </v-col>
+              ></HighlightedMap
+            ></v-col>
           </v-row>
           <pine-hosting-ad></pine-hosting-ad>
         </v-col>
@@ -113,15 +101,7 @@
       @composing-sapling-selected="handleBrowsingGroupComposingSaplingSelected"
       @leave-group-browsing="handleBrowserLeaveEvent"
     >
-      <template
-        v-if="
-          isSelectedBrowsingGroupFromHighlight &&
-            selectedBrowsingGroup &&
-            !selectedBrowsingGroup2 &&
-            selectedBrowsingGroup.mapList[0].resultSapling.generationIndex > 1
-        "
-        v-slot:message
-      >
+      <template v-if="shouldDisplayGenInfoOnMapBrowser" v-slot:message>
         The Sapling you selected comes from the <strong>2nd</strong> generation. You will need to crossbreed the
         Saplings that it requires first. Click on <span class="simulator_highlight-guide">highlighted</span> Saplings to
         see how to crossbreed them.
@@ -151,6 +131,7 @@ import SimulationMapGroup from './SimulationMapGroup.vue';
 import SimulationMapGroupBrowser from './SimulationMapGroupBrowser.vue';
 import ApplicationOptions from '@/interfaces/application-options';
 import { timeMsToTimeString } from '@/lib/time-utils';
+import HighlightedMap from './HighlightedMap.vue';
 
 @Component({
   components: {
@@ -162,7 +143,8 @@ import { timeMsToTimeString } from '@/lib/time-utils';
     ProgressIndicator,
     SimulationMapGroup,
     SimulationMapGroupBrowser,
-    PineHostingAd
+    PineHostingAd,
+    HighlightedMap
   }
 })
 export default class CrossbreedingSimulator extends Vue {
@@ -195,6 +177,15 @@ export default class CrossbreedingSimulator extends Vue {
       return timeMsToTimeString(timeDiff);
     }
     return null;
+  }
+
+  get shouldDisplayGenInfoOnMapBrowser() {
+    return (
+      this.isSelectedBrowsingGroupFromHighlight &&
+      this.selectedBrowsingGroup &&
+      !this.selectedBrowsingGroup2 &&
+      this.selectedBrowsingGroup.mapList[0].resultSapling.generationIndex > 1
+    );
   }
 
   constructor() {

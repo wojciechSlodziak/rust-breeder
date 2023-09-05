@@ -87,24 +87,22 @@
       >
         <template v-slot:activator="{ on, attrs }">
           <div v-bind="attrs" v-on="on">
-            {{ Array.from(map.fightWinningCrossbreedingSaplingIndexes || []) }}
-            {{ Array.from(map.fightLosingCrossbreedingSaplingIndexes || []) }}
             <div class="mb-1">Surrounding Saplings:</div>
             <ul>
               <li v-for="(crossbreedingSapling, index) in map.crossbreedingSaplings" :key="index">
                 <SaplingDetailed
                   :sapling="crossbreedingSapling"
-                  :saplingVariants="
+                  :sapling-variants="
                     map.crossbreedingSaplingsVariants ? map.crossbreedingSaplingsVariants[index] : undefined
                   "
-                  :subtleDetails="!enableComposingSaplingsSelection"
+                  :subtle-details="!enableComposingSaplingsSelection"
                   :selectable="enableComposingSaplingsSelection"
-                  :showGeographicalDirectionTipEast="
+                  :show-geographical-direction-tip-east="
                     enableGeographicalDirectionTips && map.chance < 1 && map.fightWinningCrossbreedingSaplingIndexes
                       ? map.fightWinningCrossbreedingSaplingIndexes.has(index)
                       : false
                   "
-                  :showGeographicalDirectionTipWest="
+                  :show-geographical-direction-tip-west="
                     enableGeographicalDirectionTips && map.chance < 1 && map.fightLosingCrossbreedingSaplingIndexes
                       ? map.fightLosingCrossbreedingSaplingIndexes.has(index)
                       : false

@@ -6,11 +6,16 @@
     :class="[animationClass, { 'group--visible': isVisible, 'group--overflow': applyOverflow }]"
   >
     <div class="group_container" ref="scrollContainer">
-      <div class="group_helper-text-container" v-if="visibleGroup && visibleGroup.mapList.length > 1">
+      <div
+        class="group_helper-text-container"
+        v-if="(visibleGroup && visibleGroup.mapList.length > 1) || $slots.message"
+      >
         <div class="group_helper-text text-center pl-2 pr-2 d-none d-sm-block white--text">
-          Here you can see all the different ways you can crossbreed the same selected Sapling.
-          <div v-if="hasMessageSlotContent">
-            <v-divider class="mt-2 mb-2"></v-divider>
+          <div v-if="visibleGroup && visibleGroup.mapList.length > 1">
+            Here you can see all the different ways you can crossbreed the same selected Sapling.
+          </div>
+          <div v-if="$slots.message">
+            <v-divider class="mt-2 mb-2" v-if="visibleGroup && visibleGroup.mapList.length > 1"></v-divider>
             <slot name="message"></slot>
           </div>
         </div>
@@ -127,10 +132,6 @@ export default class SimulationMapGroupBrowser extends Vue {
   animationClass: string | null = null;
   isVisible = false;
   applyOverflow = false;
-
-  get hasMessageSlotContent() {
-    return this.$slots.message;
-  }
 
   handleMapClick(map: GeneticsMap) {
     setTimeout(() => {

@@ -53,7 +53,7 @@
         </div>
       </div>
     </div>
-    <v-overlay z-index="6" :opacity="$vuetify.theme.dark ? 0.95 : 0.75" :value="isVisible"></v-overlay>
+    <v-overlay z-index="6" :opacity="$vuetify.theme.dark ? 0.95 : 0.85" :value="isVisible"></v-overlay>
   </div>
 </template>
 

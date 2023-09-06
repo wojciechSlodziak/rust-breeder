@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="isDialogOpen" width="500" overlay-opacity="0.75">
+  <v-dialog v-model="isDialogOpen" width="500" overlay-opacity="0.85">
     <template v-slot:activator="{ on, attrs }">
       <v-btn v-bind="attrs" v-on="on" class="ma-1">
         About

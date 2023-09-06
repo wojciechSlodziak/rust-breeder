@@ -27,7 +27,7 @@
         v-if="isScanning"
       ></v-progress-circular>
     </v-btn>
-    <v-dialog v-model="isDialogOpen" width="600" overlay-opacity="0.75">
+    <v-dialog v-model="isDialogOpen" width="600" overlay-opacity="0.85">
       <v-card>
         <v-card-title class="headline" primary-title>
           <h2 class="text-h5">How to Scan Rust for Saplings?</h2>

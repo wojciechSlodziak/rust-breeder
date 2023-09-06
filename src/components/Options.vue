@@ -1,6 +1,6 @@
 <template>
   <v-form v-model="isFormValid">
-    <v-dialog v-model="isDialogOpen" width="600" overlay-opacity="0.75" @click:outside="undoChanges">
+    <v-dialog v-model="isDialogOpen" width="600" overlay-opacity="0.85" @click:outside="undoChanges">
       <template v-slot:activator="{ on, attrs }">
         <v-btn v-bind="attrs" v-on="on">
           Options

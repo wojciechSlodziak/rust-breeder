@@ -66,7 +66,7 @@ ul {
     text-align: center;
     font-size: 0.625rem;
     &.sapling-list-numbering_number--special {
-      border-top: 2px solid rgb(255, 166, 0);
+      border-top: 2px solid $c-color-dark-orange;
       margin-top: -2px;
     }
   }

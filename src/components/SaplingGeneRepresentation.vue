@@ -53,10 +53,10 @@ $radiusPX: 1.5625em;
     line-height: $radiusPX;
   }
   .sapling-gene-repr_gene--green {
-    background-color: #5e861e;
+    background-color: $c-color-dark-green;
   }
   .sapling-gene-repr_gene--red {
-    background-color: #9b4433;
+    background-color: $c-color-dark-red;
   }
   .sapling-gene-repr_separator {
     display: inline-block;

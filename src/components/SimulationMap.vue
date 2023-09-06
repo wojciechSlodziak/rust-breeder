@@ -202,15 +202,15 @@ export default class SimulationMap extends Vue {
       font-weight: bold;
     }
     .map_gen--3 {
-      color: rgb(241, 66, 66);
+      color: $c-color-red;
     }
     .map_chance--moderate span,
     .map_gen--2 {
-      color: rgb(223, 145, 0);
+      color: $c-color-dark-orange;
     }
     .map_chance--high span,
     .map_gen--1 {
-      color: rgb(31, 196, 31);
+      color: $c-color-light-green;
     }
   }
   .map_sapling {

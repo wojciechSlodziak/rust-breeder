@@ -1,3 +1,13 @@
+// vuetify overrides
 $body-font-family: 'Roboto Mono', monospace;
 $textarea-padding: 0 0 10px 12px;
 $dialog-margin: 16px;
+$tooltip-opacity: 0.95;
+$tooltip-background-color: rgba(#616161, 1);
+
+// custom colors
+$c-color-dark-orange: rgb(223, 145, 0);
+$c-color-red: rgb(241, 66, 66);
+$c-color-dark-red: rgb(155, 68, 51);
+$c-color-light-green: rgb(31, 196, 31);
+$c-color-dark-green: rgb(94, 134, 30);

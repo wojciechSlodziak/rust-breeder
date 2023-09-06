@@ -124,7 +124,7 @@ export default class SaplingDetailed extends Vue {
   }
 }
 .sapling-detailed_annotation-sapling-chance--moderate {
-  color: rgb(223, 145, 0);
+  color: $c-color-dark-orange;
 }
 .sapling-detailed_annotation-sapling-metadata--subtle,
 .sapling-detailed_annotation-sapling-chance--subtle {

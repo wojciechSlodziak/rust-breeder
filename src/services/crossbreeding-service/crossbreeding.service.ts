@@ -171,8 +171,8 @@ class CrossbreedingService {
             chance,
             sumOfComposingSaplingsGenerations,
             potentialCenterSapling,
-            potentialResult.fightWinningCrossbreedingSaplingIndexes,
-            potentialResult.fightLosingCrossbreedingSaplingIndexes
+            potentialResult.tieWinningCrossbreedingSaplingIndexes,
+            potentialResult.tieLosingCrossbreedingSaplingIndexes
           )
         );
       }
@@ -229,7 +229,7 @@ class CrossbreedingService {
   }
 
   /**
-   * Method checks wether crossbreeding combination should be ignored due to leading to a lower than 50% - 50% chance (or 33% - 33% - 33%) results,
+   * Method checks wether crossbreeding combination should be ignored because of multiple ties on different gene positions,
    * OR if not all crossbreedingSaplings were used in the process.
    * @param crossbreedingWeights List (gene position) of lists (winning CrossbreedingGeneDetails).
    * @returns Boolean value indicating if crossbreeding combination should be ignored.
@@ -238,10 +238,10 @@ class CrossbreedingService {
     crossbreedingWeights: CrossbreedingGeneDetails[][],
     numberOfCrossbreedingSaplings: number
   ): boolean {
-    let numberOfGeneFights = 0;
+    let numberOfTies = 0;
     const contributingCrossbreedingSaplingIndexes = new Set<number>();
     for (let genePosition = 0; genePosition < 6; genePosition++) {
-      numberOfGeneFights += crossbreedingWeights[genePosition].length > 1 ? 1 : 0;
+      numberOfTies += crossbreedingWeights[genePosition].length > 1 ? 1 : 0;
       crossbreedingWeights[genePosition].forEach((crossbreedingGeneDetails) => {
         if (contributingCrossbreedingSaplingIndexes.size !== numberOfCrossbreedingSaplings) {
           crossbreedingGeneDetails.contributingCrossbreedingSaplingIndexes.forEach(
@@ -251,7 +251,7 @@ class CrossbreedingService {
           );
         }
       });
-      if (numberOfGeneFights > 1) {
+      if (numberOfTies > 1) {
         return true;
       }
     }
@@ -277,10 +277,11 @@ class CrossbreedingService {
 
   /**
    * Method creates crossbreeded Saplings for given crossbreedingWeights and optionally a centerSapling.
+   * Additionally it returns information about which crossbreedingSaplings win and which lose a tie (if there is one).
    * @param crossbreedingWeights List (gene position) of lists (winning CrossbreedingGeneDetails).
    * @param generationIndex Generation index of the resulting saplings.
    * @param centerSapling Optional center sapling to crossbreed against.
-   * @returns List of Sapling results.
+   * @returns List of Sapling results with details about tie winners/losers.
    */
   getCrossbreedingResults(
     crossbreedingWeights: CrossbreedingGeneDetails[][],
@@ -309,15 +310,15 @@ class CrossbreedingService {
         }
 
         if (!useCenterSaplingGene && crossbreedingWeights[genePosition].length > 1) {
-          crossbreedingResult.fightLosingCrossbreedingSaplingIndexes = new Set();
+          crossbreedingResult.tieLosingCrossbreedingSaplingIndexes = new Set();
           crossbreedingWeights[genePosition].forEach(
             (geneDetailsForGivenPosition, geneDetailsForGivenPositionIndex) => {
               if (geneDetailsIndex === geneDetailsForGivenPositionIndex) {
-                crossbreedingResult.fightWinningCrossbreedingSaplingIndexes =
+                crossbreedingResult.tieWinningCrossbreedingSaplingIndexes =
                   geneDetailsForGivenPosition.contributingCrossbreedingSaplingIndexes;
               } else {
                 geneDetailsForGivenPosition.contributingCrossbreedingSaplingIndexes.forEach((index) => {
-                  crossbreedingResult.fightLosingCrossbreedingSaplingIndexes!.add(index);
+                  crossbreedingResult.tieLosingCrossbreedingSaplingIndexes!.add(index);
                 });
               }
             }

@@ -98,13 +98,13 @@
                   :subtle-details="!enableComposingSaplingsSelection"
                   :selectable="enableComposingSaplingsSelection"
                   :show-geographical-direction-tip-east="
-                    enableGeographicalDirectionTips && map.chance < 1 && map.fightWinningCrossbreedingSaplingIndexes
-                      ? map.fightWinningCrossbreedingSaplingIndexes.has(index)
+                    enableGeographicalDirectionTips && map.chance < 1 && map.tieWinningCrossbreedingSaplingIndexes
+                      ? map.tieWinningCrossbreedingSaplingIndexes.has(index)
                       : false
                   "
                   :show-geographical-direction-tip-west="
-                    enableGeographicalDirectionTips && map.chance < 1 && map.fightLosingCrossbreedingSaplingIndexes
-                      ? map.fightLosingCrossbreedingSaplingIndexes.has(index)
+                    enableGeographicalDirectionTips && map.chance < 1 && map.tieLosingCrossbreedingSaplingIndexes
+                      ? map.tieLosingCrossbreedingSaplingIndexes.has(index)
                       : false
                   "
                   @click="handleCrossbreedingSaplingSelection(index)"

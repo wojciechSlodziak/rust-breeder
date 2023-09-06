@@ -27,8 +27,8 @@ export class CrossbreedingGeneDetails {
 
 export class CrossbreedingResultWithDetails {
   sapling: Sapling;
-  fightWinningCrossbreedingSaplingIndexes?: Set<number>;
-  fightLosingCrossbreedingSaplingIndexes?: Set<number>;
+  tieWinningCrossbreedingSaplingIndexes?: Set<number>;
+  tieLosingCrossbreedingSaplingIndexes?: Set<number>;
 }
 
 export class GeneWeightMap {
@@ -44,8 +44,8 @@ export class GeneticsMap {
   score!: number;
   chance!: number;
   sumOfComposingSaplingsGenerations!: number;
-  fightWinningCrossbreedingSaplingIndexes?: Set<number>;
-  fightLosingCrossbreedingSaplingIndexes?: Set<number>;
+  tieWinningCrossbreedingSaplingIndexes?: Set<number>;
+  tieLosingCrossbreedingSaplingIndexes?: Set<number>;
 
   constructor(
     resultSapling: Sapling,
@@ -54,8 +54,8 @@ export class GeneticsMap {
     chance: number,
     sumOfComposingSaplingsGenerations: number,
     baseSapling?: Sapling,
-    fightWinningCrossbreedingSaplingIndexes?: Set<number>,
-    fightLosingCrossbreedingSaplingIndexes?: Set<number>
+    tieWinningCrossbreedingSaplingIndexes?: Set<number>,
+    tieLosingCrossbreedingSaplingIndexes?: Set<number>
   ) {
     this.resultSapling = resultSapling;
     this.baseSapling = baseSapling;
@@ -63,8 +63,8 @@ export class GeneticsMap {
     this.score = score;
     this.chance = chance;
     this.sumOfComposingSaplingsGenerations = sumOfComposingSaplingsGenerations;
-    this.fightWinningCrossbreedingSaplingIndexes = fightWinningCrossbreedingSaplingIndexes;
-    this.fightLosingCrossbreedingSaplingIndexes = fightLosingCrossbreedingSaplingIndexes;
+    this.tieWinningCrossbreedingSaplingIndexes = tieWinningCrossbreedingSaplingIndexes;
+    this.tieLosingCrossbreedingSaplingIndexes = tieLosingCrossbreedingSaplingIndexes;
   }
 
   clone(): GeneticsMap {
@@ -84,11 +84,11 @@ export class GeneticsMap {
         crossbreedingSaplingsVariants.clone()
       );
     }
-    if (this.fightWinningCrossbreedingSaplingIndexes) {
-      clone.fightWinningCrossbreedingSaplingIndexes = new Set(this.fightWinningCrossbreedingSaplingIndexes);
+    if (this.tieWinningCrossbreedingSaplingIndexes) {
+      clone.tieWinningCrossbreedingSaplingIndexes = new Set(this.tieWinningCrossbreedingSaplingIndexes);
     }
-    if (this.fightLosingCrossbreedingSaplingIndexes) {
-      clone.fightLosingCrossbreedingSaplingIndexes = new Set(this.fightLosingCrossbreedingSaplingIndexes);
+    if (this.tieLosingCrossbreedingSaplingIndexes) {
+      clone.tieLosingCrossbreedingSaplingIndexes = new Set(this.tieLosingCrossbreedingSaplingIndexes);
     }
     return clone;
   }

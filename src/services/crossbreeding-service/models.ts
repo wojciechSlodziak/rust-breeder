@@ -31,10 +31,6 @@ export class CrossbreedingResultWithDetails {
   tieLosingCrossbreedingSaplingIndexes?: Set<number>;
 }
 
-export class GeneWeightMap {
-  [geneType: string]: CrossbreedingGeneDetails;
-}
-
 export class GeneticsMap {
   resultSapling!: Sapling;
   baseSapling?: Sapling;

@@ -3,7 +3,7 @@ import Sapling from '../../models/sapling.model';
 import { buildInitialSaplingPositions, getMaxPositionsCount, setNextPosition } from './helper';
 import GeneEnum from '../../enums/gene.enum';
 import { SimulateOptions, GenerationInfo, GeneticsMap, CrossbreedingResultWithDetails } from './models';
-import { CrossbreedingGeneDetails, GeneWeightMap } from './models';
+import { CrossbreedingGeneDetails } from './models';
 
 class CrossbreedingService {
   /**
@@ -96,18 +96,15 @@ class CrossbreedingService {
     minimumTrackedScore: number,
     generationIndex: number
   ) {
-    const crossbreedingWeights = this.getCrossbreedingWeights(crossbreedingSaplings);
-    const winningCrossbreedingWeights = this.getWinningCrossbreedingWeights(crossbreedingWeights);
+    const winningCrossbreedingWeights = this.getWinningCrossbreedingWeights(crossbreedingSaplings);
 
-    if (
-      this.checkIfCrossbreedingCombinationShouldBeIgnored(winningCrossbreedingWeights, crossbreedingSaplings.length)
-    ) {
+    if (winningCrossbreedingWeights === null) {
       return;
     }
 
     const requiresCheckingAgainstCenterSapling = this.requiresCheckingAgainstCenterSapling(winningCrossbreedingWeights);
 
-    // Create results from the crossbreedingWeights and center saplings (if applicable).
+    // Create results from the winningCrossbreedingWeights and center saplings (if applicable).
     if (requiresCheckingAgainstCenterSapling) {
       const otherSaplings: Sapling[] = sourceSaplings.filter(
         (sapling) => crossbreedingSaplings.indexOf(sapling) === -1
@@ -180,85 +177,62 @@ class CrossbreedingService {
   }
 
   /**
-   * Method performs crossbreeding on a given list of saplings, and returns resulting crossbreedingWeights.
+   * Method performs crossbreeding on a given list of saplings, and returns resulting crossbreedingWeights for winning genes.
+   * Additionally, method checks if given combination should be ignored due to multiple ties OR if not all crossbreedingSaplings were used in the process.
    * @param crossbreedingSaplings A list of saplings which have to be crossbreeded with each other.
-   * @returns List of GeneWeightMap. List position corresponds to the gene indexes.
+   * @returns List of positions with their winning or tiesing genes. Returns null if combination should be ignored.
    */
-  getCrossbreedingWeights(crossbreedingSaplings: Sapling[]): GeneWeightMap[] {
-    const geneToWeightMaps: GeneWeightMap[] = [];
-    for (let genePosition = 0; genePosition < 6; genePosition++) {
-      const geneToWeightMap: GeneWeightMap = {};
-      crossbreedingSaplings.forEach((crossbreedingSapling, crossbreedingSaplingIndex) => {
-        let details = geneToWeightMap[crossbreedingSapling.genes[genePosition].type];
-        if (!details) {
-          details = new CrossbreedingGeneDetails();
-          details.geneType = crossbreedingSapling.genes[genePosition].type;
-          geneToWeightMap[crossbreedingSapling.genes[genePosition].type] = details;
-        }
-        details.totalWeight += crossbreedingSapling.genes[genePosition].getCrossbreedingWeight();
-        details.contributingCrossbreedingSaplingIndexes.add(crossbreedingSaplingIndex);
-      });
-      geneToWeightMaps.push(geneToWeightMap);
-    }
-    return geneToWeightMaps;
-  }
-
-  /**
-   * Method filters out @param crossbreedingWeights for the winning genes.
-   * @param crossbreedingWeights A list of GeneWeightMap with all gene weights that were calculated before.
-   * List position corresponds to the gene indexes.
-   * @returns Filtered list (gene position) of lists (winning CrossbreedingGeneDetails).
-   */
-  getWinningCrossbreedingWeights(crossbreedingWeights: GeneWeightMap[]): CrossbreedingGeneDetails[][] {
-    const winningCrossbreedingGenesDetailsPerPosition: CrossbreedingGeneDetails[][] = [];
-    crossbreedingWeights.forEach((crossbreedingWeightsForPosition) => {
-      let highestGeneWeight = Number.MIN_VALUE;
-      Object.values(crossbreedingWeightsForPosition).forEach((crossbreedingGeneDetails) => {
-        if (crossbreedingGeneDetails.totalWeight > highestGeneWeight) {
-          highestGeneWeight = crossbreedingGeneDetails.totalWeight;
-        }
-      });
-
-      winningCrossbreedingGenesDetailsPerPosition.push(
-        Object.values(crossbreedingWeightsForPosition).filter(
-          (crossbreedingGeneDetails) => crossbreedingGeneDetails.totalWeight === highestGeneWeight
-        )
-      );
-    });
-    return winningCrossbreedingGenesDetailsPerPosition;
-  }
-
-  /**
-   * Method checks wether crossbreeding combination should be ignored because of multiple ties on different gene positions,
-   * OR if not all crossbreedingSaplings were used in the process.
-   * @param crossbreedingWeights List (gene position) of lists (winning CrossbreedingGeneDetails).
-   * @returns Boolean value indicating if crossbreeding combination should be ignored.
-   */
-  checkIfCrossbreedingCombinationShouldBeIgnored(
-    crossbreedingWeights: CrossbreedingGeneDetails[][],
-    numberOfCrossbreedingSaplings: number
-  ): boolean {
+  getWinningCrossbreedingWeights(crossbreedingSaplings: Sapling[]): CrossbreedingGeneDetails[][] | null {
+    const allPositionsCrossbreedingGeneDetails: CrossbreedingGeneDetails[][] = [];
     let numberOfTies = 0;
-    const contributingCrossbreedingSaplingIndexes = new Set<number>();
+    const saplingIndexesThatContributedToCrossbreeding = new Set<number>();
     for (let genePosition = 0; genePosition < 6; genePosition++) {
-      numberOfTies += crossbreedingWeights[genePosition].length > 1 ? 1 : 0;
-      crossbreedingWeights[genePosition].forEach((crossbreedingGeneDetails) => {
-        if (contributingCrossbreedingSaplingIndexes.size !== numberOfCrossbreedingSaplings) {
-          crossbreedingGeneDetails.contributingCrossbreedingSaplingIndexes.forEach(
-            (contributingCrossbreedingSaplingIndex) => {
-              contributingCrossbreedingSaplingIndexes.add(contributingCrossbreedingSaplingIndex);
-            }
-          );
+      let highestTotalWeight = Number.MIN_VALUE;
+      let currentPositionGeneDetails: CrossbreedingGeneDetails[] = [];
+      crossbreedingSaplings.forEach((crossbreedingSapling, crossbreedingSaplingIndex) => {
+        let detail = currentPositionGeneDetails.find(
+          (details) => crossbreedingSapling.genes[genePosition].type === details.geneType
+        );
+        if (!detail) {
+          detail = new CrossbreedingGeneDetails();
+          detail.geneType = crossbreedingSapling.genes[genePosition].type;
+          currentPositionGeneDetails.push(detail);
         }
+        detail.totalWeight += crossbreedingSapling.genes[genePosition].getCrossbreedingWeight();
+        highestTotalWeight = Math.max(highestTotalWeight, detail.totalWeight);
+        detail.contributingCrossbreedingSaplingIndexes.add(crossbreedingSaplingIndex);
       });
-      if (numberOfTies > 1) {
-        return true;
+
+      // Filters out genes that did not win or tie on the given position.
+      currentPositionGeneDetails = currentPositionGeneDetails.filter(
+        (detail) => detail.totalWeight === highestTotalWeight
+      );
+
+      // Keeps track of the contributing sapling indexes.
+      currentPositionGeneDetails.forEach((detail) => {
+        detail.contributingCrossbreedingSaplingIndexes.forEach((contributingCrossbreedingSaplingIndex) => {
+          saplingIndexesThatContributedToCrossbreeding.add(contributingCrossbreedingSaplingIndex);
+        });
+      });
+
+      // Keep track of number of ties.
+      if (currentPositionGeneDetails.length > 1) {
+        numberOfTies += 1;
       }
+      // If there is more than one tie, ignore the combination.
+      if (numberOfTies > 1) {
+        return null;
+      }
+
+      allPositionsCrossbreedingGeneDetails.push(currentPositionGeneDetails);
     }
-    if (contributingCrossbreedingSaplingIndexes.size !== numberOfCrossbreedingSaplings) {
-      return true;
+
+    // If not all crossbreedingSaplings were used in the process, ignore the combination
+    if (saplingIndexesThatContributedToCrossbreeding.size !== crossbreedingSaplings.length) {
+      return null;
     }
-    return false;
+
+    return allPositionsCrossbreedingGeneDetails;
   }
 
   /**

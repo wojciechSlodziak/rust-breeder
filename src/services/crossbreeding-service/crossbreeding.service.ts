@@ -190,17 +190,20 @@ class CrossbreedingService {
       let highestTotalWeight = Number.MIN_VALUE;
       let currentPositionGeneDetails: CrossbreedingGeneDetails[] = [];
       crossbreedingSaplings.forEach((crossbreedingSapling, crossbreedingSaplingIndex) => {
-        let detail = currentPositionGeneDetails.find(
-          (details) => crossbreedingSapling.genes[genePosition].type === details.geneType
+        let geneDetail = currentPositionGeneDetails.find(
+          (detail) => crossbreedingSapling.genes[genePosition].type === detail.geneType
         );
-        if (!detail) {
-          detail = new CrossbreedingGeneDetails();
-          detail.geneType = crossbreedingSapling.genes[genePosition].type;
-          currentPositionGeneDetails.push(detail);
+        if (!geneDetail) {
+          geneDetail = {
+            geneType: crossbreedingSapling.genes[genePosition].type,
+            totalWeight: 0,
+            contributingCrossbreedingSaplingIndexes: new Set<number>()
+          };
+          currentPositionGeneDetails.push(geneDetail);
         }
-        detail.totalWeight += crossbreedingSapling.genes[genePosition].getCrossbreedingWeight();
-        highestTotalWeight = Math.max(highestTotalWeight, detail.totalWeight);
-        detail.contributingCrossbreedingSaplingIndexes.add(crossbreedingSaplingIndex);
+        geneDetail.totalWeight += crossbreedingSapling.genes[genePosition].getCrossbreedingWeight();
+        highestTotalWeight = Math.max(highestTotalWeight, geneDetail.totalWeight);
+        geneDetail.contributingCrossbreedingSaplingIndexes.add(crossbreedingSaplingIndex);
       });
 
       // Filters out genes that did not win or tie on the given position.
@@ -209,8 +212,8 @@ class CrossbreedingService {
       );
 
       // Keeps track of the contributing sapling indexes.
-      currentPositionGeneDetails.forEach((detail) => {
-        detail.contributingCrossbreedingSaplingIndexes.forEach((contributingCrossbreedingSaplingIndex) => {
+      currentPositionGeneDetails.forEach((geneDetail) => {
+        geneDetail.contributingCrossbreedingSaplingIndexes.forEach((contributingCrossbreedingSaplingIndex) => {
           saplingIndexesThatContributedToCrossbreeding.add(contributingCrossbreedingSaplingIndex);
         });
       });

@@ -21,8 +21,8 @@ export class ProcessingStat {
 
 export class CrossbreedingGeneDetails {
   geneType: GeneEnum;
-  totalWeight = 0;
-  contributingCrossbreedingSaplingIndexes = new Set<number>();
+  totalWeight: number;
+  contributingCrossbreedingSaplingIndexes: Set<number>;
 }
 
 export class CrossbreedingResultWithDetails {

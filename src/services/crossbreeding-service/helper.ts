@@ -153,6 +153,7 @@ export function setNextPosition(
 
 /**
  * Method calculates chunks of work which should be split between workers.
+ * @param numberOfWorkers Number of workers configured by User.
  * @param sourceSaplingsCount Number of sourceSaplings provided by User.
  * @param withRepetitions Option defining if process should consider repetitions.
  * @param minCrossbreedingSaplings Option defining how many crossbreeding saplings can be used in the process at minimum.
@@ -162,6 +163,7 @@ export function setNextPosition(
  * @returns List of objects which represent chunks of work.
  */
 export function getWorkChunks(
+  numberOfWorkers: number,
   sourceSaplingsCount: number,
   withRepetitions: boolean,
   minCrossbreedingSaplings: number,
@@ -185,7 +187,6 @@ export function getWorkChunks(
     allCombinationsCount -= combinationsToIgnore;
   }
 
-  const numberOfWorkers = Math.ceil(navigator.hardwareConcurrency / 2);
   const combinationsPerWorker = Math.ceil(allCombinationsCount / numberOfWorkers);
   const workChunks = [];
 

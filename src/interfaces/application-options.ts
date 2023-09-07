@@ -13,4 +13,5 @@ export default interface ApplicationOptions {
   sounds: boolean;
   skipScannerGuide: boolean;
   autoSaveInputSets: boolean;
+  numberOfWorkers: number;
 }

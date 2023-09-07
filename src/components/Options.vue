@@ -32,6 +32,18 @@
         <v-card-text class="px-0">
           <v-tabs-items v-model="tab">
             <v-tab-item class="px-5">
+              <v-slider
+                class="mt-8"
+                label="Number of Workers"
+                v-model.number="options.numberOfWorkers"
+                min="1"
+                :max="maxNumberOfWorkers"
+                ticks="always"
+                tick-size="2"
+                :tick-labels="numberOfWorkersLabels"
+                hint="Controls how many background workers are spawned during the calculation. A higher number means the calculation will be finished quicker, but it may cause your processor to be overloaded. If your device is struggling just lower the number."
+                persistent-hint
+              ></v-slider>
               <v-range-slider
                 class="mt-5"
                 v-model="crossbreedingSaplingsNumberRange"
@@ -39,7 +51,7 @@
                 max="8"
                 :tick-labels="maxCrossbreedingSaplingsLabels"
                 ticks="always"
-                tick-size="1"
+                tick-size="2"
                 label="Crossbreeding Saplings Range"
                 hint="Controls the range of Saplings that can be used for a single Crossbreeding session. It seems that range from 2 to 5 is a sweet spot between effectiveness and calculation speed. It is possible that we are missing some results if this value is not set to the extremes, but it saves a lot of processing time."
                 persistent-hint
@@ -52,7 +64,7 @@
                 max="3"
                 :tick-labels="numberOfGenerationLabels"
                 ticks="always"
-                tick-size="1"
+                tick-size="2"
               ></v-slider>
               <v-text-field
                 class="mt-6"
@@ -178,7 +190,7 @@ import { isScanningAvailable } from '@/lib/ui-utils';
  * If the structure of the options would change in the future this value should be incremented
  * to invalidate obsolote options saved by the User.
  */
-const OPTIONS_VERSION = 3;
+const OPTIONS_VERSION = 4;
 const OPTIONS_COOKIE_KEY = `options-v${OPTIONS_VERSION}`;
 const DEFAULT_OPTIONS: ApplicationOptions = {
   withRepetitions: true,
@@ -198,7 +210,8 @@ const DEFAULT_OPTIONS: ApplicationOptions = {
   darkMode: true,
   skipScannerGuide: false,
   autoSaveInputSets: true,
-  sounds: true
+  sounds: true,
+  numberOfWorkers: navigator.hardwareConcurrency
 };
 const STORED_OPTIONS = getCookie(OPTIONS_COOKIE_KEY);
 
@@ -221,6 +234,9 @@ export default class Options extends Vue {
 
   numberOfGenerationLabels = ['one', 'two', 'three'];
   maxCrossbreedingSaplingsLabels = ['2', '3', '4', '5', '6', '7', '8'];
+  numberOfWorkersLabels = Array.from({ length: navigator.hardwareConcurrency }, (value, index) =>
+    (index + 1).toString()
+  );
   shouldDisplayScreenCaptureOptions = false;
 
   geneScoreRules = [
@@ -232,6 +248,10 @@ export default class Options extends Vue {
   minimumTrackedScoreRules = [
     (v: number | string) => (v !== '' && Number(v) >= -6 && Number(v) <= 6) || `Acceptable range: -6 to 6.`
   ];
+
+  get maxNumberOfWorkers() {
+    return navigator.hardwareConcurrency;
+  }
 
   get scoreInputs() {
     return Object.keys(this.options.geneScores || {})
@@ -246,6 +266,12 @@ export default class Options extends Vue {
 
   created() {
     this.shouldDisplayScreenCaptureOptions = isScanningAvailable();
+
+    // In case someone would change a processor in his PC and his navigator.hardwareConcurrency would be lower than before,
+    // for best performance we want to maintain a value that is not higher than navigator.hardwareConcurrency.
+    const reasonableNumberOfWorkers = Math.min(this.currentlySetOptions.numberOfWorkers, navigator.hardwareConcurrency);
+    this.currentlySetOptions.numberOfWorkers = reasonableNumberOfWorkers;
+    this.options.numberOfWorkers = reasonableNumberOfWorkers;
   }
 
   mounted() {

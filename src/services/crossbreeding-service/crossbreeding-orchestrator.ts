@@ -60,6 +60,7 @@ class CrossbreedingOrchestrator {
     });
 
     this.chunksWorker.addEventListener('message', (event) => {
+      this.chunksWorker.terminate();
       const { workChunks } = event.data as { workChunks: WorkChunk[] };
 
       workChunks.forEach((workChunk, workerIndex) => {

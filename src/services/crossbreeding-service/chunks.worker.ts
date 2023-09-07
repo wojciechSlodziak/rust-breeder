@@ -6,6 +6,7 @@ import { getWorkChunks } from './helper';
 ctx.addEventListener('message', (event) => {
   const { sourceSaplings, options, generationInfo } = event.data;
   const workChunks = getWorkChunks(
+    options.numberOfWorkers,
     sourceSaplings.length,
     options.withRepetitions,
     options.minCrossbreedingSaplingsNumber,

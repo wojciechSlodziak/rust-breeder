@@ -196,8 +196,8 @@ const DEFAULT_OPTIONS: ApplicationOptions = {
   withRepetitions: true,
   modifyMinimumTrackedScoreManually: false,
   minCrossbreedingSaplingsNumber: 2,
-  maxCrossbreedingSaplingsNumber: 8,
-  numberOfGenerations: 1,
+  maxCrossbreedingSaplingsNumber: 5,
+  numberOfGenerations: 2,
   numberOfSaplingsAddedBetweenGenerations: 20,
   minimumTrackedScore: 4,
   geneScores: {
@@ -211,7 +211,7 @@ const DEFAULT_OPTIONS: ApplicationOptions = {
   skipScannerGuide: false,
   autoSaveInputSets: true,
   sounds: true,
-  numberOfWorkers: 1
+  numberOfWorkers: navigator.hardwareConcurrency
 };
 const STORED_OPTIONS = getCookie(OPTIONS_COOKIE_KEY);
 

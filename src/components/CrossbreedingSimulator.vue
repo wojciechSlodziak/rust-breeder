@@ -166,7 +166,7 @@ export default class CrossbreedingSimulator extends Vue {
   hasResults = false;
   lastEstimatedTimeUpdateTimestamp = new Date().getTime();
   numberOfGenerations = 0;
-  areInputsValid = true;
+  areInputsValid = false;
   calcStartTime: number | null = null;
   calcEndTime: number | null = null;
   options: ApplicationOptions | null = null;
@@ -357,7 +357,7 @@ export default class CrossbreedingSimulator extends Vue {
   scrollToResults() {
     setTimeout(() => {
       const rect = (this.$refs.results as HTMLElement)?.getBoundingClientRect();
-      goTo(rect.top, { duration: 300 });
+      goTo(rect.top - 64, { duration: 300 });
     }, 200);
   }
 }

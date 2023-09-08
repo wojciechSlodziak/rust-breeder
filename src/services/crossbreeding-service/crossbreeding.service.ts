@@ -1,4 +1,4 @@
-import Gene from '@/models/gene.model';
+import Gene, { RED_GENE_WEIGHT } from '@/models/gene.model';
 import Sapling from '../../models/sapling.model';
 import { buildInitialSaplingPositions, getMaxPositionsCount, setNextPosition } from './helper';
 import GeneEnum from '../../enums/gene.enum';
@@ -184,7 +184,7 @@ class CrossbreedingService {
    */
   getWinningCrossbreedingWeights(crossbreedingSaplings: Sapling[]): CrossbreedingGeneDetails[][] | null {
     const allPositionsCrossbreedingGeneDetails: CrossbreedingGeneDetails[][] = [];
-    let numberOfTies = 0;
+    let numberOfEarlyRecognizableTies = 0;
     const saplingIndexesThatContributedToCrossbreeding = new Set<number>();
     for (let genePosition = 0; genePosition < 6; genePosition++) {
       let highestTotalWeight = Number.MIN_VALUE;
@@ -218,12 +218,14 @@ class CrossbreedingService {
         });
       });
 
-      // Keep track of number of ties.
-      if (currentPositionGeneDetails.length > 1) {
-        numberOfTies += 1;
+      // Keep track of the number of ties that can be recognized in this early stage.
+      // If the weight of the genes is too low to surely overpower the potential center sapling we can't consider this as a definitive tie.
+      if (currentPositionGeneDetails.length > 1 && currentPositionGeneDetails[0].totalWeight > RED_GENE_WEIGHT) {
+        numberOfEarlyRecognizableTies += 1;
       }
+
       // If there is more than one tie, ignore the combination.
-      if (numberOfTies > 1) {
+      if (numberOfEarlyRecognizableTies > 1) {
         return null;
       }
 
@@ -258,61 +260,85 @@ class CrossbreedingService {
    * @param crossbreedingWeights List (gene position) of lists (winning CrossbreedingGeneDetails).
    * @param generationIndex Generation index of the resulting saplings.
    * @param centerSapling Optional center sapling to crossbreed against.
-   * @returns List of Sapling results with details about tie winners/losers.
+   * @returns List of Sapling results with details about tie winners/losers. Returns empty list if combination should be ignored due multiple ties.
    */
   getCrossbreedingResults(
     crossbreedingWeights: CrossbreedingGeneDetails[][],
     generationIndex: number,
     centerSapling?: Sapling
   ): CrossbreedingResultWithDetails[] {
-    const crossbreedingResults: CrossbreedingResultWithDetails[] = [{ sapling: new Sapling(null, generationIndex) }];
+    let crossbreedingResults: CrossbreedingResultWithDetails[] = [{ sapling: new Sapling(null, generationIndex) }];
+    let numberOfDefinitiveTies = 0;
     for (let genePosition = 0; genePosition < 6; genePosition++) {
-      for (let cloneIndex = 1; cloneIndex < crossbreedingWeights[genePosition].length; cloneIndex++) {
-        crossbreedingResults.push({ sapling: crossbreedingResults[0].sapling.clone() });
-      }
-      crossbreedingResults.forEach((crossbreedingResult, crossbreedingResultIndex) => {
-        const geneDetailsIndex = crossbreedingWeights[genePosition].length > 1 ? crossbreedingResultIndex : 0;
-        let useCenterSaplingGene = false;
-        if (centerSapling) {
-          useCenterSaplingGene =
-            crossbreedingWeights[genePosition][geneDetailsIndex].totalWeight <=
-            centerSapling.genes[genePosition].getCrossbreedingWeight();
-          const gene = useCenterSaplingGene
-            ? centerSapling.genes[genePosition]
-            : new Gene(crossbreedingWeights[genePosition][geneDetailsIndex].geneType);
+      const currentPositionCrossbreedingWeights = crossbreedingWeights[genePosition];
+
+      const useCenterSaplingGene =
+        centerSapling &&
+        currentPositionCrossbreedingWeights.length > 1 &&
+        centerSapling.genes[genePosition].getCrossbreedingWeight() >=
+          currentPositionCrossbreedingWeights[0].totalWeight;
+
+      // This list will hold potential new results if a tie happens.
+      const newCrossbreedingResults: CrossbreedingResultWithDetails[] = [];
+
+      let shouldDiscardResult = false;
+      crossbreedingResults.forEach((crossbreedingResult) => {
+        if (useCenterSaplingGene) {
+          const gene = centerSapling!.genes[genePosition];
           crossbreedingResult.sapling.addGene(gene);
         } else {
-          const gene = new Gene(crossbreedingWeights[genePosition][geneDetailsIndex].geneType);
-          crossbreedingResult.sapling.addGene(gene);
-        }
+          if (currentPositionCrossbreedingWeights.length === 1) {
+            const gene = new Gene(currentPositionCrossbreedingWeights[0].geneType);
+            crossbreedingResult.sapling.addGene(gene);
+          } else {
+            // If at this stage we have more than one tie we can discard the result calculation of this combination.
+            numberOfDefinitiveTies += 1;
+            if (numberOfDefinitiveTies > 1) {
+              shouldDiscardResult = true;
+            } else {
+              // If a tie has happened we have to multiply the results by cloning partial result that we built up untill now.
+              currentPositionCrossbreedingWeights.forEach((geneDetailsForGivenPosition) => {
+                // Here we only clone the sapling. We don't care about other properties
+                // because they are only generated during a tie and we discard more than one tie scenarios.
+                const newCrossbreedingResult: CrossbreedingResultWithDetails = {
+                  sapling: crossbreedingResult.sapling.clone()
+                };
+                const gene = new Gene(geneDetailsForGivenPosition.geneType);
+                newCrossbreedingResult.sapling.addGene(gene);
+                newCrossbreedingResults.push(newCrossbreedingResult);
 
-        if (!useCenterSaplingGene && crossbreedingWeights[genePosition].length > 1) {
-          crossbreedingResult.tieLosingCrossbreedingSaplingIndexes = new Set();
-          crossbreedingWeights[genePosition].forEach(
-            (geneDetailsForGivenPosition, geneDetailsForGivenPositionIndex) => {
-              if (geneDetailsIndex === geneDetailsForGivenPositionIndex) {
-                crossbreedingResult.tieWinningCrossbreedingSaplingIndexes =
+                // Here we are tracking the saplings that won in the tie.
+                newCrossbreedingResult.tieWinningCrossbreedingSaplingIndexes =
                   geneDetailsForGivenPosition.contributingCrossbreedingSaplingIndexes;
-              } else {
-                geneDetailsForGivenPosition.contributingCrossbreedingSaplingIndexes.forEach((index) => {
-                  crossbreedingResult.tieLosingCrossbreedingSaplingIndexes!.add(index);
+
+                // Here we are tracking the saplings that lost in the tie.
+                newCrossbreedingResult.tieLosingCrossbreedingSaplingIndexes = new Set();
+                currentPositionCrossbreedingWeights.forEach((geneDetailsForGivenPositionToTrackingTieLosers) => {
+                  if (geneDetailsForGivenPosition !== geneDetailsForGivenPositionToTrackingTieLosers) {
+                    geneDetailsForGivenPositionToTrackingTieLosers.contributingCrossbreedingSaplingIndexes.forEach(
+                      (index) => {
+                        newCrossbreedingResult.tieLosingCrossbreedingSaplingIndexes!.add(index);
+                      }
+                    );
+                  }
                 });
-              }
+              });
             }
-          );
+          }
         }
       });
+
+      // Multiple ties have happened.
+      if (shouldDiscardResult) {
+        return [];
+      }
+
+      // Check if a new set of results was populated due to a tie. if so, replace old set with new.
+      if (newCrossbreedingResults.length > 0) {
+        crossbreedingResults = newCrossbreedingResults;
+      }
     }
 
-    // For crossbreeding against center sapling if there is more than one result and [0] and [1] are equal,
-    // third will also be the same. No need to check.
-    if (
-      centerSapling &&
-      crossbreedingResults.length > 1 &&
-      crossbreedingResults[0].sapling.toString() === crossbreedingResults[1].sapling.toString()
-    ) {
-      return [crossbreedingResults[0]];
-    }
     return crossbreedingResults;
   }
 }

@@ -100,6 +100,12 @@ export default class GeneInputs extends Vue {
     return this.saplingGenes === '' ? [] : this.saplingGenes.trim().split(/\r?\n/);
   }
 
+  mounted() {
+    if (this.saplingGenes !== '') {
+      this.checkFormValidity();
+    }
+  }
+
   handleSaplingGenesInput(value: string) {
     const textarea = (this.$refs.saplingGenesInput as Vue).$el.querySelector('textarea');
     if (textarea) {

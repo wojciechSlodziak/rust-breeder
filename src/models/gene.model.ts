@@ -1,5 +1,8 @@
 import GeneEnum from '../enums/gene.enum';
 
+export const GREEN_GENE_WEIGHT = 0.6;
+export const RED_GENE_WEIGHT = 1;
+
 export default class Gene {
   type: GeneEnum;
   isGreen: boolean;
@@ -10,6 +13,6 @@ export default class Gene {
   }
 
   getCrossbreedingWeight(): number {
-    return this.isGreen ? 0.6 : 1;
+    return this.isGreen ? GREEN_GENE_WEIGHT : RED_GENE_WEIGHT;
   }
 }

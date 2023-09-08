@@ -37,6 +37,7 @@
             @blur="handleSaplingGenesInputBlur"
             @keydown="handleSaplingGenesInputKeyDown($event)"
             outlined
+            no-resize
             :disabled="disabled"
             :rows="Math.max(5, saplingGenes.split(`\n`).length || 0)"
             :rules="sourceSaplingRules"

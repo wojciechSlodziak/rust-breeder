@@ -22,6 +22,7 @@ class CrossbreedingService {
   ) {
     let results: GeneticsMap[] = [];
     const sourceGenes = sourceSaplings.map((sourceSapling) => sourceSapling.toString());
+    console.log(startingPositions, combinationsToProcess);
 
     let combinationsProcessed = 0;
     let positions: number[];

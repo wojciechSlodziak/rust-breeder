@@ -4,6 +4,7 @@ const ctx: Worker = self as any;
 import Sapling from '@/models/sapling.model';
 import geneticsSimulatorService from './crossbreeding.service';
 import { fixSaplingPrototypeAssignments, createMapGroupMap } from './helper';
+import { callProgressCallbackAfterCombinations, callProgressCallbackAfterNumberOfResultsReached } from './config';
 
 ctx.addEventListener('message', (event) => {
   geneticsSimulatorService.simulateCrossbreeding(
@@ -12,8 +13,8 @@ ctx.addEventListener('message', (event) => {
     event.data.combinationsToProcess,
     event.data.generationInfo,
     {
-      callProgressCallbackAfterCombinations: 10000,
-      callProgressCallbackAfterNumberOfResultsReached: 5000,
+      callProgressCallbackAfterCombinations,
+      callProgressCallbackAfterNumberOfResultsReached,
       progressCallback: (combinationsProcessed, partialResultMapList) => {
         ctx.postMessage({ combinationsProcessed, partialMapGroupMap: createMapGroupMap(partialResultMapList) });
       },

@@ -200,11 +200,10 @@ export default class CrossbreedingSimulator extends Vue {
   }
 
   get shouldDisplayGeoInfoOnMapBrowser() {
+    const shouldGroupDisplayGeoInfo = (grp: GeneticsMapGroup | null) =>
+      grp && (grp.mapList[0]?.chance < 1 || grp.mapList[1]?.chance < 1 || grp.mapList[2]?.chance < 1);
     return (
-      this.selectedBrowsingGroup &&
-      (this.selectedBrowsingGroup.mapList[0]?.chance < 1 ||
-        this.selectedBrowsingGroup.mapList[1]?.chance < 1 ||
-        this.selectedBrowsingGroup.mapList[2]?.chance < 1)
+      shouldGroupDisplayGeoInfo(this.selectedBrowsingGroup) || shouldGroupDisplayGeoInfo(this.selectedBrowsingGroup2)
     );
   }
 

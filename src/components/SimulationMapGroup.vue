@@ -36,6 +36,7 @@
             :enable-ripple="index === 0"
             :enable-tooltip="index === 0"
             :forced-height="index !== 0 ? backingMapHeight : null"
+            enable-geographical-direction-tips
             :style="{
               'z-index': group.mapList.length - index
             }"

@@ -113,8 +113,8 @@
         ></v-divider>
         <template v-if="shouldDisplayGeoInfoOnMapBrowser">
           Place plants with an "E" next to the <v-icon size="large" color="white">mdi-compass-rose</v-icon> icon in the
-          most east slot of the planter box, and plants with a "W" in the most west slot to influence the crossbreeding
-          for the desired result.
+          eastern most slot of the planter box, and plants with a "W" in the western most slot to influence the
+          crossbreeding for the desired result.
         </template>
       </template>
     </SimulationMapGroupBrowser>

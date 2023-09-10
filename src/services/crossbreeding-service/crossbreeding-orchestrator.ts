@@ -44,6 +44,8 @@ class CrossbreedingOrchestrator {
     generationInfo: GenerationInfo = { index: 1 },
     options: ApplicationOptions
   ) {
+    const { numberOfWorkers } = options;
+
     this.startTimestamp = new Date().getTime();
 
     if (generationInfo.index === 1) {
@@ -57,7 +59,7 @@ class CrossbreedingOrchestrator {
 
     // If there is just one worker there is no reason to split its work so we aim for just 1 chunk.
     // Otherwise we scale number of chunks with number of workers.
-    const numberOfWorkChunks = options.numberOfWorkers > 1 ? options.numberOfWorkers * WORK_CHUNKS_PER_WORKER : 1;
+    const numberOfWorkChunks = numberOfWorkers > 1 ? numberOfWorkers * WORK_CHUNKS_PER_WORKER : 1;
     this.chunksWorker.postMessage({
       numberOfWorkChunks,
       sourceSaplings,
@@ -71,24 +73,29 @@ class CrossbreedingOrchestrator {
       this.combinationsToProcess = workChunks[0].allCombinationsCount;
       this.combinationsProcessedSoFar = 0;
 
-      for (let workerIndex = 0; workerIndex < options.numberOfWorkers; workerIndex++) {
+      const workChunksPerWorker: WorkChunk[][] = [];
+      for (let workerIndex = 0; workerIndex < numberOfWorkers; workerIndex++) {
+        const currentWorkerWorkChunks = workChunks.filter(
+          (workChunk, workChunkIndex) => workChunkIndex % numberOfWorkers === workerIndex
+        );
+        workChunksPerWorker.push(currentWorkerWorkChunks);
+      }
+
+      for (let workerIndex = 0; workerIndex < numberOfWorkers; workerIndex++) {
         const worker = new CrossbreedingWorker();
         this.workers.push(worker);
 
         worker.addEventListener('message', (event) => {
           this.handleWorkerMessage(event, sourceSaplings, generationInfo.index, options);
         });
-      }
 
-      workChunks.forEach((workChunk, workChunkIndex) => {
-        const workerIndex = workChunkIndex % this.workers.length;
-        this.workers[workerIndex].postMessage({
+        worker.postMessage({
           sourceSaplings,
-          workChunk,
+          workChunks: workChunksPerWorker[workerIndex],
           generationInfo,
           options
         });
-      });
+      }
     });
   }
 

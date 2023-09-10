@@ -4,9 +4,9 @@ const ctx: Worker = self as any;
 import { getWorkChunks } from './helper';
 
 ctx.addEventListener('message', (event) => {
-  const { sourceSaplings, options, generationInfo } = event.data;
+  const { numberOfWorkChunks, sourceSaplings, options, generationInfo } = event.data;
   const workChunks = getWorkChunks(
-    options.numberOfWorkers,
+    numberOfWorkChunks,
     sourceSaplings.length,
     options.withRepetitions,
     options.minCrossbreedingSaplingsNumber,

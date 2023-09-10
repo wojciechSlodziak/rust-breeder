@@ -1,3 +1,3 @@
-export const combinationsPerWorkChunk = 50000;
-export const callProgressCallbackAfterCombinations = 10000;
-export const callProgressCallbackAfterNumberOfResultsReached = 5000;
+export const WORK_CHUNKS_PER_WORKER = 10;
+export const CALL_PROGRESS_CALLBACK_AFTER_COMBINATIONS = 10000;
+export const CALL_PROGRESS_CALLBACK_AFTER_NUMBER_OF_RESULTS_REACHED = 5000;

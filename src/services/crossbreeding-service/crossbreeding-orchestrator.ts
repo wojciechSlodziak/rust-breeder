@@ -17,6 +17,7 @@ import {
   WorkChunk
 } from './models';
 import Sapling from '@/models/sapling.model';
+import { WORK_CHUNKS_PER_WORKER } from './config';
 
 const ESTIMATION_TIME_UNIT = 10000;
 const ESTIMATION_SENT_AFTER = ESTIMATION_TIME_UNIT / 10;
@@ -26,14 +27,15 @@ class CrossbreedingOrchestrator {
 
   chunksWorker: ChunksWorker;
   workers: CrossbreedingWorker[];
-  workerProgress: number[] = [];
+  combinationsToProcess: number;
+  combinationsProcessedSoFar: number;
   mapGroupMap: { [key: string]: GeneticsMapGroup } = {};
 
   processingStats: ProcessingStat[];
   startTimestamp: number;
 
   /**
-   * Entry point in the application where dispatching work and maintaining progress updates happenn.
+   * Entry point in the application where dispatching work and maintaining progress updates happen.
    * @param sourceGenes List of raw String representations of saplings provided by the User.
    * @param options Options provided from the UI, selected by the User.
    */
@@ -44,7 +46,6 @@ class CrossbreedingOrchestrator {
   ) {
     this.startTimestamp = new Date().getTime();
 
-    this.workerProgress = [];
     if (generationInfo.index === 1) {
       this.mapGroupMap = {};
     }
@@ -53,7 +54,12 @@ class CrossbreedingOrchestrator {
     this.processingStats = [];
 
     this.chunksWorker = new ChunksWorker();
+
+    // If there is just one worker there is no reason to split its work so we aim for just 1 chunk.
+    // Otherwise we scale number of chunks with number of workers.
+    const numberOfWorkChunks = options.numberOfWorkers > 1 ? options.numberOfWorkers * WORK_CHUNKS_PER_WORKER : 1;
     this.chunksWorker.postMessage({
+      numberOfWorkChunks,
       sourceSaplings,
       options,
       generationInfo
@@ -62,28 +68,25 @@ class CrossbreedingOrchestrator {
     this.chunksWorker.addEventListener('message', (event) => {
       this.chunksWorker.terminate();
       const { workChunks } = event.data as { workChunks: WorkChunk[] };
+      this.combinationsToProcess = workChunks[0].allCombinationsCount;
+      this.combinationsProcessedSoFar = 0;
 
-      workChunks.forEach((workChunk, workerIndex) => {
+      for (let workerIndex = 0; workerIndex < options.numberOfWorkers; workerIndex++) {
         const worker = new CrossbreedingWorker();
         this.workers.push(worker);
 
-        worker.postMessage({
-          sourceSaplings: sourceSaplings,
-          ...workChunk,
+        worker.addEventListener('message', (event) => {
+          this.handleWorkerMessage(event, sourceSaplings, generationInfo.index, options);
+        });
+      }
+
+      workChunks.forEach((workChunk, workChunkIndex) => {
+        const workerIndex = workChunkIndex % this.workers.length;
+        this.workers[workerIndex].postMessage({
+          sourceSaplings,
+          workChunk,
           generationInfo,
           options
-        });
-
-        worker.addEventListener('message', (event) => {
-          this.handleWorkerMessage(
-            event,
-            worker,
-            workerIndex,
-            sourceSaplings,
-            generationInfo.index,
-            workChunk,
-            options
-          );
         });
       });
     });
@@ -91,28 +94,17 @@ class CrossbreedingOrchestrator {
 
   handleWorkerMessage(
     event: MessageEvent,
-    workerRef: Worker,
-    workerIndex: number,
     sourceSaplings: Sapling[],
     generationIndex: number,
-    workChunk: {
-      startingPositions: number[];
-      combinationsToProcess: number;
-      allCombinationsCount: number;
-    },
     options: ApplicationOptions
   ) {
     // Handling partial results.
     joinMapGroupMaps(this.mapGroupMap, event.data.partialMapGroupMap);
 
     // Progress tracking.
-    const combinationsProcessedBetweenUpdates =
-      event.data.combinationsProcessed - (this.workerProgress[workerIndex] | 0);
-    this.workerProgress[workerIndex] = event.data.combinationsProcessed;
-    const combinationsProcessedSoFar = this.workerProgress.reduce(
-      (acc, singleWorkerProgress) => acc + singleWorkerProgress,
-      0
-    );
+    const currentCombinationsProcessedSoFar = this.combinationsProcessedSoFar + event.data.combinationsProcessed;
+    const combinationsProcessedBetweenUpdates = currentCombinationsProcessedSoFar - this.combinationsProcessedSoFar;
+    this.combinationsProcessedSoFar = currentCombinationsProcessedSoFar;
 
     // Time estimation.
     const currentTimestamp = new Date().getTime();
@@ -128,27 +120,20 @@ class CrossbreedingOrchestrator {
       const avgCombinationsPerMs =
         this.processingStats.reduce((acc, val) => acc + val.combinationsProcessed, 0) /
         Math.min(ESTIMATION_TIME_UNIT, currentTimestamp - this.startTimestamp);
-      avgTimeMsLeft = (workChunk.allCombinationsCount - combinationsProcessedSoFar) / avgCombinationsPerMs;
+      avgTimeMsLeft = (this.combinationsToProcess - this.combinationsProcessedSoFar) / avgCombinationsPerMs;
     }
 
     // Progress updates notfication.
-    const progressPercent =
-      Number(
-        (this.workerProgress.reduce((acc, current) => acc + current, 0) / workChunk.allCombinationsCount).toFixed(2)
-      ) * 100;
+    const progressPercent = Number((this.combinationsProcessedSoFar / this.combinationsToProcess).toFixed(2)) * 100;
     this.sendEvent('PROGRESS_UPDATE', {
       generationIndex: generationIndex,
       estimatedTimeMs: avgTimeMsLeft,
       progressPercent
     });
 
-    // Worker has to be terminated when it has finished all the work.
-    if (this.workerProgress[workerIndex] === workChunk.combinationsToProcess) {
-      workerRef.terminate();
-    }
-
     // Handling complete generation results.
-    if (combinationsProcessedSoFar === workChunk.allCombinationsCount) {
+    if (this.combinationsProcessedSoFar === this.combinationsToProcess) {
+      this.terminateAllWorkers();
       fixPrototypeAssignmentsAfterSerialization(this.mapGroupMap);
       linkGenerationTree(this.mapGroupMap);
       const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
@@ -178,8 +163,6 @@ class CrossbreedingOrchestrator {
         }
       } else {
         this.sendEvent('DONE', { generationIndex: generationIndex, estimatedTimeMs: avgTimeMsLeft, mapGroups });
-        // Final Cleanup.
-        this.workerProgress = [];
         this.mapGroupMap = {};
       }
     }
@@ -195,6 +178,10 @@ class CrossbreedingOrchestrator {
   }
 
   cancelSimulation() {
+    this.terminateAllWorkers();
+  }
+
+  terminateAllWorkers() {
     if (this.chunksWorker) {
       this.chunksWorker.terminate();
     }

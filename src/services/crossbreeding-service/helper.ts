@@ -106,10 +106,11 @@ export function setNextPosition(
     positions[currentPositionIndexForInc] += 1;
 
     let maxSaplingIndexOnCurrentPosition;
-    // If we are get mandatorySaplingsCount it means that it's not the first generation,
+    // If we get mandatorySaplingsCount it means that it's not the first generation,
     // and that every combination that we consider includes at least one of the saplings added from the results from previous generation.
-    // By limiting the possible saplings on first (0) position we fulfill that requirement
+    // By limiting the possible saplings on the first (index=0) position we fulfill that requirement
     // and also prevent checking combinations which were already handled in the previous generation.
+    // Mandatory saplings are always first on the list so their indexes start end at mandatorySaplingsCount - 1.
     if (mandatorySaplingsCount && currentPositionIndexForInc === 0) {
       maxSaplingIndexOnCurrentPosition = mandatorySaplingsCount - 1;
     } else {
@@ -153,7 +154,7 @@ export function setNextPosition(
 
 /**
  * Method calculates chunks of work which should be split between workers.
- * @param numberOfWorkers Number of workers configured by User.
+ * @param numberOfWorkChunks Number of work chunks.
  * @param sourceSaplingsCount Number of sourceSaplings provided by User.
  * @param withRepetitions Option defining if process should consider repetitions.
  * @param minCrossbreedingSaplings Option defining how many crossbreeding saplings can be used in the process at minimum.
@@ -163,7 +164,7 @@ export function setNextPosition(
  * @returns List of objects which represent chunks of work.
  */
 export function getWorkChunks(
-  numberOfWorkers: number,
+  numberOfWorkChunks: number,
   sourceSaplingsCount: number,
   withRepetitions: boolean,
   minCrossbreedingSaplings: number,
@@ -187,10 +188,10 @@ export function getWorkChunks(
     allCombinationsCount -= combinationsToIgnore;
   }
 
-  const combinationsPerWorker = Math.ceil(allCombinationsCount / numberOfWorkers);
+  const combinationsPerWorkChunk = Math.ceil(allCombinationsCount / numberOfWorkChunks);
   const workChunks = [];
 
-  let workerIndex = 0;
+  let workChunkIndex = 0;
   let combinationsProcessed = 0;
   for (
     let positionCount = minCrossbreedingSaplings;
@@ -203,7 +204,7 @@ export function getWorkChunks(
     let hasMoreCombinations = true;
     while (hasMoreCombinations) {
       if (combinationsProcessed === 0) {
-        workChunks[workerIndex] = {
+        workChunks[workChunkIndex] = {
           startingPositions: [...positions],
           combinationsToProcess: 0,
           allCombinationsCount
@@ -222,14 +223,11 @@ export function getWorkChunks(
       positionIndexForInc = setNextPositionResult.nextPositionIndexForInc;
 
       combinationsProcessed++;
-      workChunks[workerIndex].combinationsToProcess = combinationsProcessed;
-      if (
-        hasMoreCombinations &&
-        workerIndex !== numberOfWorkers - 1 &&
-        combinationsProcessed >= combinationsPerWorker
-      ) {
+
+      workChunks[workChunkIndex].combinationsToProcess = combinationsProcessed;
+      if (hasMoreCombinations && combinationsProcessed >= combinationsPerWorkChunk) {
         combinationsProcessed = 0;
-        workerIndex++;
+        workChunkIndex++;
       }
     }
   }

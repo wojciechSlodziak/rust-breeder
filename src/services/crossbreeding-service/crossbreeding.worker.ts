@@ -4,19 +4,27 @@ const ctx: Worker = self as any;
 import Sapling from '@/models/sapling.model';
 import geneticsSimulatorService from './crossbreeding.service';
 import { fixSaplingPrototypeAssignments, createMapGroupMap } from './helper';
-import { callProgressCallbackAfterCombinations, callProgressCallbackAfterNumberOfResultsReached } from './config';
+import {
+  CALL_PROGRESS_CALLBACK_AFTER_COMBINATIONS,
+  CALL_PROGRESS_CALLBACK_AFTER_NUMBER_OF_RESULTS_REACHED
+} from './config';
 
 ctx.addEventListener('message', (event) => {
+  const workChunk = event.data.workChunk;
+
   geneticsSimulatorService.simulateCrossbreeding(
     event.data.sourceSaplings.map((rawSapling: Sapling) => fixSaplingPrototypeAssignments(rawSapling)),
-    event.data.startingPositions,
-    event.data.combinationsToProcess,
+    workChunk.startingPositions,
+    workChunk.combinationsToProcess,
     event.data.generationInfo,
     {
-      callProgressCallbackAfterCombinations,
-      callProgressCallbackAfterNumberOfResultsReached,
+      callProgressCallbackAfterCombinations: CALL_PROGRESS_CALLBACK_AFTER_COMBINATIONS,
+      callProgressCallbackAfterNumberOfResultsReached: CALL_PROGRESS_CALLBACK_AFTER_NUMBER_OF_RESULTS_REACHED,
       progressCallback: (combinationsProcessed, partialResultMapList) => {
-        ctx.postMessage({ combinationsProcessed, partialMapGroupMap: createMapGroupMap(partialResultMapList) });
+        ctx.postMessage({
+          combinationsProcessed,
+          partialMapGroupMap: createMapGroupMap(partialResultMapList)
+        });
       },
       ...event.data.options
     }

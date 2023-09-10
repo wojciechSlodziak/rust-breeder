@@ -22,9 +22,10 @@ class CrossbreedingService {
   ) {
     let results: GeneticsMap[] = [];
     const sourceGenes = sourceSaplings.map((sourceSapling) => sourceSapling.toString());
-    console.log(startingPositions, combinationsToProcess);
 
-    let combinationsProcessed = 0;
+    let totalCombinationsProcessed = 0;
+    let combinationsProcessedBeforeNextProgressCallback = 0;
+    let hasFinishedWorkChunk = false;
     let positions: number[];
     for (
       let positionCount = startingPositions.length;
@@ -39,7 +40,7 @@ class CrossbreedingService {
       let positionIndexForInc = positionCount - 1;
       let hasMoreCombinations = true;
       let crossbreedingSaplings: Sapling[];
-      while (hasMoreCombinations) {
+      while (hasMoreCombinations && !hasFinishedWorkChunk) {
         crossbreedingSaplings = [];
         positions.forEach((position) => {
           crossbreedingSaplings.push(sourceSaplings[position]);
@@ -54,7 +55,8 @@ class CrossbreedingService {
           options.minimumTrackedScore,
           generationInfo.index
         );
-        combinationsProcessed++;
+        totalCombinationsProcessed++;
+        combinationsProcessedBeforeNextProgressCallback++;
 
         const setNextPositionResult = setNextPosition(
           positions,
@@ -67,12 +69,14 @@ class CrossbreedingService {
         hasMoreCombinations = setNextPositionResult.hasMoreCombinations;
         positionIndexForInc = setNextPositionResult.nextPositionIndexForInc;
 
+        hasFinishedWorkChunk = totalCombinationsProcessed === combinationsToProcess;
         if (
-          combinationsProcessed % options.callProgressCallbackAfterCombinations === 0 ||
+          totalCombinationsProcessed % options.callProgressCallbackAfterCombinations === 0 ||
           options.callProgressCallbackAfterNumberOfResultsReached < results.length ||
-          combinationsProcessed === combinationsToProcess
+          hasFinishedWorkChunk
         ) {
-          options.progressCallback(combinationsProcessed, results);
+          options.progressCallback(combinationsProcessedBeforeNextProgressCallback, results);
+          combinationsProcessedBeforeNextProgressCallback = 0;
           results = [];
         }
       }
@@ -103,7 +107,10 @@ class CrossbreedingService {
       return;
     }
 
-    const requiresCheckingAgainstCenterSapling = this.requiresCheckingAgainstCenterSapling(winningCrossbreedingWeights);
+    const requiresCheckingAgainstCenterSapling = this.requiresCheckingAgainstCenterSapling(
+      crossbreedingSaplings,
+      winningCrossbreedingWeights
+    );
 
     // Create results from the winningCrossbreedingWeights and center saplings (if applicable).
     if (requiresCheckingAgainstCenterSapling) {
@@ -246,10 +253,16 @@ class CrossbreedingService {
    * @param crossbreedingWeights List (gene position) of lists (winning CrossbreedingGeneDetails).
    * @returns Boolean value indicating if process has to crossbreed given combination considering center sapling.
    */
-  requiresCheckingAgainstCenterSapling(crossbreedingWeights: CrossbreedingGeneDetails[][]): boolean {
-    for (let genePosition = 0; genePosition < 6; genePosition++) {
-      if (crossbreedingWeights[genePosition][0].totalWeight <= 1) {
-        return true;
+  requiresCheckingAgainstCenterSapling(
+    crossbreedingSaplings: Sapling[],
+    crossbreedingWeights: CrossbreedingGeneDetails[][]
+  ): boolean {
+    // Worst case scenario that requires checking against center sapling is when all of the genes are different and there are 5 different gene types.
+    if (crossbreedingSaplings.length <= 5) {
+      for (let genePosition = 0; genePosition < 6; genePosition++) {
+        if (crossbreedingWeights[genePosition][0].totalWeight <= 1) {
+          return true;
+        }
       }
     }
     return false;
@@ -275,7 +288,6 @@ class CrossbreedingService {
 
       const useCenterSaplingGene =
         centerSapling &&
-        currentPositionCrossbreedingWeights.length > 1 &&
         centerSapling.genes[genePosition].getCrossbreedingWeight() >=
           currentPositionCrossbreedingWeights[0].totalWeight;
 

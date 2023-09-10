@@ -1,47 +1,49 @@
 <template>
   <div :class="{ 'd-none': !mapGroups || mapGroups.length === 0 }">
-    <v-container class="px-3 py-0">
-      <v-row>
-        <v-col class="px-2 py-0">
-          <v-text-field
-            type="number"
-            label="No. of Gs"
-            v-model="geneCount.gCount"
-            autocomplete="off"
-            :rules="geneCountRules"
-          ></v-text-field>
-        </v-col>
-        <v-col class="px-2 py-0">
-          <v-text-field
-            type="number"
-            label="No. of Ys"
-            v-model="geneCount.yCount"
-            autocomplete="off"
-            :rules="geneCountRules"
-          ></v-text-field>
-        </v-col>
-        <v-col class="px-2 py-0">
-          <v-text-field
-            type="number"
-            label="No. of Hs"
-            v-model="geneCount.hCount"
-            autocomplete="off"
-            :rules="geneCountRules"
-          ></v-text-field>
-        </v-col>
-      </v-row>
-      <v-row class="mt-0">
-        <v-col cols="4" sm="2" v-for="n in 6" :key="n" class="px-2 py-0">
-          <v-text-field
-            type="text"
-            :label="'Gene ' + n"
-            v-model="filteringGenes['gene' + (n - 1)]"
-            hint="Use / for alternative. Example: 'G/Y'."
-            autocomplete="off"
-          ></v-text-field>
-        </v-col>
-      </v-row>
-    </v-container>
+    <v-form ref="form" v-model="isFormValid" spellcheck="false">
+      <v-container class="px-3 py-0">
+        <v-row>
+          <v-col class="px-2 py-0">
+            <v-text-field
+              type="number"
+              label="No. of Gs"
+              v-model="geneCount.gCount"
+              autocomplete="off"
+              :rules="geneCountRules"
+            ></v-text-field>
+          </v-col>
+          <v-col class="px-2 py-0">
+            <v-text-field
+              type="number"
+              label="No. of Ys"
+              v-model="geneCount.yCount"
+              autocomplete="off"
+              :rules="geneCountRules"
+            ></v-text-field>
+          </v-col>
+          <v-col class="px-2 py-0">
+            <v-text-field
+              type="number"
+              label="No. of Hs"
+              v-model="geneCount.hCount"
+              autocomplete="off"
+              :rules="geneCountRules"
+            ></v-text-field>
+          </v-col>
+        </v-row>
+        <v-row class="mt-0">
+          <v-col cols="4" sm="2" v-for="n in 6" :key="n" class="px-2 py-0">
+            <v-text-field
+              type="text"
+              :label="'Gene ' + n"
+              v-model="filteringGenes['gene' + (n - 1)]"
+              hint="Use / for alternative. Example: 'G/Y'."
+              autocomplete="off"
+            ></v-text-field>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-form>
     <div class="text-center">
       <div class="mt-5 orange--text" v-if="mapGroups && mapGroups.length > 0 && visibleMapGroups.length === 0">
         Filters you applied return no results!
@@ -100,15 +102,22 @@ export default class SimulationResults extends Vue {
   };
 
   geneCountRules = [
-    (v: number) => !v || v >= 1 || 'At least one..',
-    (v: number) => !v || v <= 6 || 'No more than six...'
+    (v: number) => !v || v >= 0 || 'Minimum is zero..',
+    (v: number) => !v || v <= 6 || 'No more than six...',
+    (v: number) => !v || v % 1 === 0 || 'Must be a whole number...'
   ];
 
   page = 2;
   itemsPerPage = 3;
+  isFormValid = true;
 
   get filteredMapGroups() {
     let mapGroups = this.mapGroups || [];
+
+    if (!this.isFormValid) {
+      return mapGroups;
+    }
+
     [GeneEnum.Y, GeneEnum.G, GeneEnum.H].forEach((geneName) => {
       if (this.geneCount[`${geneName.toLowerCase()}Count`]) {
         mapGroups = mapGroups.filter(

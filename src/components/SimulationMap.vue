@@ -99,12 +99,12 @@
                   :selectable="enableComposingSaplingsSelection"
                   :show-geographical-direction-tip-east="
                     enableGeographicalDirectionTips && map.chance < 1 && map.tieWinningCrossbreedingSaplingIndexes
-                      ? map.tieWinningCrossbreedingSaplingIndexes.has(index)
+                      ? map.tieWinningCrossbreedingSaplingIndexes.indexOf(index) !== -1
                       : false
                   "
                   :show-geographical-direction-tip-west="
                     enableGeographicalDirectionTips && map.chance < 1 && map.tieLosingCrossbreedingSaplingIndexes
-                      ? map.tieLosingCrossbreedingSaplingIndexes.has(index)
+                      ? map.tieLosingCrossbreedingSaplingIndexes.indexOf(index) !== -1
                       : false
                   "
                   @click="handleCrossbreedingSaplingSelection(index)"

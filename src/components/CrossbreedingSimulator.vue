@@ -95,7 +95,6 @@
       :group2="selectedBrowsingGroup2"
       :enable-map-selection="!isSelectedBrowsingGroupFromHighlight"
       :enable-composing-saplings-selection="isSelectedBrowsingGroupFromHighlight"
-      :enable-geographical-direction-tips="isSelectedBrowsingGroupFromHighlight"
       :highlighted-map="highlightedMap"
       @map-selected="handleMapSelectedEvent"
       @composing-sapling-selected="handleBrowsingGroupComposingSaplingSelected"

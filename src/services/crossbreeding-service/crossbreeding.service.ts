@@ -193,7 +193,7 @@ class CrossbreedingService {
   getWinningCrossbreedingWeights(crossbreedingSaplings: Sapling[]): CrossbreedingGeneDetails[][] | null {
     const allPositionsCrossbreedingGeneDetails: CrossbreedingGeneDetails[][] = [];
     let numberOfEarlyRecognizableTies = 0;
-    const saplingIndexesThatContributedToCrossbreeding = new Set<number>();
+    const saplingIndexesThatContributedToCrossbreeding: number[] = [];
     for (let genePosition = 0; genePosition < 6; genePosition++) {
       let highestTotalWeight = Number.MIN_VALUE;
       let currentPositionGeneDetails: CrossbreedingGeneDetails[] = [];
@@ -205,13 +205,15 @@ class CrossbreedingService {
           geneDetail = {
             geneType: crossbreedingSapling.genes[genePosition].type,
             totalWeight: 0,
-            contributingCrossbreedingSaplingIndexes: new Set<number>()
+            contributingCrossbreedingSaplingIndexes: []
           };
           currentPositionGeneDetails.push(geneDetail);
         }
         geneDetail.totalWeight += crossbreedingSapling.genes[genePosition].getCrossbreedingWeight();
         highestTotalWeight = Math.max(highestTotalWeight, geneDetail.totalWeight);
-        geneDetail.contributingCrossbreedingSaplingIndexes.add(crossbreedingSaplingIndex);
+        if (geneDetail.contributingCrossbreedingSaplingIndexes.indexOf(crossbreedingSaplingIndex) === -1) {
+          geneDetail.contributingCrossbreedingSaplingIndexes.push(crossbreedingSaplingIndex);
+        }
       });
 
       // Filters out genes that did not win or tie on the given position.
@@ -222,7 +224,9 @@ class CrossbreedingService {
       // Keeps track of the contributing sapling indexes.
       currentPositionGeneDetails.forEach((geneDetail) => {
         geneDetail.contributingCrossbreedingSaplingIndexes.forEach((contributingCrossbreedingSaplingIndex) => {
-          saplingIndexesThatContributedToCrossbreeding.add(contributingCrossbreedingSaplingIndex);
+          if (saplingIndexesThatContributedToCrossbreeding.indexOf(contributingCrossbreedingSaplingIndex) === -1) {
+            saplingIndexesThatContributedToCrossbreeding.push(contributingCrossbreedingSaplingIndex);
+          }
         });
       });
 
@@ -241,7 +245,7 @@ class CrossbreedingService {
     }
 
     // If not all crossbreedingSaplings were used in the process, ignore the combination
-    if (saplingIndexesThatContributedToCrossbreeding.size !== crossbreedingSaplings.length) {
+    if (saplingIndexesThatContributedToCrossbreeding.length !== crossbreedingSaplings.length) {
       return null;
     }
 
@@ -325,12 +329,12 @@ class CrossbreedingService {
                   geneDetailsForGivenPosition.contributingCrossbreedingSaplingIndexes;
 
                 // Here we are tracking the saplings that lost in the tie.
-                newCrossbreedingResult.tieLosingCrossbreedingSaplingIndexes = new Set();
+                newCrossbreedingResult.tieLosingCrossbreedingSaplingIndexes = [];
                 currentPositionCrossbreedingWeights.forEach((geneDetailsForGivenPositionToTrackingTieLosers) => {
                   if (geneDetailsForGivenPosition !== geneDetailsForGivenPositionToTrackingTieLosers) {
                     geneDetailsForGivenPositionToTrackingTieLosers.contributingCrossbreedingSaplingIndexes.forEach(
                       (index) => {
-                        newCrossbreedingResult.tieLosingCrossbreedingSaplingIndexes!.add(index);
+                        newCrossbreedingResult.tieLosingCrossbreedingSaplingIndexes!.push(index);
                       }
                     );
                   }

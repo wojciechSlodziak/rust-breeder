@@ -22,13 +22,13 @@ export class ProcessingStat {
 export class CrossbreedingGeneDetails {
   geneType: GeneEnum;
   totalWeight: number;
-  contributingCrossbreedingSaplingIndexes: Set<number>;
+  contributingCrossbreedingSaplingIndexes: number[];
 }
 
 export class CrossbreedingResultWithDetails {
   sapling: Sapling;
-  tieWinningCrossbreedingSaplingIndexes?: Set<number>;
-  tieLosingCrossbreedingSaplingIndexes?: Set<number>;
+  tieWinningCrossbreedingSaplingIndexes?: number[];
+  tieLosingCrossbreedingSaplingIndexes?: number[];
 }
 
 export class GeneticsMap {
@@ -40,8 +40,8 @@ export class GeneticsMap {
   score!: number;
   chance!: number;
   sumOfComposingSaplingsGenerations!: number;
-  tieWinningCrossbreedingSaplingIndexes?: Set<number>;
-  tieLosingCrossbreedingSaplingIndexes?: Set<number>;
+  tieWinningCrossbreedingSaplingIndexes?: number[];
+  tieLosingCrossbreedingSaplingIndexes?: number[];
 
   constructor(
     resultSapling: Sapling,
@@ -50,8 +50,8 @@ export class GeneticsMap {
     chance: number,
     sumOfComposingSaplingsGenerations: number,
     baseSapling?: Sapling,
-    tieWinningCrossbreedingSaplingIndexes?: Set<number>,
-    tieLosingCrossbreedingSaplingIndexes?: Set<number>
+    tieWinningCrossbreedingSaplingIndexes?: number[],
+    tieLosingCrossbreedingSaplingIndexes?: number[]
   ) {
     this.resultSapling = resultSapling;
     this.baseSapling = baseSapling;
@@ -81,10 +81,10 @@ export class GeneticsMap {
       );
     }
     if (this.tieWinningCrossbreedingSaplingIndexes) {
-      clone.tieWinningCrossbreedingSaplingIndexes = new Set(this.tieWinningCrossbreedingSaplingIndexes);
+      clone.tieWinningCrossbreedingSaplingIndexes = [...this.tieWinningCrossbreedingSaplingIndexes];
     }
     if (this.tieLosingCrossbreedingSaplingIndexes) {
-      clone.tieLosingCrossbreedingSaplingIndexes = new Set(this.tieLosingCrossbreedingSaplingIndexes);
+      clone.tieLosingCrossbreedingSaplingIndexes = [...this.tieLosingCrossbreedingSaplingIndexes];
     }
     return clone;
   }

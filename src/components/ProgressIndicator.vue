@@ -8,8 +8,20 @@
         opacity: progressPercents[0] === 100 ? '0' : '1'
       }"
     >
-      <v-progress-linear color="cyan" v-model="progressPercents[0]" stream></v-progress-linear>
+      <v-progress-linear
+        v-if="progressPercents[0] === undefined"
+        color="cyan"
+        value="0"
+        buffer-value="0"
+        stream
+      ></v-progress-linear>
+      <v-progress-linear
+        v-if="progressPercents[0] !== undefined"
+        color="cyan"
+        v-model="progressPercents[0]"
+      ></v-progress-linear>
     </div>
+
     <div
       v-if="isActive && progressPercents.length >= 2"
       style="transition: all 0.3s linear 0.2s;"
@@ -19,8 +31,22 @@
         opacity: progressPercents[1] === 100 ? '0' : '1'
       }"
     >
-      <v-progress-linear class="mt-1px" color="cyan" v-model="progressPercents[1]" stream></v-progress-linear>
+      <v-progress-linear
+        v-if="progressPercents[1] === undefined && progressPercents[0] === 100"
+        color="cyan"
+        class="mt-1px"
+        value="0"
+        buffer-value="0"
+        stream
+      ></v-progress-linear>
+      <v-progress-linear
+        v-if="progressPercents[1] !== undefined || progressPercents[0] !== 100"
+        class="mt-1px"
+        color="cyan"
+        v-model="progressPercents[1]"
+      ></v-progress-linear>
     </div>
+
     <div
       v-if="isActive && progressPercents.length >= 3"
       style="transition: all 0.3s linear 0.2s;"
@@ -38,7 +64,20 @@
         opacity: progressPercents[2] === 100 ? '0' : '1'
       }"
     >
-      <v-progress-linear class="mt-1px" color="cyan" v-model="progressPercents[2]" stream></v-progress-linear>
+      <v-progress-linear
+        v-if="progressPercents[2] === undefined && progressPercents[1] === 100"
+        color="cyan"
+        class="mt-1px"
+        value="0"
+        buffer-value="0"
+        stream
+      ></v-progress-linear>
+      <v-progress-linear
+        v-if="progressPercents[2] !== undefined || progressPercents[1] !== 100"
+        class="mt-1px"
+        color="cyan"
+        v-model="progressPercents[2]"
+      ></v-progress-linear>
     </div>
   </div>
 </template>

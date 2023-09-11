@@ -131,7 +131,7 @@ class CrossbreedingOrchestrator {
     }
 
     // Progress updates notfication.
-    const progressPercent = Number((this.combinationsProcessedSoFar / this.combinationsToProcess).toFixed(2)) * 100;
+    const progressPercent = Number(((this.combinationsProcessedSoFar / this.combinationsToProcess) * 100).toFixed(2));
     this.sendEvent('PROGRESS_UPDATE', {
       generationIndex: generationIndex,
       estimatedTimeMs: avgTimeMsLeft,

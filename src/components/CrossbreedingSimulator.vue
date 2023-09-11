@@ -217,7 +217,7 @@ export default class CrossbreedingSimulator extends Vue {
 
   onCrossbreedingServiceEvent(type: string, data: CrossbreedingOrchestratorEventListenerCallbackData) {
     if (type === 'PROGRESS_UPDATE') {
-      this.setProgress(data.generationIndex, Math.round(data.progressPercent || 0));
+      this.setProgress(data.generationIndex, data.progressPercent || 0);
       this.updateEstimatedTime(data.estimatedTimeMs);
     } else if (type === 'DONE_GENERATION') {
       if (data.generationIndex === 1) {
@@ -242,14 +242,16 @@ export default class CrossbreedingSimulator extends Vue {
   }
 
   setProgress(generationIndex: number, progressPercent: number) {
-    const progress = Math.round(progressPercent || 0);
     const index = generationIndex - 1;
-    if (this.progressPercents[index] !== progress) {
+    // To decrease the number of updates on the UI we only update on change of the most significant decimal place.
+    const progressPercentWithOneDecimal = Number(progressPercent.toFixed(1));
+    if (this.progressPercents[index] !== progressPercentWithOneDecimal) {
       this.onNextTickRerender(() => {
-        Vue.set(this.progressPercents, index, progress);
+        Vue.set(this.progressPercents, index, progressPercentWithOneDecimal);
       });
     }
-    this.updateTitle(generationIndex, progressPercent);
+    const progressPercentWithNoDecimals = Math.round(progressPercent || 0);
+    this.updateTitle(generationIndex, progressPercentWithNoDecimals);
   }
 
   updateTitle(generationIndex?: number | undefined, progressPercent?: number | undefined) {

@@ -11,6 +11,7 @@ class CrossbreedingService {
    * @param sourceSaplings List of source Saplings for given generation.
    * @param startingPositions Positions of sourceGenes saplings that the process should start from.
    * @param combinationsToProcess Number of combination this process has to calculate. Depends on the split between workers.
+   * @param generationInfo Information about which generation of crossbreeding it is, and how many saplings were added from previous generation.
    * @param options Options provided from the UI.
    */
   simulateCrossbreeding(
@@ -190,7 +191,7 @@ class CrossbreedingService {
    * @param crossbreedingSaplings A list of saplings which have to be crossbreeded with each other.
    * @returns List of positions with their winning or tiesing genes. Returns null if combination should be ignored.
    */
-  getWinningCrossbreedingWeights(crossbreedingSaplings: Sapling[]): CrossbreedingGeneDetails[][] | null {
+  private getWinningCrossbreedingWeights(crossbreedingSaplings: Sapling[]): CrossbreedingGeneDetails[][] | null {
     const allPositionsCrossbreedingGeneDetails: CrossbreedingGeneDetails[][] = [];
     let numberOfEarlyRecognizableTies = 0;
     const saplingIndexesThatContributedToCrossbreeding: number[] = [];
@@ -211,9 +212,7 @@ class CrossbreedingService {
         }
         geneDetail.totalWeight += crossbreedingSapling.genes[genePosition].getCrossbreedingWeight();
         highestTotalWeight = Math.max(highestTotalWeight, geneDetail.totalWeight);
-        if (geneDetail.contributingCrossbreedingSaplingIndexes.indexOf(crossbreedingSaplingIndex) === -1) {
-          geneDetail.contributingCrossbreedingSaplingIndexes.push(crossbreedingSaplingIndex);
-        }
+        geneDetail.contributingCrossbreedingSaplingIndexes.push(crossbreedingSaplingIndex);
       });
 
       // Filters out genes that did not win or tie on the given position.
@@ -244,7 +243,7 @@ class CrossbreedingService {
       allPositionsCrossbreedingGeneDetails.push(currentPositionGeneDetails);
     }
 
-    // If not all crossbreedingSaplings were used in the process, ignore the combination
+    // If not all crossbreedingSaplings were used in the process, ignore the combination.
     if (saplingIndexesThatContributedToCrossbreeding.length !== crossbreedingSaplings.length) {
       return null;
     }
@@ -254,10 +253,11 @@ class CrossbreedingService {
 
   /**
    * Method checks wether crossbreeding weights indicate that center sapling might impact the crossbreeding results.
+   * @param crossbreedingSaplings A combination of Saplings used in the current crossbreeding session.
    * @param crossbreedingWeights List (gene position) of lists (winning CrossbreedingGeneDetails).
    * @returns Boolean value indicating if process has to crossbreed given combination considering center sapling.
    */
-  requiresCheckingAgainstCenterSapling(
+  private requiresCheckingAgainstCenterSapling(
     crossbreedingSaplings: Sapling[],
     crossbreedingWeights: CrossbreedingGeneDetails[][]
   ): boolean {
@@ -280,7 +280,7 @@ class CrossbreedingService {
    * @param centerSapling Optional center sapling to crossbreed against.
    * @returns List of Sapling results with details about tie winners/losers. Returns empty list if combination should be ignored due multiple ties.
    */
-  getCrossbreedingResults(
+  private getCrossbreedingResults(
     crossbreedingWeights: CrossbreedingGeneDetails[][],
     generationIndex: number,
     centerSapling?: Sapling

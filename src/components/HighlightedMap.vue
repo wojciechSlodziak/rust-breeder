@@ -9,8 +9,8 @@
     />
     <v-btn class="mt-3" @click="handleClearHighlightClick">Clear Selection</v-btn>
     <div class="highlighted-map_tip mt-2 mb-2 px-3 px-sm-0" v-if="map && map.chance < 1">
-      Place plants with an "E" next to the <v-icon size="large">mdi-compass-rose</v-icon> icon in the eastern most slot
-      of the planter box, and plants with a "W" in the western most slot to influence the crossbreeding for the desired
+      Place plants with an "E" next to the <v-icon size="large">mdi-compass-rose</v-icon> icon in the eastern most slots
+      of the planter box, and plants with a "W" in the western most slots to influence the crossbreeding for the desired
       result.
       <a
         class="float-right ml-2"

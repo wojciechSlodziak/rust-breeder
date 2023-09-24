@@ -2,14 +2,16 @@
   <div class="gene-inputs">
     <div class="gene-inputs_tabs-container">
       <v-tabs v-model="tab">
-        <v-tab>Current</v-tab>
-        <v-tab :class="{ 'gene-inputs_tab--animate': animatePreviousGenesTabIn }">Saved</v-tab>
+        <v-tab>{{ functionalCookiesAccepted ? 'Current' : 'Genes' }}</v-tab>
+        <v-tab v-if="functionalCookiesAccepted" :class="{ 'gene-inputs_tab--animate': animatePreviousGenesTabIn }"
+          >Saved</v-tab
+        >
       </v-tabs>
       <v-btn
         :tile="!$vuetify.breakpoint.xsOnly"
         :icon="$vuetify.breakpoint.xsOnly"
         :disabled="!isFormValid"
-        v-if="!autoSaveInputSets && tab !== 1"
+        v-if="functionalCookiesAccepted && !autoSaveInputSets && tab !== 1"
         class="gene-inputs_store-button"
         plain
         @click="handleStoreSetClick"
@@ -46,7 +48,7 @@
           <SaplingListPreview :sapling-gene-list="saplingGeneList" ref="saplingListPreview"></SaplingListPreview>
         </v-form>
       </v-tab-item>
-      <v-tab-item eager>
+      <v-tab-item eager v-if="functionalCookiesAccepted">
         <PreviousGenes
           ref="previousGenes"
           :selected-plant-type-name="selectedPlantTypeName"
@@ -78,6 +80,7 @@ import eventBus, { GLOBAL_EVENT_SELECTED_PLANT_TYPE_CHANGED } from '@/lib/global
   }
 })
 export default class GeneInputs extends Vue {
+  @Prop({ type: Boolean }) readonly functionalCookiesAccepted: boolean;
   @Prop({ type: Boolean }) readonly disabled: boolean;
   @Prop({ type: Boolean }) readonly soundsEnabled: boolean;
   @Prop({ type: Boolean }) readonly autoSaveInputSets: boolean;

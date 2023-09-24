@@ -1,6 +1,6 @@
 <template>
   <v-form v-model="isFormValid">
-    <v-dialog v-model="isDialogOpen" width="600" overlay-opacity="0.85" @click:outside="undoChanges">
+    <v-dialog v-model="isDialogOpen" width="600" @click:outside="undoChanges">
       <template v-slot:activator="{ on, attrs }">
         <v-btn v-bind="attrs" v-on="on">
           Options
@@ -133,6 +133,7 @@
                 :label="`Skip Scanning Guide: ${options.skipScannerGuide ? 'Yes' : 'No'}`"
               ></v-switch>
               <v-switch
+                v-if="functionalCookiesAccepted"
                 class="mt-0"
                 v-model="options.autoSaveInputSets"
                 :label="`Automatically save calculated input genes: ${options.autoSaveInputSets ? 'Yes' : 'No'}`"
@@ -157,7 +158,7 @@
             </template>
             <span>Sets the selected options for as long as the App is open.</span>
           </v-tooltip>
-          <v-tooltip top open-delay="400" v-if="cookiesAccepted" z-index="1001" max-width="600">
+          <v-tooltip top open-delay="400" v-if="functionalCookiesAccepted" z-index="1001" max-width="600">
             <template v-slot:activator="{ on, attrs }">
               <v-btn
                 v-bind="attrs"
@@ -191,7 +192,8 @@ import { isScanningAvailable } from '@/lib/ui-utils';
  * to invalidate obsolote options saved by the User.
  */
 const OPTIONS_VERSION = 4;
-const OPTIONS_COOKIE_KEY = `options-v${OPTIONS_VERSION}`;
+export const OPTIONS_COOKIE_PREFIX = 'options-v';
+const OPTIONS_COOKIE_KEY = `${OPTIONS_COOKIE_PREFIX}${OPTIONS_VERSION}`;
 const DEFAULT_OPTIONS: ApplicationOptions = {
   withRepetitions: true,
   modifyMinimumTrackedScoreManually: false,
@@ -217,7 +219,7 @@ const STORED_OPTIONS = getCookie(OPTIONS_COOKIE_KEY);
 
 @Component
 export default class Options extends Vue {
-  @Prop({ type: Boolean }) readonly cookiesAccepted: boolean;
+  @Prop({ type: Boolean }) readonly functionalCookiesAccepted: boolean;
   isDialogOpen = false;
   isFormValid = false;
   tab = null;

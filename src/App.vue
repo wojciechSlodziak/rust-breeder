@@ -14,13 +14,13 @@
     </v-app-bar>
     <v-main>
       <CrossbreedingSimulator
-        :selectedPlantTypeName="selectedPlantTypeName"
-        :cookiesAccepted="cookiesAccepted"
+        :selected-plant-type-name="selectedPlantTypeName"
+        :functional-cookies-accepted="functionalCookiesAccepted"
         @estimated-time-updated="handleEstimatedTimeUpdated"
       />
       <InfoButtons class="d-flex justify-center d-xs-flex d-sm-none mb-3 flex-wrap" />
     </v-main>
-    <CookieConsent v-on:cookies-accepted="handleCookiesAccepted" />
+    <CookieConsent @cookies-updated="handleCookiesUpdated" />
   </v-app>
 </template>
 
@@ -28,7 +28,7 @@
 import { Component, Vue } from 'vue-property-decorator';
 import CrossbreedingSimulator from './components/CrossbreedingSimulator.vue';
 import InfoButtons from './components/InfoButtons.vue';
-import CookieConsent from './components/CookieConsent.vue';
+import CookieConsent, { CookiesUpdateEvent } from './components/CookieConsent.vue';
 import LogoSelector from './components/LogoSelector.vue';
 import 'cookie-store';
 import { timeMsToTimeString } from './lib/time-utils';
@@ -42,7 +42,7 @@ import { timeMsToTimeString } from './lib/time-utils';
   }
 })
 export default class App extends Vue {
-  cookiesAccepted = false;
+  functionalCookiesAccepted = false;
   selectedPlantTypeName: string | null = null;
   estimatedTime: number | null = null;
 
@@ -53,10 +53,13 @@ export default class App extends Vue {
     return null;
   }
 
-  handleCookiesAccepted() {
-    this.cookiesAccepted = true;
-    // eslint-disable-next-line no-undef
-    enableGtag();
+  handleCookiesUpdated(cookiesState: CookiesUpdateEvent) {
+    this.functionalCookiesAccepted = cookiesState.functionalCookiesAccepted;
+
+    if (cookiesState.analyticsCookiesAccepted) {
+      // eslint-disable-next-line no-undef
+      enableGtag();
+    }
   }
 
   handlePlantTypeChange(name: string) {

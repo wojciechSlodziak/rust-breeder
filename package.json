@@ -1,6 +1,6 @@
 {
   "name": "rust-breeder",
-  "version": "2.8.4",
+  "version": "2.8.5",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -22,6 +22,7 @@
     "vue-class-component": "^7.2.3",
     "vue-property-decorator": "^8.4.2",
     "vuetify": "^2.2.11",
+    "vuetify-confirm": "^2.0.6",
     "webpack": "^4.43.0",
     "worker-loader": "^2.0.0"
   },

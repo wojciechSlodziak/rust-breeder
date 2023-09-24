@@ -39,7 +39,11 @@
               />
             </span>
             <span class="ma-1">
-              <Options ref="options" :cookies-accepted="cookiesAccepted" @options-set="handleOptionsSetEvent" />
+              <Options
+                ref="options"
+                :functional-cookies-accepted="functionalCookiesAccepted"
+                @options-set="handleOptionsSetEvent"
+              />
             </span>
           </div>
           <v-row no-gutters>
@@ -48,6 +52,7 @@
                 class="simulator_sapling-input-container mx-3"
                 ref="geneInputs"
                 @validity-change="handleInputsValidityChange"
+                :functional-cookies-accepted="functionalCookiesAccepted"
                 :highlighted-map="highlightedMap"
                 :disabled="isScreenScanning || isSimulating"
                 :sounds-enabled="options ? options.sounds : false"
@@ -158,7 +163,7 @@ import HighlightedMap from './HighlightedMap.vue';
   }
 })
 export default class CrossbreedingSimulator extends Vue {
-  @Prop({ type: Boolean }) readonly cookiesAccepted: boolean;
+  @Prop({ type: Boolean }) readonly functionalCookiesAccepted: boolean;
   @Prop({ type: String }) readonly selectedPlantTypeName: string;
   progressPercents: number[] = [];
   isSimulating = false;

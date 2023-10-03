@@ -271,9 +271,9 @@ export default class CookieConsent extends Vue {
     // At the RustBreeder only sets cookies from options and from cookie/storage preferences.
 
     // GA sets cookkies on .domain.com so we need to find this value from the current domain.
-    let lastDomainDotIndex = location.hostname.lastIndexOf('.');
+    const lastDomainDotIndex = location.hostname.lastIndexOf('.');
     if (lastDomainDotIndex !== -1) {
-      let secondToLastDomainDotIndex = location.hostname.lastIndexOf('.', lastDomainDotIndex - 1);
+      const secondToLastDomainDotIndex = location.hostname.lastIndexOf('.', lastDomainDotIndex - 1);
       const gaDomain = location.hostname.substring(secondToLastDomainDotIndex, location.hostname.length);
       Object.keys(getCookies())
         .filter(

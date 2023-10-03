@@ -105,6 +105,12 @@ export default class GeneInputs extends Vue {
   }
 
   mounted() {
+    const searchParams = new URLSearchParams(window.location.search);
+    const genesUrlParam = searchParams.get('genes');
+    if (genesUrlParam) {
+      this.saplingGenes = genesUrlParam.split(',').join('\n');
+    }
+
     if (this.saplingGenes !== '') {
       this.checkFormValidity();
     }
@@ -176,9 +182,12 @@ export default class GeneInputs extends Vue {
   }
 
   storeCurrentSet() {
-    const wasAdded = (this.$refs.previousGenes as PreviousGenes).addNewSet(this.saplingGenes);
-    if (wasAdded) {
-      this.animatePreviousGenesTab();
+    const previousGenesComponent = this.$refs.previousGenes as PreviousGenes;
+    if (previousGenesComponent) {
+      const wasAdded = previousGenesComponent.addNewSet(this.saplingGenes);
+      if (wasAdded) {
+        this.animatePreviousGenesTab();
+      }
     }
   }
 

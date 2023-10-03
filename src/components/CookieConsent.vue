@@ -44,7 +44,7 @@
 
         <v-card-text>
           <v-switch
-            value="true"
+            v-model="essentialCookiesAccepted"
             disabled
             label="Enable Essential Cookies"
             hint="These cookies are necessary to track your Storage preferences."
@@ -109,6 +109,8 @@ export default class CookieConsent extends Vue {
   isSnackbarOpen = false;
   isManageModalOpen = false;
   arePreferencesSet = false;
+
+  essentialCookiesAccepted = true;
 
   functionalCookiesAccepted = getCookie(FUNCTIONAL_GROUP_COOKIE_NAME) === 'true' || false;
   analyticsCookiesAccepted = getCookie(ANALYTICS_GROUP_COOKIE_NAME) === 'true' || false;

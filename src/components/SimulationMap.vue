@@ -98,12 +98,12 @@
                   :subtle-details="!enableComposingSaplingsSelection"
                   :selectable="enableComposingSaplingsSelection"
                   :show-geographical-direction-tip-east="
-                    enableGeographicalDirectionTips && map.chance < 1 && map.tieWinningCrossbreedingSaplingIndexes
+                    showGeographicalDirectionTips && map.tieWinningCrossbreedingSaplingIndexes
                       ? map.tieWinningCrossbreedingSaplingIndexes.indexOf(index) !== -1
                       : false
                   "
                   :show-geographical-direction-tip-west="
-                    enableGeographicalDirectionTips && map.chance < 1 && map.tieLosingCrossbreedingSaplingIndexes
+                    showGeographicalDirectionTips && map.tieLosingCrossbreedingSaplingIndexes
                       ? map.tieLosingCrossbreedingSaplingIndexes.indexOf(index) !== -1
                       : false
                   "
@@ -118,9 +118,13 @@
           <strong>Crossbreeding</strong> stage. All Saplings have to be of the same type.
         </p>
         <p>
-          It does not matter where you place your Surrounding Saplings if your Center Sapling is in the middle of the
-          planter. Center Sapling will reach horizontally, vertically and diagonally during the crossbreeding phase. You
-          are allowed to use any and all of the eight remaining planter slots to plant your Surrounding Saplings.
+          {{
+            showGeographicalDirectionTips
+              ? 'Place your Surrounding Saplings around the Center Sapling according to the EAST/WEST guidance.'
+              : 'It does not matter where you place your Surrounding Saplings if your Center Sapling is in the middle of the planter.'
+          }}
+          Center Sapling will reach horizontally, vertically and diagonally during the crossbreeding phase. You are
+          allowed to use any and all of the eight remaining planter slots to plant your Surrounding Saplings.
         </p>
       </v-tooltip>
     </v-card-text>
@@ -158,6 +162,10 @@ export default class SimulationMap extends Vue {
 
   get genClass() {
     return `map_gen--${this.map.resultSapling.generationIndex}`;
+  }
+
+  get showGeographicalDirectionTips() {
+    return this.enableGeographicalDirectionTips && this.map.chance < 1;
   }
 
   handleCrossbreedingSaplingSelection(crossbreedingSaplingIndex: number) {

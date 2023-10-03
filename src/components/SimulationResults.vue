@@ -128,14 +128,7 @@ export default class SimulationResults extends Vue {
       }
     });
 
-    if (
-      this.filteringGenes.gene0 !== '' ||
-      this.filteringGenes.gene1 !== '' ||
-      this.filteringGenes.gene2 !== '' ||
-      this.filteringGenes.gene3 !== '' ||
-      this.filteringGenes.gene4 !== '' ||
-      this.filteringGenes.gene5 !== ''
-    ) {
+    if (this.hasGeneFiltersApplied) {
       mapGroups = mapGroups.filter((group) => {
         let allGenesMatch = true;
         for (let i = 0; i < 6; i++) {
@@ -153,6 +146,17 @@ export default class SimulationResults extends Vue {
       });
     }
     return mapGroups;
+  }
+
+  get hasGeneFiltersApplied() {
+    return (
+      this.filteringGenes.gene0 !== '' ||
+      this.filteringGenes.gene1 !== '' ||
+      this.filteringGenes.gene2 !== '' ||
+      this.filteringGenes.gene3 !== '' ||
+      this.filteringGenes.gene4 !== '' ||
+      this.filteringGenes.gene5 !== ''
+    );
   }
 
   get visibleMapGroups() {

@@ -269,14 +269,21 @@ export default class CookieConsent extends Vue {
   clearAnalyticsCookies() {
     // Removes all cookies that are not set by RustBreeder.
     // At the RustBreeder only sets cookies from options and from cookie/storage preferences.
-    console.log(getCookies());
-    Object.keys(getCookies())
-      .filter(
-        (cookieName) => !cookieName.startsWith(OPTIONS_COOKIE_PREFIX) && !cookieName.startsWith(PREF_COOKIE_NAME_PREFIX)
-      )
-      .forEach((cookieName) => {
-        removeCookie(cookieName, { domain: process.env.GA_COOKIE_DOMAIN });
-      });
+
+    // GA sets cookkies on .domain.com so we need to find this value from the current domain.
+    let lastDomainDotIndex = location.hostname.lastIndexOf('.');
+    if (lastDomainDotIndex !== -1) {
+      let secondToLastDomainDotIndex = location.hostname.lastIndexOf('.', lastDomainDotIndex - 1);
+      const gaDomain = location.hostname.substring(secondToLastDomainDotIndex, location.hostname.length);
+      Object.keys(getCookies())
+        .filter(
+          (cookieName) =>
+            !cookieName.startsWith(OPTIONS_COOKIE_PREFIX) && !cookieName.startsWith(PREF_COOKIE_NAME_PREFIX)
+        )
+        .forEach((cookieName) => {
+          removeCookie(cookieName, { domain: gaDomain });
+        });
+    }
   }
 }
 </script>

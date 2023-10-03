@@ -128,11 +128,6 @@ export default class CookieConsent extends Vue {
       // the Cookie Consent banner again. Tracking choices for longer will let the User keep his stored data
       // in functionalities like saved genes and persistent options if he decides to keep the functional group enabled.
       this.setGroupChoiceCookies();
-
-      // GA can still show up on page refresh so let's make sure it's gone for good.
-      if (!this.analyticsCookiesAccepted) {
-        this.clearAnalyticsCookies();
-      }
     } else {
       this.isSnackbarOpen = true;
     }
@@ -274,6 +269,7 @@ export default class CookieConsent extends Vue {
   clearAnalyticsCookies() {
     // Removes all cookies that are not set by RustBreeder.
     // At the moment these are only cookies from options and from cookie/storage preferences.
+    console.log(getCookies());
     Object.keys(getCookies())
       .filter(
         (cookieName) => !cookieName.startsWith(OPTIONS_COOKIE_PREFIX) && !cookieName.startsWith(PREF_COOKIE_NAME_PREFIX)

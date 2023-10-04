@@ -39,7 +39,6 @@
                 min="1"
                 :max="maxNumberOfWorkers"
                 ticks="always"
-                tick-size="2"
                 :tick-labels="numberOfWorkersLabels"
                 hint="Controls how many background workers are spawned during the calculation. A higher number means the calculation will be finished quicker, but it may cause your processor to be overloaded. If your device is struggling just lower the number."
                 persistent-hint
@@ -192,6 +191,7 @@ import { isScanningAvailable } from '@/lib/ui-utils';
  * to invalidate obsolote options saved by the User.
  */
 const OPTIONS_VERSION = 4;
+const hardwareConcurrency = navigator.hardwareConcurrency;
 export const OPTIONS_COOKIE_PREFIX = 'options-v';
 const OPTIONS_COOKIE_KEY = `${OPTIONS_COOKIE_PREFIX}${OPTIONS_VERSION}`;
 const DEFAULT_OPTIONS: ApplicationOptions = {
@@ -213,7 +213,7 @@ const DEFAULT_OPTIONS: ApplicationOptions = {
   skipScannerGuide: false,
   autoSaveInputSets: true,
   sounds: true,
-  numberOfWorkers: navigator.hardwareConcurrency
+  numberOfWorkers: hardwareConcurrency
 };
 const STORED_OPTIONS = getCookie(OPTIONS_COOKIE_KEY);
 
@@ -236,9 +236,6 @@ export default class Options extends Vue {
 
   numberOfGenerationLabels = ['one', 'two', 'three'];
   maxCrossbreedingSaplingsLabels = ['2', '3', '4', '5', '6', '7', '8'];
-  numberOfWorkersLabels = Array.from({ length: navigator.hardwareConcurrency }, (value, index) =>
-    (index + 1).toString()
-  );
   shouldDisplayScreenCaptureOptions = false;
 
   geneScoreRules = [
@@ -252,7 +249,15 @@ export default class Options extends Vue {
   ];
 
   get maxNumberOfWorkers() {
-    return navigator.hardwareConcurrency;
+    return hardwareConcurrency;
+  }
+
+  get numberOfWorkersLabels() {
+    const modBy = this.maxNumberOfWorkers >= 24 ? 4 : this.maxNumberOfWorkers >= 16 ? 2 : 1;
+    return Array.from({ length: this.maxNumberOfWorkers }, (value, index) => {
+      const currentNumberOfWorkers = index + 1;
+      return currentNumberOfWorkers % modBy === 0 ? currentNumberOfWorkers.toString() : '';
+    });
   }
 
   get scoreInputs() {

@@ -36,10 +36,10 @@
     <v-dialog v-model="isManageModalOpen" width="600" @click:outside="handleManageModalClose">
       <v-card>
         <v-card-title class="headline px-3 px-sm-5" primary-title>
-          <v-icon large class="mr-2">
-            mdi-cookie
-          </v-icon>
-          <h2 class="text-h5">Manage Your Storage Preferences</h2>
+          <h2 class="text-h5">
+            <v-icon large>mdi-cookie</v-icon>
+            Manage Your Storage Preferences
+          </h2>
         </v-card-title>
 
         <v-card-text>

@@ -308,8 +308,9 @@ export default class CookieConsent extends Vue {
       const secondToLastDomainDotIndex = location.hostname.lastIndexOf('.', lastDomainDotIndex - 1);
       const gaDomain = location.hostname.substring(secondToLastDomainDotIndex, location.hostname.length);
       Object.keys(getCookies())
-        .filter((cookieName) =>
-          cookieName.startsWith(startsWith) && notStartsWith ? !cookieName.startsWith(notStartsWith) : true
+        .filter(
+          (cookieName) =>
+            cookieName.startsWith(startsWith) && (notStartsWith ? !cookieName.startsWith(notStartsWith) : true)
         )
         .forEach((cookieName) => {
           removeCookie(cookieName, { domain: gaDomain });

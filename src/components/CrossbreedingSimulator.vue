@@ -56,7 +56,7 @@
           ></GeneInputs>
         </div>
 
-        <ads class="simulator_ads"></ads>
+        <ads class="simulator_ads" :advertisement-cookies-accepted="advertisementCookiesAccepted"></ads>
       </div>
 
       <div>
@@ -160,6 +160,7 @@ import HighlightedMap from './HighlightedMap.vue';
 })
 export default class CrossbreedingSimulator extends Vue {
   @Prop({ type: Boolean }) readonly functionalCookiesAccepted: boolean;
+  @Prop({ type: Boolean }) readonly advertisementCookiesAccepted: boolean;
   @Prop({ type: String }) readonly selectedPlantTypeName: string;
   progressPercents: number[] = [];
   isSimulating = false;

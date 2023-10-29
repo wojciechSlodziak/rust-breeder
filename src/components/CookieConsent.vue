@@ -62,6 +62,12 @@
             hint="Enables Google Analytics to let me better understand how the page is used to more effectively update it in the future."
             persistent-hint
           ></v-switch>
+          <v-switch
+            v-model="currentAdvertisementCookiesAccepted"
+            label="Allow Advertising Cookies"
+            hint="Enables cookies set by Google AdSense required for showing ads and supporting the page."
+            persistent-hint
+          ></v-switch>
         </v-card-text>
 
         <v-divider></v-divider>
@@ -87,12 +93,15 @@ import { OPTIONS_COOKIE_PREFIX } from './Options.vue';
 export type CookiesUpdateEvent = {
   functionalCookiesAccepted: boolean;
   analyticsCookiesAccepted: boolean;
+  advertisementCookiesAccepted: boolean;
 };
 
-const PREF_COOKIE_NAME_PREFIX = 'rb-cookie-pref';
+const CONSENTS_VERSION = 1;
+const PREF_COOKIE_NAME_PREFIX = `rb-cookie-pref-v${CONSENTS_VERSION}`;
 const STORAGE_PREFERENCE_DECIDED_COOKIE_NAME = `${PREF_COOKIE_NAME_PREFIX}-storage-preference-decided`;
 const FUNCTIONAL_GROUP_COOKIE_NAME = `${PREF_COOKIE_NAME_PREFIX}-functional-cookies-and-storage`;
 const ANALYTICS_GROUP_COOKIE_NAME = `${PREF_COOKIE_NAME_PREFIX}-analytics-cookies`;
+const ADVERTISEMENT_GROUP_COOKIE_NAME = `${PREF_COOKIE_NAME_PREFIX}-advertisement-cookies`;
 
 const FUNCTIONAL_DECLINE_CONFIRM_MODAL_TEXT = 'You might lose previously saved genes or your saved preferred options.';
 const FUNCTIONAL_DECLINE_CONFIRM_MODAL_OPTIONS = {
@@ -114,10 +123,12 @@ export default class CookieConsent extends Vue {
 
   functionalCookiesAccepted = getCookie(FUNCTIONAL_GROUP_COOKIE_NAME) === 'true' || false;
   analyticsCookiesAccepted = getCookie(ANALYTICS_GROUP_COOKIE_NAME) === 'true' || false;
+  advertisementCookiesAccepted = getCookie(ADVERTISEMENT_GROUP_COOKIE_NAME) === 'true' || false;
 
   // These properties hold the temporary decision before it is commited.
   currentFunctionalCookiesAccepted = this.functionalCookiesAccepted;
   currentAnalyticsCookiesAccepted = this.analyticsCookiesAccepted;
+  currentAdvertisementCookiesAccepted = this.advertisementCookiesAccepted;
 
   mounted() {
     this.arePreferencesSet = getCookie(STORAGE_PREFERENCE_DECIDED_COOKIE_NAME) === 'true';
@@ -137,6 +148,7 @@ export default class CookieConsent extends Vue {
     this.trackPreferencesSet();
     this.acceptFunctionalCookies();
     this.acceptAnalyticsCookies();
+    this.acceptAdvertisementCookies();
     this.fireCookieStateUpdateEvent();
     this.isSnackbarOpen = false;
   }
@@ -148,6 +160,7 @@ export default class CookieConsent extends Vue {
         this.trackPreferencesSet();
         this.declineFunctionalCookies();
         this.declineAnalyticsCookies();
+        this.declineAdvertisementCookies();
         this.fireCookieStateUpdateEvent();
         this.isSnackbarOpen = false;
       } else {
@@ -173,6 +186,7 @@ export default class CookieConsent extends Vue {
 
         this.functionalCookiesAccepted = this.currentFunctionalCookiesAccepted;
         this.analyticsCookiesAccepted = this.currentAnalyticsCookiesAccepted;
+        this.advertisementCookiesAccepted = this.currentAdvertisementCookiesAccepted;
 
         this.setGroupChoiceCookies();
 
@@ -194,6 +208,12 @@ export default class CookieConsent extends Vue {
       this.acceptAnalyticsCookies();
     } else {
       this.declineAnalyticsCookies();
+    }
+
+    if (this.advertisementCookiesAccepted) {
+      this.acceptAdvertisementCookies();
+    } else {
+      this.declineAdvertisementCookies();
     }
   }
 
@@ -244,15 +264,30 @@ export default class CookieConsent extends Vue {
     this.analyticsCookiesAccepted = false;
     this.currentAnalyticsCookiesAccepted = this.analyticsCookiesAccepted;
     setCookie(ANALYTICS_GROUP_COOKIE_NAME, this.analyticsCookiesAccepted, { expires: CHOICE_EXPIRATION_DAYS });
-    this.clearAnalyticsCookies();
+    this.clearGoogleCookies('_', '__');
+  }
+
+  acceptAdvertisementCookies() {
+    this.advertisementCookiesAccepted = true;
+    this.currentAdvertisementCookiesAccepted = this.advertisementCookiesAccepted;
+    setCookie(ADVERTISEMENT_GROUP_COOKIE_NAME, this.advertisementCookiesAccepted, { expires: CHOICE_EXPIRATION_DAYS });
+  }
+
+  declineAdvertisementCookies() {
+    this.advertisementCookiesAccepted = false;
+    this.currentAdvertisementCookiesAccepted = this.advertisementCookiesAccepted;
+    setCookie(ADVERTISEMENT_GROUP_COOKIE_NAME, this.advertisementCookiesAccepted, { expires: CHOICE_EXPIRATION_DAYS });
+    this.clearGoogleCookies('__');
   }
 
   fireCookieStateUpdateEvent() {
     const eventData: CookiesUpdateEvent = {
       functionalCookiesAccepted: this.functionalCookiesAccepted,
-      analyticsCookiesAccepted: this.analyticsCookiesAccepted
+      analyticsCookiesAccepted: this.analyticsCookiesAccepted,
+      advertisementCookiesAccepted: this.advertisementCookiesAccepted
     };
     this.$emit('cookies-updated', eventData);
+    console.log('emit', eventData);
   }
 
   clearFunctionalCookiesAndStorage() {
@@ -266,19 +301,15 @@ export default class CookieConsent extends Vue {
     localStorage.clear();
   }
 
-  clearAnalyticsCookies() {
-    // Removes all cookies that are not set by RustBreeder.
-    // At the RustBreeder only sets cookies from options and from cookie/storage preferences.
-
+  clearGoogleCookies(startsWith: string, notStartsWith?: string) {
     // GA sets cookkies on .domain.com so we need to find this value from the current domain.
     const lastDomainDotIndex = location.hostname.lastIndexOf('.');
     if (lastDomainDotIndex !== -1) {
       const secondToLastDomainDotIndex = location.hostname.lastIndexOf('.', lastDomainDotIndex - 1);
       const gaDomain = location.hostname.substring(secondToLastDomainDotIndex, location.hostname.length);
       Object.keys(getCookies())
-        .filter(
-          (cookieName) =>
-            !cookieName.startsWith(OPTIONS_COOKIE_PREFIX) && !cookieName.startsWith(PREF_COOKIE_NAME_PREFIX)
+        .filter((cookieName) =>
+          cookieName.startsWith(startsWith) && notStartsWith ? !cookieName.startsWith(notStartsWith) : true
         )
         .forEach((cookieName) => {
           removeCookie(cookieName, { domain: gaDomain });

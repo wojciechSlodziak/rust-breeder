@@ -3,6 +3,7 @@
     <!-- AdSense - Block1 -->
     <div class="">
       <ins
+        v-if="renderAdsenseAds"
         class="adsbygoogle"
         style="display:block"
         data-ad-client="ca-pub-2474292381535177"
@@ -21,12 +22,22 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
+import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
 
 @Component({})
 export default class Ads extends Vue {
-  mounted() {
-    (window.adsbygoogle = window.adsbygoogle || []).push({});
+  @Prop({ type: Boolean }) readonly advertisementCookiesAccepted: boolean;
+
+  renderAdsenseAds = true;
+
+  @Watch('advertisementCookiesAccepted')
+  onAdvertisementCookiesAcceptedChange(value: boolean) {
+    console.log(value);
+    if (value) {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } else {
+      this.renderAdsenseAds = false;
+    }
   }
 }
 </script>

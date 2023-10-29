@@ -56,14 +56,18 @@
           analytics_storage: 'granted'
         });
       }
-    </script>
 
-    <!-- AdSense -->
-    <script
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2474292381535177"
-      crossorigin="anonymous"
-    ></script>
+      function enableAdSense() {
+        var adsense = document.createElement('script');
+        adsense.setAttribute(
+          'src',
+          'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2474292381535177'
+        );
+        adsense.setAttribute('crossorigin', 'anonymous');
+        adsense.setAttribute('async', '');
+        document.head.appendChild(adsense);
+      }
+    </script>
   </head>
   <body>
     <noscript>

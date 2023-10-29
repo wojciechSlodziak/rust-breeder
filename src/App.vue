@@ -16,6 +16,7 @@
       <CrossbreedingSimulator
         :selected-plant-type-name="selectedPlantTypeName"
         :functional-cookies-accepted="functionalCookiesAccepted"
+        :advertisement-cookies-accepted="advertisementCookiesAccepted"
         @estimated-time-updated="handleEstimatedTimeUpdated"
       />
       <InfoButtons class="d-flex justify-center d-xs-flex d-sm-none mb-3 flex-wrap" />
@@ -43,6 +44,7 @@ import { timeMsToTimeString } from './lib/time-utils';
 })
 export default class App extends Vue {
   functionalCookiesAccepted = false;
+  advertisementCookiesAccepted = false;
   selectedPlantTypeName: string | null = null;
   estimatedTime: number | null = null;
 
@@ -70,10 +72,17 @@ export default class App extends Vue {
 
   handleCookiesUpdated(cookiesState: CookiesUpdateEvent) {
     this.functionalCookiesAccepted = cookiesState.functionalCookiesAccepted;
+    this.advertisementCookiesAccepted = cookiesState.advertisementCookiesAccepted;
 
     if (cookiesState.analyticsCookiesAccepted) {
       // eslint-disable-next-line no-undef
       enableGtag();
+    }
+
+    if (cookiesState.advertisementCookiesAccepted) {
+      console.log(true);
+      // eslint-disable-next-line no-undef
+      enableAdSense();
     }
   }
 

@@ -3,18 +3,15 @@
     <div class="simulator_calc-time mr-1" v-if="calcTotalTime">time: {{ calcTotalTime }}</div>
     <span class="app_version mr-1" v-if="!isSimulating && !calcTotalTime">v{{ appVersion }}</span>
     <ProgressIndicator :is-active="isSimulating" :progress-percents="progressPercents"></ProgressIndicator>
-    <v-container fluid>
-      <v-row class="justify-center">
-        <v-col
-          cols="12"
-          :md="!hasResults ? 12 : showHighlight ? 12 : 4"
-          :lg="!hasResults ? 12 : showHighlight ? 6 : 3"
-          class="pa-0 simulator_controls"
-          :class="{
-            'simulator_controls--with-highlight': showHighlight
-          }"
-        >
-          <div class="d-flex flex-wrap justify-center my-5 px-3">
+    <main
+      class="simulator_container"
+      :class="{
+        'simulator_container--with-results': hasResults
+      }"
+    >
+      <div>
+        <div class="simulator_controls pa-0">
+          <div class="d-flex flex-wrap justify-center pt-6 pb-3 px-3">
             <v-btn
               class="ma-1"
               color="primary"
@@ -46,38 +43,36 @@
               />
             </span>
           </div>
-          <v-row no-gutters>
-            <v-col>
-              <GeneInputs
-                class="simulator_sapling-input-container mx-3"
-                ref="geneInputs"
-                @validity-change="handleInputsValidityChange"
-                :functional-cookies-accepted="functionalCookiesAccepted"
-                :highlighted-map="highlightedMap"
-                :disabled="isScreenScanning || isSimulating"
-                :sounds-enabled="options ? options.sounds : false"
-                :auto-save-input-sets="options ? options.autoSaveInputSets : false"
-                :selected-plant-type-name="selectedPlantTypeName"
-              ></GeneInputs>
-            </v-col>
+          <GeneInputs
+            class="simulator_sapling-input-container mx-3"
+            ref="geneInputs"
+            @validity-change="handleInputsValidityChange"
+            :functional-cookies-accepted="functionalCookiesAccepted"
+            :highlighted-map="highlightedMap"
+            :disabled="isScreenScanning || isSimulating"
+            :sounds-enabled="options ? options.sounds : false"
+            :auto-save-input-sets="options ? options.autoSaveInputSets : false"
+            :selected-plant-type-name="selectedPlantTypeName"
+          ></GeneInputs>
+        </div>
 
-            <v-col ref="highlightedMap" v-if="showHighlight" class="mx-sm-3 mb-3">
-              <HighlightedMap
-                :map="highlightedMap"
-                @clear-highlight-clicked="handleClearHighlightClick"
-                @composing-sapling-selected="handleHighlightComposingSaplingSelectedEvent"
-              ></HighlightedMap
-            ></v-col>
-          </v-row>
-          <pine-hosting-ad></pine-hosting-ad>
-        </v-col>
-        <v-col
+        <ads class="simulator_ads"></ads>
+      </div>
+
+      <div>
+        <div class="simulator_highlight py-6" ref="highlightedMap" v-if="showHighlight">
+          <HighlightedMap
+            :map="highlightedMap"
+            @clear-highlight-clicked="handleClearHighlightClick"
+            @composing-sapling-selected="handleHighlightComposingSaplingSelectedEvent"
+          ></HighlightedMap>
+        </div>
+
+        <div
           ref="results"
           v-if="hasResults"
-          class="pa-0 pa-md-3"
-          cols="12"
-          :md="showHighlight ? 12 : 8"
-          :lg="showHighlight ? 6 : 9"
+          class="simulator_results pa-0 pa-md-3"
+          :class="{ 'simulation_results--separated': showHighlight }"
         >
           <SimulationResults
             :map-groups="resultMapGroups"
@@ -92,9 +87,10 @@
             The genes that you provided did not return any useful results. You'll need to find more plants. Try to pick
             the <strong>good</strong> ones!
           </div>
-        </v-col>
-      </v-row>
-    </v-container>
+        </div>
+      </div>
+    </main>
+
     <SimulationMapGroupBrowser
       :group="selectedBrowsingGroup"
       :group2="selectedBrowsingGroup2"
@@ -140,7 +136,7 @@ import {
 } from '@/services/crossbreeding-service/models';
 import Sapling from '@/models/sapling.model';
 import goTo from 'vuetify/lib/services/goto';
-import PineHostingAd from './PineHostingAd.vue';
+import Ads from './Ads.vue';
 import ProgressIndicator from './ProgressIndicator.vue';
 import SimulationMapGroup from './SimulationMapGroup.vue';
 import SimulationMapGroupBrowser from './SimulationMapGroupBrowser.vue';
@@ -158,7 +154,7 @@ import HighlightedMap from './HighlightedMap.vue';
     ProgressIndicator,
     SimulationMapGroup,
     SimulationMapGroupBrowser,
-    PineHostingAd,
+    Ads,
     HighlightedMap
   }
 })
@@ -376,9 +372,6 @@ export default class CrossbreedingSimulator extends Vue {
   font-size: 0.75rem;
   opacity: 0.5;
 }
-.simulator_controls:not(.simulator_controls--with-highlight) {
-  max-width: 500px;
-}
 .simulator_sapling-input-container {
   position: relative;
   min-width: 260px;
@@ -389,5 +382,21 @@ export default class CrossbreedingSimulator extends Vue {
 .simulator_highlight-guide {
   outline: 2px solid rgba(223, 145, 0, 0.4);
   outline-offset: 2px;
+}
+.simulation_results--separated > div {
+  border-top: 3px solid #b8b8b8;
+  padding-top: 30px;
+}
+
+.simulator_container {
+  max-width: 480px;
+  margin: auto;
+}
+@media (min-width: 1040px) {
+  .simulator_container.simulator_container--with-results {
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: 480px minmax(540px, 1fr);
+  }
 }
 </style>

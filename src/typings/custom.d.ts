@@ -7,3 +7,7 @@ declare module 'worker-loader!*' {
 }
 
 declare const enableGtag: Function;
+
+interface Window {
+  adsbygoogle: { [key: string]: unknown }[];
+}

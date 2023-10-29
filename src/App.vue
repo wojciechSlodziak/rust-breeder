@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app style="min-height: 100vh !important;">
     <v-app-bar app>
       <LogoSelector @plant-type-change="handlePlantTypeChange"></LogoSelector>
       <div class="d-flex align-center ml-auto">
@@ -51,6 +51,21 @@ export default class App extends Vue {
       return timeMsToTimeString(this.estimatedTime);
     }
     return null;
+  }
+
+  mounted() {
+    this.preventAdSenseFromAssigningHeightToContainer();
+  }
+
+  preventAdSenseFromAssigningHeightToContainer() {
+    const container = document.getElementsByClassName('v-application--wrap')[0] as HTMLElement;
+    const observer = new MutationObserver(function() {
+      container.style.minHeight = '100vh';
+    });
+    observer.observe(container, {
+      attributes: true,
+      attributeFilter: ['style']
+    });
   }
 
   handleCookiesUpdated(cookiesState: CookiesUpdateEvent) {

@@ -1,6 +1,6 @@
 {
   "name": "rust-breeder",
-  "version": "2.8.5",
+  "version": "2.9.0",
   "license": "UNLICENSED",
   "private": true,
   "scripts": {

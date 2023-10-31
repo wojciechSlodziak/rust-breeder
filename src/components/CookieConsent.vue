@@ -286,7 +286,6 @@ export default class CookieConsent extends Vue {
       advertisementCookiesAccepted: this.advertisementCookiesAccepted
     };
     this.$emit('cookies-updated', eventData);
-    console.log('emit', eventData);
   }
 
   clearFunctionalCookiesAndStorage() {

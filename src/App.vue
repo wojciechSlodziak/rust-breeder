@@ -55,21 +55,6 @@ export default class App extends Vue {
     return null;
   }
 
-  mounted() {
-    this.preventAdSenseFromAssigningHeightToContainer();
-  }
-
-  preventAdSenseFromAssigningHeightToContainer() {
-    const container = document.getElementsByClassName('v-application--wrap')[0] as HTMLElement;
-    const observer = new MutationObserver(function() {
-      container.style.minHeight = '100vh';
-    });
-    observer.observe(container, {
-      attributes: true,
-      attributeFilter: ['style']
-    });
-  }
-
   handleCookiesUpdated(cookiesState: CookiesUpdateEvent) {
     this.functionalCookiesAccepted = cookiesState.functionalCookiesAccepted;
     this.advertisementCookiesAccepted = cookiesState.advertisementCookiesAccepted;
@@ -77,12 +62,6 @@ export default class App extends Vue {
     if (cookiesState.analyticsCookiesAccepted) {
       // eslint-disable-next-line no-undef
       enableGtag();
-    }
-
-    if (cookiesState.advertisementCookiesAccepted) {
-      console.log(true);
-      // eslint-disable-next-line no-undef
-      enableAdSense();
     }
   }
 

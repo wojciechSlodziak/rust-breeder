@@ -65,7 +65,7 @@
           <v-switch
             v-model="currentAdvertisementCookiesAccepted"
             label="Allow Advertising Cookies"
-            hint="Enables cookies set by Google AdSense required for showing ads and supporting the page."
+            hint="Enables cookies required for showing ads and supporting the page."
             persistent-hint
           ></v-switch>
         </v-card-text>
@@ -277,7 +277,6 @@ export default class CookieConsent extends Vue {
     this.advertisementCookiesAccepted = false;
     this.currentAdvertisementCookiesAccepted = this.advertisementCookiesAccepted;
     setCookie(ADVERTISEMENT_GROUP_COOKIE_NAME, this.advertisementCookiesAccepted, { expires: CHOICE_EXPIRATION_DAYS });
-    this.clearGoogleCookies('__');
   }
 
   fireCookieStateUpdateEvent() {

@@ -1,17 +1,5 @@
 <template>
   <div class="ads mx-3 pb-3">
-    <!-- AdSense - Block1 -->
-    <div class="">
-      <ins
-        v-if="renderAdsenseAds"
-        class="adsbygoogle"
-        style="display:block"
-        data-ad-client="ca-pub-2474292381535177"
-        data-ad-slot="6288810864"
-        data-ad-format="auto"
-        data-full-width-responsive="true"
-      ></ins>
-    </div>
     <div class="d-flex justify-center mt-3">
       <!-- PineHosting Ad -->
       <a class="d-block" href="https://pinehosting.com/clientarea/aff.php?aff=298" target="_blank" title="Pine Hosting"
@@ -27,18 +15,6 @@ import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
 @Component({})
 export default class Ads extends Vue {
   @Prop({ type: Boolean }) readonly advertisementCookiesAccepted: boolean;
-
-  renderAdsenseAds = true;
-
-  @Watch('advertisementCookiesAccepted')
-  onAdvertisementCookiesAcceptedChange(value: boolean) {
-    console.log(value);
-    if (value) {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } else {
-      this.renderAdsenseAds = false;
-    }
-  }
 }
 </script>
 

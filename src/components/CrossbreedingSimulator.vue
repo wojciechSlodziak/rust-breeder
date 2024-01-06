@@ -132,7 +132,8 @@ import SaplingScreenCapture from './SaplingScreenCapture.vue';
 import {
   GeneticsMap,
   CrossbreedingOrchestratorEventListenerCallbackData,
-  GeneticsMapGroup
+  GeneticsMapGroup,
+  SimulatorEventType
 } from '@/services/crossbreeding-service/models';
 import Sapling from '@/models/sapling.model';
 import goTo from 'vuetify/lib/services/goto';
@@ -218,17 +219,17 @@ export default class CrossbreedingSimulator extends Vue {
   }
 
   onCrossbreedingServiceEvent(type: string, data: CrossbreedingOrchestratorEventListenerCallbackData) {
-    if (type === 'PROGRESS_UPDATE') {
+    if (type === SimulatorEventType.PROGRESS_UPDATE) {
       this.setProgress(data.generationIndex, data.progressPercent || 0);
       this.updateEstimatedTime(data.estimatedTimeMs);
-    } else if (type === 'DONE_GENERATION') {
+    } else if (type === SimulatorEventType.DONE_GENERATION) {
       if (data.generationIndex === 1) {
         this.hasResults = true;
         this.scrollToResults();
       }
       this.setData(data.mapGroups as GeneticsMapGroup[], data.generationIndex === this.numberOfGenerations);
       this.setProgress(data.generationIndex, 100);
-    } else if (type === 'DONE') {
+    } else if (type === SimulatorEventType.DONE) {
       this.calcEndTime = Date.now();
       this.updateEstimatedTime(null);
 

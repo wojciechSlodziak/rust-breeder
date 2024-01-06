@@ -14,6 +14,7 @@ import {
   GenerationInfo,
   GeneticsMapGroup,
   ProcessingStat,
+  SimulatorEventType,
   WorkChunk
 } from './models';
 import Sapling from '@/models/sapling.model';
@@ -132,7 +133,7 @@ class CrossbreedingOrchestrator {
 
     // Progress updates notfication.
     const progressPercent = Number(((this.combinationsProcessedSoFar / this.combinationsToProcess) * 100).toFixed(2));
-    this.sendEvent('PROGRESS_UPDATE', {
+    this.sendEvent(SimulatorEventType.PROGRESS_UPDATE, {
       generationIndex: generationIndex,
       estimatedTimeMs: avgTimeMsLeft,
       progressPercent
@@ -144,7 +145,7 @@ class CrossbreedingOrchestrator {
       fixPrototypeAssignmentsAfterSerialization(this.mapGroupMap);
       linkGenerationTree(this.mapGroupMap);
       const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
-      this.sendEvent('DONE_GENERATION', {
+      this.sendEvent(SimulatorEventType.DONE_GENERATION, {
         generationIndex: generationIndex,
         estimatedTimeMs: avgTimeMsLeft,
         mapGroups
@@ -166,19 +167,24 @@ class CrossbreedingOrchestrator {
           const nextGenerationSourceGenes = [...additionalSourceSaplings, ...sourceSaplings];
           this.simulateBestGenetics(nextGenerationSourceGenes, newGenerationInfo, options);
         } else {
-          this.sendEvent('DONE', { generationIndex: generationIndex, estimatedTimeMs: avgTimeMsLeft, mapGroups });
+          this.sendEvent(SimulatorEventType.DONE, {
+            generationIndex: generationIndex,
+            estimatedTimeMs: avgTimeMsLeft,
+            mapGroups
+          });
         }
       } else {
-        this.sendEvent('DONE', { generationIndex: generationIndex, estimatedTimeMs: avgTimeMsLeft, mapGroups });
+        this.sendEvent(SimulatorEventType.DONE, {
+          generationIndex: generationIndex,
+          estimatedTimeMs: avgTimeMsLeft,
+          mapGroups
+        });
         this.mapGroupMap = {};
       }
     }
   }
 
-  sendEvent(
-    eventType: 'PROGRESS_UPDATE' | 'DONE_GENERATION' | 'DONE',
-    data: CrossbreedingOrchestratorEventListenerCallbackData
-  ) {
+  sendEvent(eventType: SimulatorEventType, data: CrossbreedingOrchestratorEventListenerCallbackData) {
     this.listeners.forEach((listenerCallback) => {
       listenerCallback(eventType, data);
     });

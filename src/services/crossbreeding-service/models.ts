@@ -1,11 +1,14 @@
 import GeneEnum from '@/enums/gene.enum';
 import Sapling from '@/models/sapling.model';
 
+export enum SimulatorEventType {
+  PROGRESS_UPDATE = 'PROGRESS_UPDATE',
+  DONE_GENERATION = 'DONE_GENERATION',
+  DONE = 'DONE'
+}
+
 export interface CrossbreedingOrchestratorEventListenerCallback {
-  (
-    eventType: 'PROGRESS_UPDATE' | 'DONE_GENERATION' | 'DONE',
-    data: CrossbreedingOrchestratorEventListenerCallbackData
-  ): void;
+  (eventType: SimulatorEventType, data: CrossbreedingOrchestratorEventListenerCallbackData): void;
 }
 
 export class WorkChunk {

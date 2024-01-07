@@ -26,17 +26,28 @@
                 mdi-cancel
               </v-icon></v-btn
             >
-            <v-btn
-              class="ma-1"
-              color="orange"
-              @click="handleSkipClick"
-              v-if="isSimulating && numberOfGenerations > 1"
-              :disabled="isCalculatingLastGeneration || !hasProgressStartedOnCurrentGeneration"
-              >Skip
-              <v-icon right>
-                mdi-skip-next
-              </v-icon></v-btn
-            >
+            <v-tooltip top open-delay="250" z-index="1001" max-width="600" bottom>
+              <template v-slot:activator="{ on }">
+                <div v-on="on">
+                  <v-btn
+                    class="ma-1"
+                    color="orange"
+                    v-if="isSimulating && numberOfGenerations > 1"
+                    :disabled="isCalculatingLastGeneration || !hasProgressStartedOnCurrentGeneration"
+                    @click="handleSkipClick"
+                    >Skip
+                    <v-icon right>
+                      mdi-skip-next
+                    </v-icon></v-btn
+                  >
+                </div>
+              </template>
+              <span
+                >Lets you skip to calculating results for the next generation without checking all the possible
+                combinations for the current one. Can be a time saver but also might end up missing some crossbreeding
+                results.
+              </span>
+            </v-tooltip>
             <SaplingScreenCapture
               @sapling-scanned="handleSaplingScannedEvent"
               :is-hidden="isSimulating && numberOfGenerations > 1"

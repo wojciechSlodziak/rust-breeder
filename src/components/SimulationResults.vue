@@ -61,7 +61,6 @@
           v-on:map-selected="handleMapSelectedEvent"
           v-on:group-selected="handleGroupSelectedEvent"
           :highlighted-map="highlightedMap"
-          enable-appear-animation
         />
         <InViewAnchor
           :key="index"

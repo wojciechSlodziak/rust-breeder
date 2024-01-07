@@ -14,12 +14,15 @@ import {
 import Sapling from '@/models/sapling.model';
 import { WORK_CHUNKS_PER_WORKER } from './config';
 
-const PARTIAL_RESULT_UPDATE_FREQUENCY_MS = 1000;
+const PARTIAL_RESULT_INCREMENTAL_UPDATE_FREQUENCY_MS = 1000;
 const ESTIMATION_TIME_UNIT_MS = 10000;
 const ESTIMATION_SENT_AFTER_MS = ESTIMATION_TIME_UNIT_MS / 10;
 
 class CrossbreedingOrchestrator {
   listeners: CrossbreedingOrchestratorEventListenerCallback[] = [];
+  sourceSaplings: Sapling[];
+  generationInfo: GenerationInfo;
+  options: ApplicationOptions;
 
   chunksWorker: ChunksWorker;
   workers: CrossbreedingWorker[];
@@ -30,6 +33,7 @@ class CrossbreedingOrchestrator {
   processingStats: ProcessingStat[];
   startTimestamp: number;
   lastPartialResultUpdateTimestamp: number;
+  timeBetweenSubsequentPartialUpdates: number;
 
   /**
    * Entry point in the application where dispatching work and maintaining progress updates happen.
@@ -41,10 +45,14 @@ class CrossbreedingOrchestrator {
     generationInfo: GenerationInfo = { index: 1 },
     options: ApplicationOptions
   ) {
+    this.sourceSaplings = sourceSaplings;
+    this.generationInfo = generationInfo;
+    this.options = options;
     const { numberOfWorkers } = options;
 
     this.startTimestamp = new Date().getTime();
     this.lastPartialResultUpdateTimestamp = new Date().getTime();
+    this.timeBetweenSubsequentPartialUpdates = PARTIAL_RESULT_INCREMENTAL_UPDATE_FREQUENCY_MS;
 
     if (generationInfo.index === 1) {
       this.mapGroupMap = {};
@@ -137,66 +145,93 @@ class CrossbreedingOrchestrator {
     });
 
     // Partial result updates.
-    if (currentTimestamp - this.lastPartialResultUpdateTimestamp >= PARTIAL_RESULT_UPDATE_FREQUENCY_MS) {
-      const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
-      if (mapGroups.length > 0) {
+    if (currentTimestamp - this.lastPartialResultUpdateTimestamp >= this.timeBetweenSubsequentPartialUpdates) {
+      const currentResults = this.getCurrentSortedResults();
+      if (currentResults.length > 0) {
         this.sendEvent(SimulatorEventType.PARTIAL_RESULTS, {
           generationIndex: generationIndex,
-          estimatedTimeMs: avgTimeMsLeft,
-          mapGroups
+          mapGroups: currentResults
         });
 
         this.lastPartialResultUpdateTimestamp = currentTimestamp;
+        this.timeBetweenSubsequentPartialUpdates += PARTIAL_RESULT_INCREMENTAL_UPDATE_FREQUENCY_MS;
       }
     }
 
     // Handling complete generation results.
     if (this.combinationsProcessedSoFar === this.combinationsToProcess) {
       this.terminateAllWorkers();
-      const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
-      this.sendEvent(SimulatorEventType.DONE_GENERATION, {
-        generationIndex: generationIndex,
-        estimatedTimeMs: avgTimeMsLeft,
-        mapGroups
-      });
-
-      if (generationIndex < options.numberOfGenerations) {
-        const additionalSourceSaplings = getBestSaplingsForNextGeneration(
-          sourceSaplings,
-          mapGroups,
-          generationIndex,
-          options.numberOfSaplingsAddedBetweenGenerations,
-          options.geneScores
-        );
-        if (additionalSourceSaplings.length > 0) {
-          const newGenerationInfo: GenerationInfo = {
-            index: generationIndex + 1,
-            addedSaplings: additionalSourceSaplings.length
-          };
-          const nextGenerationSourceGenes = [...additionalSourceSaplings, ...sourceSaplings];
-          this.simulateBestGenetics(nextGenerationSourceGenes, newGenerationInfo, options);
-        } else {
-          this.sendEvent(SimulatorEventType.DONE, {
-            generationIndex: generationIndex,
-            estimatedTimeMs: avgTimeMsLeft,
-            mapGroups
-          });
-        }
-      } else {
-        this.sendEvent(SimulatorEventType.DONE, {
-          generationIndex: generationIndex,
-          estimatedTimeMs: avgTimeMsLeft,
-          mapGroups
-        });
-        this.mapGroupMap = {};
-      }
+      this.sendGenerationDoneEvent();
+      this.tryCalculateNextGeneration();
     }
+  }
+
+  getCurrentSortedResults() {
+    return Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
   }
 
   sendEvent(eventType: SimulatorEventType, data: CrossbreedingOrchestratorEventListenerCallbackData) {
     this.listeners.forEach((listenerCallback) => {
       listenerCallback(eventType, data);
     });
+  }
+
+  sendGenerationDoneEvent() {
+    this.sendEvent(SimulatorEventType.DONE_GENERATION, {
+      generationIndex: this.generationInfo.index,
+      mapGroups: this.getCurrentSortedResults()
+    });
+  }
+
+  sendCalculationDoneEvent() {
+    this.sendEvent(SimulatorEventType.DONE, {
+      generationIndex: this.generationInfo.index,
+      mapGroups: this.getCurrentSortedResults()
+    });
+  }
+
+  calculateNextGeneration() {
+    const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
+    const additionalSourceSaplings = getBestSaplingsForNextGeneration(
+      this.sourceSaplings,
+      mapGroups,
+      this.generationInfo.index,
+      this.options.numberOfSaplingsAddedBetweenGenerations,
+      this.options.geneScores
+    );
+    if (additionalSourceSaplings.length > 0) {
+      const newGenerationInfo: GenerationInfo = {
+        index: this.generationInfo.index + 1,
+        addedSaplings: additionalSourceSaplings.length
+      };
+      const nextGenerationSourceGenes = [...additionalSourceSaplings, ...this.sourceSaplings];
+      this.simulateBestGenetics(nextGenerationSourceGenes, newGenerationInfo, this.options);
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  skipToNextGeneration() {
+    this.terminateAllWorkers();
+    this.sendGenerationDoneEvent();
+    this.tryCalculateNextGeneration();
+  }
+
+  tryCalculateNextGeneration() {
+    let isCalculatingNextGeneration = false;
+    if (this.generationInfo.index < this.options.numberOfGenerations) {
+      isCalculatingNextGeneration = this.calculateNextGeneration();
+    }
+
+    if (!isCalculatingNextGeneration) {
+      this.onCalculationDone();
+    }
+  }
+
+  onCalculationDone() {
+    this.sendCalculationDoneEvent();
+    this.mapGroupMap = {};
   }
 
   cancelSimulation() {

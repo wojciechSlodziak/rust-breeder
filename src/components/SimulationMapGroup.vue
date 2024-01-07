@@ -1,7 +1,8 @@
 <template>
   <div
     class="group mx-auto"
-    :class="{ 'group--animated': enableAppearAnimation, 'group--show': addAnimationAppearClass }"
+    :class="{ 'group--show': addAnimationAppearClass }"
+    :style="{ '--appear-animation-duration': appearAnimationDuration + 'ms' }"
   >
     <div class="group_container">
       <div class="group_map-list">
@@ -61,7 +62,6 @@ import { GeneticsMapGroup, GeneticsMap } from '@/services/crossbreeding-service/
 export default class SimulationMapGroup extends Vue {
   @Prop({ type: Object, required: true }) readonly group!: GeneticsMapGroup;
   @Prop({ type: Object }) readonly highlightedMap: GeneticsMap;
-  @Prop({ type: Boolean, default: false }) readonly enableAppearAnimation: boolean;
   @Prop({ type: Number }) readonly index: number;
 
   backingMapHeight = 0;
@@ -70,29 +70,25 @@ export default class SimulationMapGroup extends Vue {
   isLongPressingMap = false;
   isMouseHoveringBackingMap = false;
   showAlternateCards = false;
+  showAlternateCardsTimeoutRef: NodeJS.Timeout | null;
+
+  appearAnimationDuration = 300;
 
   get hasBrowsingMessageSlotContent() {
     return this.$slots.browsingMessage;
   }
 
   get mapList() {
-    return this.group.mapList.filter((map, index) => index < 1 || this.showAlternateCards);
+    return this.group.mapList.filter((map, index) => index === 0 || this.showAlternateCards);
   }
 
   mounted() {
-    this.handlePotentialHeightChange();
-    if (this.enableAppearAnimation) {
-      this.playAppearAnimation();
-    } else {
-      this.showAlternateCards = true;
-    }
+    this.playAppearAnimation();
   }
 
   @Watch('index')
   onIndexChange() {
-    if (this.enableAppearAnimation) {
-      this.playAppearAnimation();
-    }
+    this.playAppearAnimation();
   }
 
   playAppearAnimation() {
@@ -101,21 +97,24 @@ export default class SimulationMapGroup extends Vue {
     this.onNextTickRerender(() => {
       this.addAnimationAppearClass = true;
     });
+    if (this.showAlternateCardsTimeoutRef) {
+      clearTimeout(this.showAlternateCardsTimeoutRef);
+    }
     // Alternate cards should be shown after the entry animation is finished to prevent animation flicker.
-    setTimeout(() => {
+    this.showAlternateCardsTimeoutRef = setTimeout(() => {
+      this.showAlternateCardsTimeoutRef = null;
+      this.setForcedHeight();
       this.showAlternateCards = true;
-    }, 250);
+    }, this.appearAnimationDuration);
   }
 
   updated() {
-    this.handlePotentialHeightChange();
+    this.setForcedHeight();
   }
 
-  handlePotentialHeightChange() {
+  setForcedHeight() {
     if (this.$refs.primaryMap) {
-      this.onNextTickRerender(() => {
-        this.backingMapHeight = (this.$refs.primaryMap as Vue[])[0]?.$el.getBoundingClientRect().height;
-      });
+      this.backingMapHeight = ((this.$refs.primaryMap as Vue[])[0]?.$el as HTMLElement).offsetHeight;
     }
   }
 
@@ -169,6 +168,8 @@ export default class SimulationMapGroup extends Vue {
   z-index: 0;
   width: 320px;
   position: relative;
+  transform: scale(0.935);
+  opacity: 0.6;
   .group_map {
     transition: transform 0.2s;
     position: relative;
@@ -199,12 +200,9 @@ export default class SimulationMapGroup extends Vue {
       }
     }
   }
-  &.group--animated {
-    transform: scale(0.95);
-    opacity: 0.8;
-  }
   &.group--show {
-    transition: transform 0.25s cubic-bezier(0.4, 1.47, 0.34, 1.42), opacity 0.25s;
+    transition: transform var(--appear-animation-duration) cubic-bezier(0, 1.45, 1, 1.43),
+      opacity var(--appear-animation-duration) ease-in;
     opacity: 1;
     transform: scale(1);
   }

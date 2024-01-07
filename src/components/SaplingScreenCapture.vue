@@ -1,10 +1,6 @@
 <template>
-  <span>
-    <v-btn
-      @click="handleScanClick"
-      :disabled="isDisabled"
-      v-if="shouldDisplayScreenCaptureButton && !isScanning && !isInitializing"
-    >
+  <span class="ma-1" v-if="!isHidden">
+    <v-btn @click="handleScanClick" v-if="shouldDisplayScreenCaptureButton && !isScanning && !isInitializing">
       Scan Rust
       <v-icon right>
         mdi-monitor-screenshot
@@ -113,7 +109,7 @@ import SaplingScreenCapturePreview from './SaplingScreenCapturePreview.vue';
 
 @Component({ components: { SaplingScreenCapturePreview } })
 export default class SaplingScreenCapture extends Vue {
-  @Prop({ type: Boolean }) isDisabled: boolean;
+  @Prop({ type: Boolean }) isHidden: boolean;
   @Prop({ type: Boolean }) skipScannerGuide: boolean;
 
   isDialogOpen = false;

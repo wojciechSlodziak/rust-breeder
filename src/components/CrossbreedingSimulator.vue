@@ -26,15 +26,24 @@
                 mdi-cancel
               </v-icon></v-btn
             >
-            <span class="ma-1">
-              <SaplingScreenCapture
-                @sapling-scanned="handleSaplingScannedEvent"
-                :is-disabled="isSimulating"
-                @started-scanning="isScreenScanning = true"
-                @stopped-scanning="isScreenScanning = false"
-                :skip-scanner-guide="options ? options.skipScannerGuide : false"
-              />
-            </span>
+            <v-btn
+              class="ma-1"
+              color="orange"
+              @click="handleSkipClick"
+              v-if="isSimulating"
+              :disabled="isCalculatingLastGeneration || !hasProgressStartedOnCurrentGeneration"
+              >Skip
+              <v-icon right>
+                mdi-skip-next
+              </v-icon></v-btn
+            >
+            <SaplingScreenCapture
+              @sapling-scanned="handleSaplingScannedEvent"
+              :is-hidden="isSimulating"
+              @started-scanning="isScreenScanning = true"
+              @stopped-scanning="isScreenScanning = false"
+              :skip-scanner-guide="options ? options.skipScannerGuide : false"
+            />
             <span class="ma-1">
               <Options
                 ref="options"
@@ -169,6 +178,7 @@ export default class CrossbreedingSimulator extends Vue {
   showResultsPanel = false;
   lastEstimatedTimeUpdateTimestamp = new Date().getTime();
   numberOfGenerations = 0;
+  currentGenerationIndex = 1;
   areInputsValid = false;
   calcStartTime: number | null = null;
   calcEndTime: number | null = null;
@@ -210,6 +220,14 @@ export default class CrossbreedingSimulator extends Vue {
     );
   }
 
+  get isCalculatingLastGeneration() {
+    return this.isSimulating && this.currentGenerationIndex === this.options?.numberOfGenerations;
+  }
+
+  get hasProgressStartedOnCurrentGeneration() {
+    return this.progressPercents[this.currentGenerationIndex - 1] !== undefined;
+  }
+
   constructor() {
     super();
     crossbreedingOrchestrator.addEventListener(this.onCrossbreedingServiceEvent);
@@ -237,6 +255,8 @@ export default class CrossbreedingSimulator extends Vue {
       if (type === SimulatorEventType.DONE_GENERATION) {
         this.setData(data.mapGroups as GeneticsMapGroup[], data.generationIndex === this.numberOfGenerations);
         this.setProgress(data.generationIndex, 100);
+        this.currentGenerationIndex += 1;
+        this.updateEstimatedTime(null);
       }
     } else if (type === SimulatorEventType.DONE) {
       this.calcEndTime = Date.now();
@@ -249,17 +269,17 @@ export default class CrossbreedingSimulator extends Vue {
   }
 
   setData(mapGroups: GeneticsMapGroup[], isFinalResult: boolean) {
-    // For partial results cloning is required to prevent Vue from constantly observing the results.
+    // For displaying partial results cloning is required to prevent Vue from constantly observing the results.
     this.resultMapGroups = isFinalResult ? mapGroups : mapGroups.map((mapGroup) => mapGroup.clone());
   }
 
   setProgress(generationIndex: number, progressPercent: number) {
-    const index = generationIndex - 1;
+    const generationProgressIndex = generationIndex - 1;
     // To decrease the number of updates on the UI we only update on change of the most significant decimal place.
     const progressPercentWithOneDecimal = Number(progressPercent.toFixed(1));
-    if (this.progressPercents[index] !== progressPercentWithOneDecimal) {
+    if (this.progressPercents[generationProgressIndex] !== progressPercentWithOneDecimal) {
       this.onNextTickRerender(() => {
-        Vue.set(this.progressPercents, index, progressPercentWithOneDecimal);
+        Vue.set(this.progressPercents, generationProgressIndex, progressPercentWithOneDecimal);
       });
     }
     const progressPercentWithNoDecimals = Math.round(progressPercent || 0);
@@ -292,6 +312,7 @@ export default class CrossbreedingSimulator extends Vue {
       (this.$refs.simulationResults as SimulationResults)?.resetPage();
       this.numberOfGenerations = this.options.numberOfGenerations;
       this.progressPercents = new Array(this.options.numberOfGenerations);
+      this.currentGenerationIndex = 1;
       this.resultMapGroups = null;
       this.calcStartTime = Date.now();
       this.calcEndTime = null;
@@ -306,6 +327,10 @@ export default class CrossbreedingSimulator extends Vue {
         (this.$refs.geneInputs as GeneInputs).storeCurrentSet();
       }
     }
+  }
+
+  handleSkipClick() {
+    crossbreedingOrchestrator.skipToNextGeneration();
   }
 
   handleStopSimulationClick() {

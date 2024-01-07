@@ -145,6 +145,7 @@ export default class SimulationResults extends Vue {
         return allGenesMatch;
       });
     }
+
     return mapGroups;
   }
 

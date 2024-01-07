@@ -30,7 +30,7 @@
               class="ma-1"
               color="orange"
               @click="handleSkipClick"
-              v-if="isSimulating"
+              v-if="isSimulating && numberOfGenerations > 1"
               :disabled="isCalculatingLastGeneration || !hasProgressStartedOnCurrentGeneration"
               >Skip
               <v-icon right>
@@ -39,7 +39,8 @@
             >
             <SaplingScreenCapture
               @sapling-scanned="handleSaplingScannedEvent"
-              :is-hidden="isSimulating"
+              :is-hidden="isSimulating && numberOfGenerations > 1"
+              :is-disabled="isSimulating"
               @started-scanning="isScreenScanning = true"
               @stopped-scanning="isScreenScanning = false"
               :skip-scanner-guide="options ? options.skipScannerGuide : false"
@@ -187,7 +188,7 @@ export default class CrossbreedingSimulator extends Vue {
   selectedBrowsingGroup: GeneticsMapGroup | null = null;
   isSelectedBrowsingGroupFromHighlight = false;
   selectedBrowsingGroup2: GeneticsMapGroup | null = null;
-  resultMapGroups: GeneticsMapGroup[] | null = null;
+  resultMapGroups: ReadonlyArray<GeneticsMapGroup> | null = null;
   isScreenScanning = false;
   appVersion = process.env.VUE_APP_VERSION;
 
@@ -270,7 +271,7 @@ export default class CrossbreedingSimulator extends Vue {
 
   setData(mapGroups: GeneticsMapGroup[], isFinalResult: boolean) {
     // For displaying partial results cloning is required to prevent Vue from constantly observing the results.
-    this.resultMapGroups = isFinalResult ? mapGroups : mapGroups.map((mapGroup) => mapGroup.clone());
+    this.resultMapGroups = Object.freeze(isFinalResult ? mapGroups : mapGroups.map((mapGroup) => mapGroup.clone()));
   }
 
   setProgress(generationIndex: number, progressPercent: number) {

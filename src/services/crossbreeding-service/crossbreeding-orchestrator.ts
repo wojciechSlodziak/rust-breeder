@@ -1,7 +1,12 @@
 import ChunksWorker from 'worker-loader!./chunks.worker';
 import CrossbreedingWorker from 'worker-loader!./crossbreeding.worker';
 import ApplicationOptions from '@/interfaces/application-options';
-import { resultMapGroupsSortingFunction, appendAndOrganizeResults, getBestSaplingsForNextGeneration } from './helper';
+import {
+  resultMapGroupsSortingFunction,
+  appendAndOrganizeResults,
+  getBestSaplingsForNextGeneration,
+  linkGenerationTree
+} from './helper';
 import {
   CrossbreedingOrchestratorEventListenerCallback,
   CrossbreedingOrchestratorEventListenerCallbackData,
@@ -92,7 +97,7 @@ class CrossbreedingOrchestrator {
         this.workers.push(worker);
 
         worker.addEventListener('message', (event) => {
-          this.handleWorkerMessage(event, sourceSaplings, generationInfo.index, options);
+          this.handleWorkerMessage(event);
         });
 
         worker.postMessage({
@@ -105,12 +110,7 @@ class CrossbreedingOrchestrator {
     });
   }
 
-  handleWorkerMessage(
-    event: MessageEvent,
-    sourceSaplings: Sapling[],
-    generationIndex: number,
-    options: ApplicationOptions
-  ) {
+  handleWorkerMessage(event: MessageEvent) {
     // Handling partial results.
     appendAndOrganizeResults(this.mapGroupMap, event.data.partialMapGroupMap);
 
@@ -139,23 +139,17 @@ class CrossbreedingOrchestrator {
     // Progress updates notfication.
     const progressPercent = Number(((this.combinationsProcessedSoFar / this.combinationsToProcess) * 100).toFixed(2));
     this.sendEvent(SimulatorEventType.PROGRESS_UPDATE, {
-      generationIndex: generationIndex,
+      generationIndex: this.generationInfo.index,
       estimatedTimeMs: avgTimeMsLeft,
       progressPercent
     });
 
     // Partial result updates.
     if (currentTimestamp - this.lastPartialResultUpdateTimestamp >= this.timeBetweenSubsequentPartialUpdates) {
-      const currentResults = this.getCurrentSortedResults();
-      if (currentResults.length > 0) {
-        this.sendEvent(SimulatorEventType.PARTIAL_RESULTS, {
-          generationIndex: generationIndex,
-          mapGroups: currentResults
-        });
+      this.sendPartialResultsEvent();
 
-        this.lastPartialResultUpdateTimestamp = currentTimestamp;
-        this.timeBetweenSubsequentPartialUpdates += PARTIAL_RESULT_INCREMENTAL_UPDATE_FREQUENCY_MS;
-      }
+      this.lastPartialResultUpdateTimestamp = currentTimestamp;
+      this.timeBetweenSubsequentPartialUpdates += PARTIAL_RESULT_INCREMENTAL_UPDATE_FREQUENCY_MS;
     }
 
     // Handling complete generation results.
@@ -166,7 +160,8 @@ class CrossbreedingOrchestrator {
     }
   }
 
-  getCurrentSortedResults() {
+  linkAndReturnCurrentSortedResults() {
+    linkGenerationTree(this.mapGroupMap);
     return Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
   }
 
@@ -176,17 +171,26 @@ class CrossbreedingOrchestrator {
     });
   }
 
+  sendPartialResultsEvent() {
+    const currentResults = this.linkAndReturnCurrentSortedResults();
+    if (currentResults.length > 0) {
+      this.sendEvent(SimulatorEventType.PARTIAL_RESULTS, {
+        generationIndex: this.generationInfo.index,
+        mapGroups: currentResults
+      });
+    }
+  }
+
   sendGenerationDoneEvent() {
     this.sendEvent(SimulatorEventType.DONE_GENERATION, {
       generationIndex: this.generationInfo.index,
-      mapGroups: this.getCurrentSortedResults()
+      mapGroups: this.linkAndReturnCurrentSortedResults()
     });
   }
 
   sendCalculationDoneEvent() {
     this.sendEvent(SimulatorEventType.DONE, {
-      generationIndex: this.generationInfo.index,
-      mapGroups: this.getCurrentSortedResults()
+      generationIndex: this.generationInfo.index
     });
   }
 

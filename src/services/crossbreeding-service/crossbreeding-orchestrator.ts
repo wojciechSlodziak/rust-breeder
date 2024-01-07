@@ -1,13 +1,7 @@
 import ChunksWorker from 'worker-loader!./chunks.worker';
 import CrossbreedingWorker from 'worker-loader!./crossbreeding.worker';
 import ApplicationOptions from '@/interfaces/application-options';
-import {
-  resultMapGroupsSortingFunction,
-  joinMapGroupMaps,
-  fixPrototypeAssignmentsAfterSerialization,
-  getBestSaplingsForNextGeneration,
-  linkGenerationTree
-} from './helper';
+import { resultMapGroupsSortingFunction, appendAndOrganizeResults, getBestSaplingsForNextGeneration } from './helper';
 import {
   CrossbreedingOrchestratorEventListenerCallback,
   CrossbreedingOrchestratorEventListenerCallbackData,
@@ -20,8 +14,9 @@ import {
 import Sapling from '@/models/sapling.model';
 import { WORK_CHUNKS_PER_WORKER } from './config';
 
-const ESTIMATION_TIME_UNIT = 10000;
-const ESTIMATION_SENT_AFTER = ESTIMATION_TIME_UNIT / 10;
+const PARTIAL_RESULT_UPDATE_FREQUENCY_MS = 1000;
+const ESTIMATION_TIME_UNIT_MS = 10000;
+const ESTIMATION_SENT_AFTER_MS = ESTIMATION_TIME_UNIT_MS / 10;
 
 class CrossbreedingOrchestrator {
   listeners: CrossbreedingOrchestratorEventListenerCallback[] = [];
@@ -34,6 +29,7 @@ class CrossbreedingOrchestrator {
 
   processingStats: ProcessingStat[];
   startTimestamp: number;
+  lastPartialResultUpdateTimestamp: number;
 
   /**
    * Entry point in the application where dispatching work and maintaining progress updates happen.
@@ -48,6 +44,7 @@ class CrossbreedingOrchestrator {
     const { numberOfWorkers } = options;
 
     this.startTimestamp = new Date().getTime();
+    this.lastPartialResultUpdateTimestamp = new Date().getTime();
 
     if (generationInfo.index === 1) {
       this.mapGroupMap = {};
@@ -107,7 +104,7 @@ class CrossbreedingOrchestrator {
     options: ApplicationOptions
   ) {
     // Handling partial results.
-    joinMapGroupMaps(this.mapGroupMap, event.data.partialMapGroupMap);
+    appendAndOrganizeResults(this.mapGroupMap, event.data.partialMapGroupMap);
 
     // Progress tracking.
     const currentCombinationsProcessedSoFar = this.combinationsProcessedSoFar + event.data.combinationsProcessed;
@@ -121,13 +118,13 @@ class CrossbreedingOrchestrator {
       combinationsProcessed: combinationsProcessedBetweenUpdates
     });
     this.processingStats = this.processingStats.filter(
-      (stat) => stat.timestamp > currentTimestamp - ESTIMATION_TIME_UNIT
+      (stat) => stat.timestamp > currentTimestamp - ESTIMATION_TIME_UNIT_MS
     );
     let avgTimeMsLeft = null;
-    if (currentTimestamp - this.startTimestamp >= ESTIMATION_SENT_AFTER) {
+    if (currentTimestamp - this.startTimestamp >= ESTIMATION_SENT_AFTER_MS) {
       const avgCombinationsPerMs =
         this.processingStats.reduce((acc, val) => acc + val.combinationsProcessed, 0) /
-        Math.min(ESTIMATION_TIME_UNIT, currentTimestamp - this.startTimestamp);
+        Math.min(ESTIMATION_TIME_UNIT_MS, currentTimestamp - this.startTimestamp);
       avgTimeMsLeft = (this.combinationsToProcess - this.combinationsProcessedSoFar) / avgCombinationsPerMs;
     }
 
@@ -139,11 +136,23 @@ class CrossbreedingOrchestrator {
       progressPercent
     });
 
+    // Partial result updates.
+    if (currentTimestamp - this.lastPartialResultUpdateTimestamp >= PARTIAL_RESULT_UPDATE_FREQUENCY_MS) {
+      const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
+      if (mapGroups.length > 0) {
+        this.sendEvent(SimulatorEventType.PARTIAL_RESULTS, {
+          generationIndex: generationIndex,
+          estimatedTimeMs: avgTimeMsLeft,
+          mapGroups
+        });
+
+        this.lastPartialResultUpdateTimestamp = currentTimestamp;
+      }
+    }
+
     // Handling complete generation results.
     if (this.combinationsProcessedSoFar === this.combinationsToProcess) {
       this.terminateAllWorkers();
-      fixPrototypeAssignmentsAfterSerialization(this.mapGroupMap);
-      linkGenerationTree(this.mapGroupMap);
       const mapGroups = Object.values(this.mapGroupMap).sort(resultMapGroupsSortingFunction);
       this.sendEvent(SimulatorEventType.DONE_GENERATION, {
         generationIndex: generationIndex,

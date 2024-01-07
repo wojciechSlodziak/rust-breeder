@@ -1,10 +1,13 @@
 <template>
-  <div class="group mx-auto">
+  <div
+    class="group mx-auto"
+    :class="{ 'group--animated': enableAppearAnimation, 'group--show': addAnimationAppearClass }"
+  >
     <div class="group_container">
       <div class="group_map-list">
         <div
           class="group_map-container"
-          v-for="(map, index) in group.mapList"
+          v-for="(map, index) in mapList"
           :key="
             (map.baseSapling ? map.baseSapling.toString() + '-' : '') +
               map.crossbreedingSaplings.map((sapling) => sapling.toString()).join('')
@@ -48,7 +51,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue, Prop } from 'vue-property-decorator';
+import { Component, Vue, Prop, Watch } from 'vue-property-decorator';
 import SimulationMap from './SimulationMap.vue';
 import { GeneticsMapGroup, GeneticsMap } from '@/services/crossbreeding-service/models';
 
@@ -58,18 +61,50 @@ import { GeneticsMapGroup, GeneticsMap } from '@/services/crossbreeding-service/
 export default class SimulationMapGroup extends Vue {
   @Prop({ type: Object, required: true }) readonly group!: GeneticsMapGroup;
   @Prop({ type: Object }) readonly highlightedMap: GeneticsMap;
+  @Prop({ type: Boolean, default: false }) readonly enableAppearAnimation: boolean;
+  @Prop({ type: Number }) readonly index: number;
 
   backingMapHeight = 0;
+  addAnimationAppearClass = false;
 
   isLongPressingMap = false;
   isMouseHoveringBackingMap = false;
+  showAlternateCards = false;
 
   get hasBrowsingMessageSlotContent() {
     return this.$slots.browsingMessage;
   }
 
+  get mapList() {
+    return this.group.mapList.filter((map, index) => index < 1 || this.showAlternateCards);
+  }
+
   mounted() {
     this.handlePotentialHeightChange();
+    if (this.enableAppearAnimation) {
+      this.playAppearAnimation();
+    } else {
+      this.showAlternateCards = true;
+    }
+  }
+
+  @Watch('index')
+  onIndexChange() {
+    if (this.enableAppearAnimation) {
+      this.playAppearAnimation();
+    }
+  }
+
+  playAppearAnimation() {
+    this.showAlternateCards = false;
+    this.addAnimationAppearClass = false;
+    this.onNextTickRerender(() => {
+      this.addAnimationAppearClass = true;
+    });
+    // Alternate cards should be shown after the entry animation is finished to prevent animation flicker.
+    setTimeout(() => {
+      this.showAlternateCards = true;
+    }, 250);
   }
 
   updated() {
@@ -79,7 +114,7 @@ export default class SimulationMapGroup extends Vue {
   handlePotentialHeightChange() {
     if (this.$refs.primaryMap) {
       this.onNextTickRerender(() => {
-        this.backingMapHeight = (this.$refs.primaryMap as Vue[])[0].$el.getBoundingClientRect().height;
+        this.backingMapHeight = (this.$refs.primaryMap as Vue[])[0]?.$el.getBoundingClientRect().height;
       });
     }
   }
@@ -163,6 +198,15 @@ export default class SimulationMapGroup extends Vue {
         transform: rotate(26deg);
       }
     }
+  }
+  &.group--animated {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  &.group--show {
+    transition: transform 0.25s cubic-bezier(0.4, 1.47, 0.34, 1.42), opacity 0.25s;
+    opacity: 1;
+    transform: scale(1);
   }
 }
 </style>

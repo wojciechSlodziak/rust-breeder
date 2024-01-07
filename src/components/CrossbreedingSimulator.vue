@@ -6,7 +6,7 @@
     <main
       class="simulator_container"
       :class="{
-        'simulator_container--with-results': hasResults
+        'simulator_container--with-results': showResultsPanel
       }"
     >
       <div>
@@ -70,11 +70,12 @@
 
         <div
           ref="results"
-          v-if="hasResults"
+          v-if="showResultsPanel"
           class="simulator_results pa-0 pa-md-3"
           :class="{ 'simulation_results--separated': showHighlight }"
         >
           <SimulationResults
+            ref="simulationResults"
             :map-groups="resultMapGroups"
             :highlighted-map="highlightedMap"
             v-on:map-selected="handleMapSelectedEvent"
@@ -165,7 +166,7 @@ export default class CrossbreedingSimulator extends Vue {
   @Prop({ type: String }) readonly selectedPlantTypeName: string;
   progressPercents: number[] = [];
   isSimulating = false;
-  hasResults = false;
+  showResultsPanel = false;
   lastEstimatedTimeUpdateTimestamp = new Date().getTime();
   numberOfGenerations = 0;
   areInputsValid = false;
@@ -221,14 +222,22 @@ export default class CrossbreedingSimulator extends Vue {
   onCrossbreedingServiceEvent(type: string, data: CrossbreedingOrchestratorEventListenerCallbackData) {
     if (type === SimulatorEventType.PROGRESS_UPDATE) {
       this.setProgress(data.generationIndex, data.progressPercent || 0);
-      this.updateEstimatedTime(data.estimatedTimeMs);
-    } else if (type === SimulatorEventType.DONE_GENERATION) {
-      if (data.generationIndex === 1) {
-        this.hasResults = true;
+      if (data.estimatedTimeMs) {
+        this.updateEstimatedTime(data.estimatedTimeMs);
+      }
+    } else if (type === SimulatorEventType.PARTIAL_RESULTS || type === SimulatorEventType.DONE_GENERATION) {
+      const hadNoResultsBefore = this.resultMapGroups === null;
+      if (hadNoResultsBefore) {
+        this.showResultsPanel = true;
         this.scrollToResults();
       }
-      this.setData(data.mapGroups as GeneticsMapGroup[], data.generationIndex === this.numberOfGenerations);
-      this.setProgress(data.generationIndex, 100);
+      if (type === SimulatorEventType.PARTIAL_RESULTS) {
+        this.setData(data.mapGroups as GeneticsMapGroup[], false);
+      }
+      if (type === SimulatorEventType.DONE_GENERATION) {
+        this.setData(data.mapGroups as GeneticsMapGroup[], data.generationIndex === this.numberOfGenerations);
+        this.setProgress(data.generationIndex, 100);
+      }
     } else if (type === SimulatorEventType.DONE) {
       this.calcEndTime = Date.now();
       this.updateEstimatedTime(null);
@@ -240,7 +249,7 @@ export default class CrossbreedingSimulator extends Vue {
   }
 
   setData(mapGroups: GeneticsMapGroup[], isFinalResult: boolean) {
-    // For partial results cloning for better performance is required to prevent Vue from constantly observing the results.
+    // For partial results cloning is required to prevent Vue from constantly observing the results.
     this.resultMapGroups = isFinalResult ? mapGroups : mapGroups.map((mapGroup) => mapGroup.clone());
   }
 
@@ -280,6 +289,7 @@ export default class CrossbreedingSimulator extends Vue {
     if (this.options) {
       this.clearHighlight();
       const deduplicatedSaplingGeneList = (this.$refs.geneInputs as GeneInputs).getDeduplicatedSaplingGeneList();
+      (this.$refs.simulationResults as SimulationResults)?.resetPage();
       this.numberOfGenerations = this.options.numberOfGenerations;
       this.progressPercents = new Array(this.options.numberOfGenerations);
       this.resultMapGroups = null;

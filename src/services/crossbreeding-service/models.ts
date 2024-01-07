@@ -3,6 +3,7 @@ import Sapling from '@/models/sapling.model';
 
 export enum SimulatorEventType {
   PROGRESS_UPDATE = 'PROGRESS_UPDATE',
+  PARTIAL_RESULTS = 'PARTIAL_RESULTS',
   DONE_GENERATION = 'DONE_GENERATION',
   DONE = 'DONE'
 }
@@ -135,7 +136,7 @@ export class GenerationInfo {
 export interface CrossbreedingOrchestratorEventListenerCallbackData {
   progressPercent?: number;
   generationIndex: number;
-  estimatedTimeMs: number | null;
+  estimatedTimeMs?: number | null;
   mapGroups?: GeneticsMapGroup[];
 }
 

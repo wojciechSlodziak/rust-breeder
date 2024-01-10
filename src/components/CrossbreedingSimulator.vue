@@ -273,6 +273,7 @@ export default class CrossbreedingSimulator extends Vue {
     } else if (type === SimulatorEventType.DONE) {
       this.calcEndTime = Date.now();
       this.updateEstimatedTime(null);
+      this.updateTitle();
 
       setTimeout(() => {
         this.isSimulating = false;

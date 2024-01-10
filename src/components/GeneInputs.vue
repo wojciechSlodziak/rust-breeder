@@ -37,6 +37,7 @@
             :value="saplingGenes"
             @input="handleSaplingGenesInput($event)"
             @blur="handleSaplingGenesInputBlur"
+            @focus="handleSaplingGenesInputFocus"
             @keydown="handleSaplingGenesInputKeyDown($event)"
             outlined
             no-resize
@@ -45,7 +46,11 @@
             :rules="sourceSaplingRules"
             autocomplete="off"
           ></v-textarea>
-          <SaplingListPreview :sapling-gene-list="saplingGeneList" ref="saplingListPreview"></SaplingListPreview>
+          <SaplingListPreview
+            :sapling-gene-list="saplingGeneList"
+            ref="saplingListPreview"
+            :highlight-errors="highlightInputErrors"
+          ></SaplingListPreview>
         </v-form>
       </v-tab-item>
       <v-tab-item eager v-if="functionalCookiesAccepted">
@@ -91,17 +96,27 @@ export default class GeneInputs extends Vue {
   placeholder = `YGXWHH\nXWHYYG\nGHGWYY\netc...`.replaceAll('\n', ' '.repeat(100));
   saplingGenes = ``;
   isFormValid = false;
+  isInputFocused = false;
   animatePreviousGenesTabIn = false;
+  wasLastInputLongTimeAgo = false;
+  lastInputTimeStamp = null;
+  lastInputLongAgoTimeoutRef: undefined | NodeJS.Timeout;
   tab = 0;
 
   sourceSaplingRules = [
-    (v: string) => /^([GHWYX]{6}\n{1})*([GHWYX]{6}\n{0})*\n*$/.test(v) || 'You are almost there...',
+    (v: string) =>
+      /^([GHWYX]{6}\n{1})*([GHWYX]{6}\n{0})*\n*$/.test(v) ||
+      'The list of genes is incomplete or invalid. Review if you provided them all correctly.',
     (v: string) => v !== '' || 'Give me some genes to work with!',
     (v: string) => !/^([GHWYX]{6}\n{0})*\n*$/.test(v) || 'Give me some more genes to work with!'
   ];
 
   get saplingGeneList() {
     return this.saplingGenes === '' ? [] : this.saplingGenes.trim().split(/\r?\n/);
+  }
+
+  get highlightInputErrors() {
+    return this.wasLastInputLongTimeAgo || !this.isInputFocused;
   }
 
   mounted() {
@@ -117,6 +132,7 @@ export default class GeneInputs extends Vue {
   }
 
   handleSaplingGenesInput(value: string) {
+    this.prepareCheckForDatedInputActivity();
     const textarea = (this.$refs.saplingGenesInput as Vue).$el.querySelector('textarea');
     if (textarea) {
       const caretPosition = textarea.selectionStart;
@@ -134,7 +150,21 @@ export default class GeneInputs extends Vue {
     }
   }
 
+  prepareCheckForDatedInputActivity() {
+    this.wasLastInputLongTimeAgo = false;
+    clearTimeout(this.lastInputLongAgoTimeoutRef);
+    this.lastInputLongAgoTimeoutRef = setTimeout(() => {
+      this.wasLastInputLongTimeAgo = true;
+    }, 2000);
+  }
+
+  handleSaplingGenesInputFocus() {
+    this.isInputFocused = true;
+    this.prepareCheckForDatedInputActivity();
+  }
+
   handleSaplingGenesInputBlur() {
+    this.isInputFocused = false;
     this.saplingGenes = this.saplingGenes.replaceAll(/[\n]{2,}/g, '\n');
     this.saplingGenes = this.getDeduplicatedSaplingGeneList().join('\n');
     this.checkFormValidity();

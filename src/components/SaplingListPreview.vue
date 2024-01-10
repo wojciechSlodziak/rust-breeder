@@ -2,7 +2,11 @@
   <div class="sapling-list-preview">
     <ul>
       <li v-for="(sapling, index) in saplingList" :key="index">
-        <SaplingGeneRepresentation class="sapling-list-preview_sapling" :sapling="sapling" />
+        <SaplingGeneRepresentation
+          class="sapling-list-preview_sapling"
+          :sapling="sapling"
+          :highlight-errors="highlightErrors"
+        />
       </li>
     </ul>
   </div>
@@ -19,6 +23,7 @@ import goTo from 'vuetify/lib/services/goto';
 })
 export default class SaplingListPreview extends Vue {
   @Prop({ type: Array, required: true }) readonly saplingGeneList!: string[];
+  @Prop({ type: Boolean, default: false }) readonly highlightErrors: boolean;
 
   get saplingList() {
     return this.saplingGeneList.map((genes) => new Sapling(genes));

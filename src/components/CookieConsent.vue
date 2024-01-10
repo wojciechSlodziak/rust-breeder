@@ -329,6 +329,7 @@ export default class CookieConsent extends Vue {
 }
 .cookie-consent_remanage-button {
   position: fixed;
+  z-index: 1;
   bottom: 10px;
   left: 10px;
 }

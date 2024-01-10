@@ -37,6 +37,9 @@ export default class SaplingListNumbering extends Vue {
 </script>
 
 <style scoped lang="scss">
+.theme--light .sapling-list-numbering {
+  opacity: 0.8;
+}
 .sapling-list-numbering {
   padding-top: 11px;
   position: absolute;
@@ -47,7 +50,6 @@ export default class SaplingListNumbering extends Vue {
   text-align: center;
   .sapling-list-numbering_legend {
     position: absolute;
-    opacity: 0.75;
     font-size: 0.625rem;
     line-height: 1em;
     left: 0;

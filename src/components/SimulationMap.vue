@@ -12,10 +12,13 @@
           <SaplingGeneRepresentation :sapling="map.resultSapling" class="map_sapling map_result-sapling" />
         </v-list-item-title>
         <v-list-item-subtitle class="mt-2 map_header-subtitle">
-          <span class="map_gen" :class="genClass">GEN.{{ map.resultSapling.generationIndex }}</span
-          >&nbsp;&middot;&nbsp;<span class="map_score"
+          <span class="map_gen" :class="genClass">GEN.{{ map.resultSapling.generationIndex }}</span>
+          <span>&middot;</span>
+          <span class="map_score"
             >Score: <span>{{ map.score }}</span></span
-          >&nbsp;&middot;&nbsp;<span class="map_chance" :class="chanceClass"
+          >
+          <span>&middot;</span>
+          <span class="map_chance" :class="chanceClass"
             >Chance: <span>{{ Math.round(map.chance * 100) }}%</span>
           </span>
         </v-list-item-subtitle>
@@ -198,6 +201,8 @@ export default class SimulationMap extends Vue {
   .map_header {
     .map_header-subtitle {
       text-overflow: initial;
+      display: flex;
+      justify-content: space-evenly;
     }
     .map_score {
       span {

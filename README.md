@@ -1,25 +1,22 @@
 # rust-breeder
 
-## Webpage address
+## Info
+
+This is a passion project which enables users calculate crossbreeding instructions for plants in game [Rust](https://rust.facepunch.com/).
 
 Available at: https://rustbreeder.com
 
+Discussion open on [Discord](https://discord.com/invite/Va5475pqFw).
+
+If you would like to collaborate on the development of the app through PRs, please first make sure to align with me on the proposed features.
+
 ## Required software
 
-1. Install NodeJS - https://nodejs.org/en/
-
-## Minimal commands to start the Production version of app locally:
-
-```
-npm install
-npm run build
-npm run start
-```
-
-Go to: http://localhost:8080/
+NodeJS - https://nodejs.org/en/
 
 ## Commands
-Below is the list of commands required for development.
+
+Below is the list of commands required for development and deployments.
 
 ### Dependencies
 
@@ -37,12 +34,6 @@ npm run serve
 
 ```
 npm run build
-```
-
-### Run for production
-
-```
-npm run start
 ```
 
 ### Run your unit tests

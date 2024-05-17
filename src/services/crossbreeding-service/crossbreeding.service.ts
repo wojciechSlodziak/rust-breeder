@@ -86,10 +86,10 @@ class CrossbreedingService {
 
   /**
    * Performs a crossbreeding process on a combination (subset) of source Saplings.
-   * @param result Map of results. Passed as a reference.
+   * @param results Map of results. Passed as a reference.
    * @param sourceSaplings List of source Saplings provided by the User.
    * @param sourceSaplingsGeneStrings List of source Sapling genes.
-   * @param crossbreedingSaplings A combination of Saplings that should be crossbreeded with each other.
+   * @param crossbreedingSaplings A combination of Saplings that should be crossbred with each other.
    * @param geneScores Score for gene provided from the app options, which help in scoring the completed Sapling.
    * @param minimumTrackedScore The minimumTrackedScore used for discarding results.
    */
@@ -188,8 +188,8 @@ class CrossbreedingService {
   /**
    * Method performs crossbreeding on a given list of saplings, and returns resulting crossbreedingWeights for winning genes.
    * Additionally, method checks if given combination should be ignored due to multiple ties OR if not all crossbreedingSaplings were used in the process.
-   * @param crossbreedingSaplings A list of saplings which have to be crossbreeded with each other.
-   * @returns List of positions with their winning or tiesing genes. Returns null if combination should be ignored.
+   * @param crossbreedingSaplings A list of saplings which have to be crossbred with each other.
+   * @returns List of positions with their winning or tieing genes. Returns null if combination should be ignored.
    */
   private getWinningCrossbreedingWeights(crossbreedingSaplings: Sapling[]): CrossbreedingGeneDetails[][] | null {
     const allPositionsCrossbreedingGeneDetails: CrossbreedingGeneDetails[][] = [];
@@ -254,8 +254,8 @@ class CrossbreedingService {
   /**
    * Method checks wether crossbreeding weights indicate that center sapling might impact the crossbreeding results.
    * @param crossbreedingSaplings A combination of Saplings used in the current crossbreeding session.
-   * @param crossbreedingWeights List (gene position) of lists (winning CrossbreedingGeneDetails).
-   * @returns Boolean value indicating if process has to crossbreed given combination considering center sapling.
+   * @param crossbreedingWeights Winning CrossbreedingGeneDetails for each gene position.
+   * @returns Boolean value indicating if process has to consider crossbreeding given combination against a center sapling.
    */
   private requiresCheckingAgainstCenterSapling(
     crossbreedingSaplings: Sapling[],
@@ -273,10 +273,10 @@ class CrossbreedingService {
   }
 
   /**
-   * Method creates crossbreeded Saplings for given crossbreedingWeights and optionally a centerSapling.
+   * Method creates crossbred Saplings for given crossbreedingWeights and optionally a centerSapling.
    * Additionally it returns information about which crossbreedingSaplings win and which lose a tie (if there is one).
-   * @param crossbreedingWeights List (gene position) of lists (winning CrossbreedingGeneDetails).
-   * @param generationIndex Generation index of the resulting saplings.
+   * @param crossbreedingWeights Winning CrossbreedingGeneDetails for each gene position.
+   * @param generationIndex Generation index of the produced saplings.
    * @param centerSapling Optional center sapling to crossbreed against.
    * @returns List of Sapling results with details about tie winners/losers. Returns empty list if combination should be ignored due multiple ties.
    */

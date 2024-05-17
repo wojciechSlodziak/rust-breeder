@@ -1,0 +1,17 @@
+helped with fixing bug where W replaced by X and gave 50% chance even though it shouldn't 
+GGGYYH
+YGGYYH
+YHGYHH
+HGGGYH
+HHGGYH
+WGHYYY
+WGGYYY
+HWYGGH
+GHYXGH
+YGYXYH
+GYYXHH
+GHGWYH
+HGGGYW
+HHGHYW
+WGGGYY
+XHHGGH

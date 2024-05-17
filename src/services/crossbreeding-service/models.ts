@@ -129,6 +129,7 @@ export class GeneticsMapGroup {
 }
 
 export class GenerationInfo {
+  // Generation index starts at 1.
   index: number;
   addedSaplings?: number;
 }

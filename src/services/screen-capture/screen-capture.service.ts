@@ -82,6 +82,7 @@ class ScreenCaptureService {
     if (this.workers.length === 0) {
       let firstWorker;
       try {
+        // We setup just one worker initially to avoid downloading the data required by Tesseract multiple times.
         firstWorker = await this.setupWorker();
         const remainingWorkers = await Promise.all(
           Array(REGIONS.length * 6 - 1)

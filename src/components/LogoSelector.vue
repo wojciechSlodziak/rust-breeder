@@ -45,7 +45,7 @@
     </v-tooltip>
     <v-toolbar-title class="logo-selector_title overflow-visible">
       <a href="/" title="RustBreeder">
-        RustBreeder
+        <h1 class="text-h6">RustBreeder</h1>
       </a>
     </v-toolbar-title>
   </div>

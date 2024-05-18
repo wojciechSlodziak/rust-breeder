@@ -6,6 +6,8 @@ Rust Breeder is a passion project designed to help users calculate crossbreeding
 
 Available at: [rustbreeder.com](https://rustbreeder.com)
 
+If you want to see it in action but don't know how to provide valid input: [click here](https://rustbreeder.com?genes=WGXYYW,WGGXYW,WGYXGW,WYYXGW,XYYXGW,XYGXYW,YWGYGX,WGGWYX,XGYWGG,XGYWYX,WYYWGW,XYYGWX,YXGWGX,WYGXYW,WGWGYW,WYWXGG,XYGWGW,WGYWGW,XYYWYW,XYGWYX,XYGXYX,WGGXYX,XYGWYW).
+
 Join the discussion on [Discord](https://discord.com/invite/Va5475pqFw).
 
 ## Collaboration

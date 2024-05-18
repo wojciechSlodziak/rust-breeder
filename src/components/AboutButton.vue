@@ -22,10 +22,11 @@
             <a target="_blank" href="https://discord.gg/Va5475pqFw">Discord</a> server.
           </p>
           <p>
-            I am planning to maintain and improve this app in the future.
+            If you wish to check out the code or collaborate here's the
+            <a target="_blank" href="https://github.com/wojciechSlodziak/rust-breeder">GitHub page</a>.
           </p>
           <p>
-            If you want to appreciate my work and help me pay for the hosting, you can
+            If you would like to show your support for my work and help cover the expenses, you can
             <a target="_blank" href="https://donorbox.org/rust-crossbreeding-optimizer?default_interval=o">donate</a>.
           </p>
           <p>Rust Breeder is not affilated with Facepunch.</p>

@@ -1,53 +1,84 @@
-# rust-breeder
+# Rust Breeder
 
 ## Info
 
-This is a passion project which enables users calculate crossbreeding instructions for plants in game [Rust](https://rust.facepunch.com/).
+Rust Breeder is a passion project designed to help users calculate crossbreeding instructions for plants in the game [Rust](https://rust.facepunch.com/). The tool simplifies the process of optimizing plant genetics, making it easier for players to achieve their desired traits.
 
-Available at: https://rustbreeder.com
+Available at: [rustbreeder.com](https://rustbreeder.com)
 
-Discussion open on [Discord](https://discord.com/invite/Va5475pqFw).
+Join the discussion on [Discord](https://discord.com/invite/Va5475pqFw).
 
-If you would like to collaborate on the development of the app through PRs, please first make sure to align with me on the proposed features.
+## Collaboration
 
-## Required software
+Currently I have limited time to work on the app due to increased responsibilities (twins!). If you are interested in collaborating through PRs, please align with me on proposed features first.
 
-NodeJS - https://nodejs.org/en/
+### Considerations:
+
+- Users often suggest or request features, which I may not always agree with for various reasons.
+- My goal is to keep the UI simple and tidy. Niche features that complicate the app for average users are generally not favored.
+
+### Ideas for Improvement
+
+- Add scanner support for different aspect ratios / allow users to set up their own scanner regions (manual adjustment: zoom, move)
+- Explore scanning possibilities with phone cameras
+- Update versions of some packages to improve performance (e.g Tesseract.js)
+- Explore possibility of migrating core calculation logic to WASM
+- Add some guidance on how to crossbreed in the UI (maybe even as a separate subpage)
+
+### Contributing
+
+If you wish to contribute, please follow these steps:
+
+1. Fork the repository.
+2. Create a new branch for your feature or bugfix.
+3. Submit a pull request with a detailed description of your changes.
+
+### License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+Special thanks to the Rust community and all the contributors who have provided valuable feedback and suggestions.
+
+## Required Software
+
+- [NodeJS](https://nodejs.org/en/)
 
 ## Commands
 
-Below is the list of commands required for development and deployments.
+Below is the list of commands required for development and deployment.
 
 ### Dependencies
 
 ```
-npm run install
+npm install
 ```
 
-### Compiles and hot-reloads for development
+### Compiles and Hot-Reloads for Development
 
 ```
 npm run serve
 ```
 
-### Compiles and minifies for production
+### Compiles and Minifies for Production
 
 ```
 npm run build
 ```
 
-### Run your unit tests
+### Run Unit Tests
 
 ```
 npm run test:unit
 ```
 
-### Lints and fixes files
+### Lints and Fixes Files
 
 ```
 npm run lint
 ```
 
-### Customize configuration
+### Customize Configuration
 
-See [Configuration Reference](https://cli.vuejs.org/config/).
+See the [Configuration Reference](https://cli.vuejs.org/config/).

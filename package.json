@@ -1,12 +1,14 @@
 {
   "name": "rust-breeder",
-  "version": "2.10.1",
+  "version": "2.10.2",
   "license": "MIT",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
+    "add-domain-to-build-files": "echo rustbreeder.com > dist/CNAME",
     "deploy": "gh-pages -d dist",
+    "bad": "npm run build && npm run add-domain-to-build-files && npm run deploy",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint"
   },

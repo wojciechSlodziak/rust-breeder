@@ -4,42 +4,46 @@
     :class="{
       'logo_container--expanded': isExpanded,
       'logo_container--animate-in': animateIn && !$vuetify.breakpoint.xsOnly,
-      'logo_container--animate-heartbeat': animateHeartbeat && !$vuetify.breakpoint.xsOnly
+      'logo_container--animate-heartbeat': animateHeartbeat
     }"
   >
-    <div class="logo_image-container d-flex align-center">
-      <v-tooltip
-        v-for="(imageName, index) in displayedImageNames"
-        :key="imageName"
-        open-delay="400"
-        z-index="1001"
-        max-width="600"
-        :open-on-focus="false"
-        :disabled="isExpanded || $vuetify.breakpoint.xsOnly"
-        bottom
-      >
-        <template v-slot:activator="{ on, attrs }">
+    <v-tooltip
+      open-delay="400"
+      z-index="1001"
+      max-width="600"
+      :open-on-focus="false"
+      :disabled="isExpanded || $vuetify.breakpoint.xsOnly"
+      bottom
+    >
+      <template v-slot:activator="{ on, attrs }">
+        <div ref="logoSelector" class="logo_image-container d-flex align-center" v-bind="attrs" v-on="on">
           <button
-            :disabled="$vuetify.breakpoint.xsOnly"
-            v-bind="attrs"
-            v-on="on"
-            class="logo_image"
+            v-for="(imageName, index) in imagesNames"
+            :key="imageName"
+            class="logo_image-button"
             :data-index="index"
             :class="{
-              'logo_image--hidden': activeImageName !== imageName && !isExpanded
+              'logo_image-button--hidden': activeImageName !== imageName && !isExpanded
             }"
-            @click="!$vuetify.breakpoint.xsOnly && handleImageClick(imageName)"
+            @click="handleImageClick(imageName)"
           >
-            <img :src="`/img/${imageName}.png`" :ref="imageName" />
+            <img
+              v-if="(index === 0 && !isExpanded && !isClosing) || index > 0"
+              :src="`/img/${imageName}.png`"
+              :ref="imageName"
+            />
+            <v-icon v-else large>
+              mdi-chevron-right
+            </v-icon>
           </button>
-        </template>
-        <span
-          >Select a type of plant to keep track of what you are crossbreeding. Selection
-          <strong>does not</strong> impact the results of the calculation.</span
-        >
-      </v-tooltip>
-    </div>
-    <v-toolbar-title class="ml-3 overflow-visible">
+        </div>
+      </template>
+      <span
+        >Select a type of plant to keep track of what you are crossbreeding. Selection <strong>does not</strong> impact
+        the results of the calculation.</span
+      >
+    </v-tooltip>
+    <v-toolbar-title class="logo-selector_title overflow-visible">
       <a href="/" title="RustBreeder">
         RustBreeder
       </a>
@@ -68,11 +72,8 @@ export default class LogoSelector extends Vue {
   activeImageName = this.imagesNames[0];
   isExpanded = false;
   animateIn = false;
+  isClosing = false;
   animateHeartbeat = false;
-
-  get displayedImageNames() {
-    return this.isExpanded ? this.imagesNames.slice(1) : this.imagesNames;
-  }
 
   mounted() {
     if (document.hidden) {
@@ -88,12 +89,19 @@ export default class LogoSelector extends Vue {
     eventBus.$on(GLOBAL_EVENT_SELECTED_PLANT_TYPE_CHANGED, this.selectPlant);
   }
 
+  get isPlantSelected() {
+    return this.activeImageName !== this.imagesNames[0];
+  }
+
   private animateLogo() {
     this.onNextTickRerender(() => {
       this.animateIn = true;
       setTimeout(() => {
         this.animateIn = false;
         this.animateHeartbeat = true;
+        setTimeout(() => {
+          this.animateHeartbeat = false;
+        }, 1050);
       }, 800);
     });
   }
@@ -101,9 +109,29 @@ export default class LogoSelector extends Vue {
   handleImageClick(imageName: string) {
     if (this.isExpanded) {
       this.selectPlant(imageName);
-      this.isExpanded = false;
+      this.close();
     } else {
-      this.isExpanded = true;
+      this.open();
+    }
+  }
+
+  open() {
+    this.isExpanded = true;
+    document.addEventListener('mousedown', this.onDocumentClick);
+  }
+
+  close() {
+    this.isExpanded = false;
+    this.isClosing = true;
+    setTimeout(() => {
+      this.isClosing = false;
+    }, 250);
+    document.removeEventListener('mousedown', this.onDocumentClick);
+  }
+
+  onDocumentClick(event: MouseEvent) {
+    if (!event.composedPath().includes(this.$refs.logoSelector as HTMLElement)) {
+      this.close();
     }
   }
 
@@ -125,11 +153,21 @@ export default class LogoSelector extends Vue {
 
 <style scoped lang="scss">
 .logo_container {
+  --logo-container-background-color: rgba(0, 0, 0, 0.25);
+  --logo-container-expanded-background-color: var(--logo-container-background-color);
+  --button-size-px: 48px;
+  --img-size-px: 40px;
+  --app-title-margin-left: 10px;
+  @media (min-width: 960px) {
+    --button-size-px: 52px;
+    --img-size-px: 44px;
+  }
   user-select: none;
   height: 100%;
   padding: 2px 0;
   margin-left: -5px;
-  .v-toolbar__title {
+  .logo-selector_title {
+    margin-left: var(--app-title-margin-left);
     opacity: 1;
     transform: scale(1);
     transition: transform 0.2s ease 0.2s, opacity 0.2s ease 0.2s, visibility 0s linear 0.15s, width 0s linear 0.15s;
@@ -139,83 +177,116 @@ export default class LogoSelector extends Vue {
     }
   }
   .logo_image-container {
-    height: 100%;
+    min-width: var(--button-size-px);
     border-radius: 5px;
     background-color: rgba(0, 0, 0, 0.15);
-    .logo_image {
-      margin: 0 4px;
-      padding: 3px 0;
-      display: inline-block;
-      height: 100%;
+    .logo_image-button {
+      border-radius: inherit;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       border: 0px;
       background: transparent;
-      max-width: 46px;
+      width: var(--button-size-px);
+      height: var(--button-size-px);
       transition: all 0.25s ease;
 
-      &.logo_image--hidden {
+      &.logo_image-button--hidden {
         visibility: hidden;
-        max-width: 0;
+        width: 0;
         opacity: 0;
-        margin: 0;
       }
       img {
-        max-height: 100%;
+        height: var(--img-size-px);
+        width: var(--img-size-px);
+        transition: transform 0.15s;
       }
       &:not([disabled]):hover {
-        transform: scale(1.15);
-        transition: transform 0.15s;
+        img {
+          transform: scale(1.25);
+        }
       }
       &:focus {
         outline: 2px solid var(--v-primary-base);
       }
     }
   }
-  &.logo_container--animate-heartbeat {
+  &.logo_container--animate-heartbeat:not(.logo_container--expanded) {
     .logo_image-container {
       animation: heartbeat 0.65s 0.4s ease both;
     }
   }
   &.logo_container--animate-in {
     .logo_image-container {
-      .logo_image[data-index='0'] {
-        visibility: hidden;
-        max-width: 0;
-        opacity: 0;
-        margin: 0;
-      }
-      .logo_image:not([data-index='0']) {
+      .logo_image-button {
         visibility: visible;
-        max-width: 46px;
+        width: var(--button-size-px);
         opacity: 1;
-        margin: 0 4px;
       }
     }
   }
-  &.logo_container--expanded,
-  &.logo_container--animate-in {
-    .v-toolbar__title {
-      transition: opacity 0s, visibility 0s, width 0s;
-      opacity: 0;
-      width: 0;
-      transform: scale(0.9);
-      visibility: hidden;
-    }
+}
 
+@media (min-width: 561px) {
+  .logo_container {
+    &.logo_container--expanded,
+    &.logo_container--animate-in {
+      .logo-selector_title {
+        transition: opacity 0s, visibility 0s, width 0s;
+        opacity: 0;
+        width: 0;
+        transform: scale(0.9);
+        visibility: hidden;
+      }
+
+      .logo_image-container {
+        background-color: var(--logo-container-expanded-background-color);
+      }
+    }
+  }
+}
+
+@media (max-width: 560px) {
+  .logo_container {
+    --logo-container-expanded-background-color: rgba(0, 0, 0, 0.9);
+    min-width: var(--button-size-px);
+    position: relative;
     .logo_image-container {
-      background-color: rgba(0, 0, 0, 0.25);
+      flex-direction: column;
+      flex-wrap: wrap;
+      position: absolute;
+      top: 0;
+      left: 0;
+      max-height: calc(100dvh - 8px);
+      z-index: 1;
+    }
+    .logo_image-button {
+      &.logo_image-button--hidden {
+        width: var(--button-size-px);
+        height: 0;
+      }
+    }
+    .logo-selector_title {
+      margin-left: calc(var(--app-title-margin-left) + var(--button-size-px));
+    }
+    .logo_image-button[data-index='0'] i {
+      rotate: 90deg;
+    }
+    &.logo_container--expanded {
+      .logo_image-container {
+        background-color: var(--logo-container-expanded-background-color);
+      }
     }
   }
 }
 
 .theme--light {
   .logo_container {
-    .logo_image-container {
-      background-color: rgba(0, 0, 0, 0.1);
-    }
-    &.logo_container--expanded {
-      .logo_image-container {
-        background-color: rgba(0, 0, 0, 0.1);
-      }
+    --logo-container-background-color: rgba(0, 0, 0, 0.1);
+  }
+  @media (max-width: 560px) {
+    .logo_container {
+      --logo-container-expanded-background-color: rgba(200, 200, 200, 0.75);
     }
   }
 }

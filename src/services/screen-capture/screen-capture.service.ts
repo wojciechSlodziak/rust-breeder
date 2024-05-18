@@ -80,16 +80,12 @@ class ScreenCaptureService {
   async setupRecognitionWorkers() {
     this.sendEventToListeners('INITIALIZING');
     if (this.workers.length === 0) {
-      let firstWorker;
       try {
-        // We setup just one worker initially to avoid downloading the data required by Tesseract multiple times.
-        firstWorker = await this.setupWorker();
-        const remainingWorkers = await Promise.all(
-          Array(REGIONS.length * 6 - 1)
+        this.workers = await Promise.all(
+          Array(REGIONS.length * 6)
             .fill(0)
             .map(this.setupWorker.bind(this))
         );
-        this.workers = [firstWorker, ...remainingWorkers];
       } catch (err) {
         // It can happen that the data for Tesseract text recognition is corrupted.
         // In this case we clear the database and reinitialize the workers.

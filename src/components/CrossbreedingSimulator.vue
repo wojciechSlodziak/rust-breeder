@@ -81,7 +81,7 @@
       </div>
 
       <div>
-        <div class="simulator_highlight py-6" ref="highlightedMap" v-if="showHighlight">
+        <div class="simulator_highlight my-6" ref="highlightedMap" v-if="showHighlight">
           <HighlightedMap
             :map="highlightedMap"
             @clear-highlight-clicked="handleClearHighlightClick"
@@ -373,9 +373,7 @@ export default class CrossbreedingSimulator extends Vue {
     this.highlightedMap = map;
     this.selectedBrowsingGroup = null;
     this.onNextTickRerender(() => {
-      const rect = (this.$refs.highlightedMap as HTMLElement)?.getBoundingClientRect();
-      const topDistance = rect.top + rect.height / 2 + window.scrollY - window.innerHeight / 2;
-      goTo(topDistance, { duration: 200 });
+      goTo(this.$refs.highlightedMap as HTMLElement, { duration: 200, appOffset: true, offset: 64 });
     });
   }
 
@@ -407,8 +405,7 @@ export default class CrossbreedingSimulator extends Vue {
 
   scrollToResults() {
     setTimeout(() => {
-      const rect = (this.$refs.results as HTMLElement)?.getBoundingClientRect();
-      goTo(rect.top - 64, { duration: 300 });
+      goTo(this.$refs.results as HTMLElement, { duration: 300, offset: 64 });
     }, 200);
   }
 }

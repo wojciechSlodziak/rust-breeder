@@ -79,7 +79,11 @@ export default class SimulationMapGroup extends Vue {
   }
 
   get mapList() {
-    return this.group.mapList.filter((map, index) => index === 0 || this.showAlternateCards);
+    return this.group.mapList.filter((map, index) => index === 0 || this.computedShowAlternateCards);
+  }
+
+  get computedShowAlternateCards() {
+    return this.showAlternateCards && !this.$vuetify.breakpoint.xs;
   }
 
   mounted() {

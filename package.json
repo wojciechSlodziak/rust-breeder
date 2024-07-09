@@ -24,7 +24,7 @@
     "vue-property-decorator": "^8.4.2",
     "vuetify": "^2.2.11",
     "vuetify-confirm": "^2.0.6",
-    "webpack": "^4.43.0",
+    "webpack": "^4.47.0",
     "worker-loader": "^2.0.0"
   },
   "devDependencies": {

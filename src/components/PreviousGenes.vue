@@ -9,7 +9,7 @@
           @click="handleSetSelect(index)"
           @keyup.enter="handleSetSelect(index)"
         >
-          <img class="mx-2" :src="`/img/${storedSet.imgName}.png`" />
+          <img class="mx-2" :src="`/img/${storedSet.imgName}.webp`" />
           <span class="px-2 previous-genes_count">Genes: {{ storedSet.saplingsCount }}</span>
           <span>{{ storedSet.dateString }}</span>
           <v-btn class="mx-1" icon @click="handleRemoveSetClick($event, index)">

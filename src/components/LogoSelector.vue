@@ -29,7 +29,7 @@
           >
             <img
               v-if="(index === 0 && !isExpanded && !isClosing) || index > 0"
-              :src="`/img/${imageName}.png`"
+              :src="`/img/${imageName}.webp`"
               :ref="imageName"
             />
             <v-icon v-else large>
@@ -67,7 +67,11 @@ export default class LogoSelector extends Vue {
     'hemp',
     'potato',
     'pumpkin',
-    'corn'
+    'corn',
+    'wheat',
+    'sunflower',
+    'rose',
+    'orchid'
   ];
   activeImageName = this.imagesNames[0];
   isExpanded = false;
@@ -145,7 +149,7 @@ export default class LogoSelector extends Vue {
   private setImageAsFavicon(imageName: string) {
     const link = document.querySelector("link[rel~='icon']") as HTMLAnchorElement;
     if (link) {
-      link.href = `/img/${imageName}.png`;
+      link.href = `/img/${imageName}.webp`;
     }
   }
 }
@@ -227,7 +231,7 @@ export default class LogoSelector extends Vue {
   }
 }
 
-@media (min-width: 561px) {
+@media (min-width: 695px) {
   .logo_container {
     &.logo_container--expanded,
     &.logo_container--animate-in {
@@ -246,7 +250,7 @@ export default class LogoSelector extends Vue {
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 694.98px) {
   .logo_container {
     --logo-container-expanded-background-color: rgba(0, 0, 0, 0.9);
     min-width: var(--button-size-px);
@@ -284,7 +288,7 @@ export default class LogoSelector extends Vue {
   .logo_container {
     --logo-container-background-color: rgba(0, 0, 0, 0.1);
   }
-  @media (max-width: 560px) {
+  @media (max-width: 695px) {
     .logo_container {
       --logo-container-expanded-background-color: rgba(200, 200, 200, 0.75);
     }

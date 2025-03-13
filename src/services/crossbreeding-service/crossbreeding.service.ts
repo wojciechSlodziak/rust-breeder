@@ -43,7 +43,6 @@ class CrossbreedingService {
       let crossbreedingSaplings: Sapling[];
       while (hasMoreCombinations && !hasFinishedWorkChunk) {
         crossbreedingSaplings = [];
-        console.log(positions.toString());
         positions.forEach((position) => {
           crossbreedingSaplings.push(sourceSaplings[position]);
         });
@@ -104,8 +103,6 @@ class CrossbreedingService {
     generationIndex: number
   ) {
     const winningCrossbreedingWeights = this.getWinningCrossbreedingWeights(crossbreedingSaplings);
-    console.log('winningCrossbreedingWeights', winningCrossbreedingWeights);
-
     if (winningCrossbreedingWeights === null) {
       return;
     }
@@ -114,8 +111,6 @@ class CrossbreedingService {
       crossbreedingSaplings,
       winningCrossbreedingWeights
     );
-    console.log('requiresCheckingAgainstCenterSapling', requiresCheckingAgainstCenterSapling);
-
     // Create results from the winningCrossbreedingWeights and center saplings (if applicable).
     if (requiresCheckingAgainstCenterSapling) {
       const otherSaplings: Sapling[] = sourceSaplings.filter(
@@ -159,7 +154,6 @@ class CrossbreedingService {
     potentialResults: CrossbreedingResultWithDetails[],
     potentialCenterSapling?: Sapling
   ) {
-    console.log('potentialResults', potentialResults);
     // Filter out results that are the same as sourceSaplings.
     const filteredPotentialResults = potentialResults.filter(
       (potentialResult) => sourceSaplingsGeneStrings.indexOf(potentialResult.sapling.toString()) === -1
@@ -168,7 +162,6 @@ class CrossbreedingService {
     // Evaluate each Sapling and add to the results if positively evaluated.
     filteredPotentialResults.forEach((potentialResult) => {
       const score = potentialResult.sapling.getScore(geneScores);
-      console.log(potentialResult.sapling.toString(), score);
       if (score >= minimumTrackedScore) {
         const sumOfComposingSaplingsGenerations =
           crossbreedingSaplings.reduce((acc, sapling) => acc + sapling.generationIndex, 0) +
@@ -224,7 +217,6 @@ class CrossbreedingService {
       currentPositionGeneDetails = currentPositionGeneDetails.filter(
         (detail) => detail.totalWeight === highestTotalWeight
       );
-      console.log('currentPositionGeneDetails', genePosition, JSON.stringify(currentPositionGeneDetails));
 
       // Keeps track of the contributing sapling indexes.
       currentPositionGeneDetails.forEach((geneDetail) => {
@@ -243,7 +235,6 @@ class CrossbreedingService {
 
       // If there is more than one tie, ignore the combination.
       if (numberOfEarlyRecognizableTies > 1) {
-        console.log('// If there is more than one tie, ignore the combination.');
         return null;
       }
 

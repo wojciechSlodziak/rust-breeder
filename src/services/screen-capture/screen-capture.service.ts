@@ -98,11 +98,8 @@ class ScreenCaptureService {
   private async setupWorker(): Promise<Tesseract.Worker> {
     let worker;
     try {
-      worker = createWorker();
+      worker =  await createWorker();
 
-      await worker.load();
-      await worker.loadLanguage('eng');
-      await worker.initialize('eng');
       await worker.setParameters({
         // eslint-disable-next-line @typescript-eslint/camelcase
         tessedit_pageseg_mode: PSM.SINGLE_CHAR

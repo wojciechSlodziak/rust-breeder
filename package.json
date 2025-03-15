@@ -17,7 +17,7 @@
     "core-js": "^3.6.5",
     "jimp": "^0.16.1",
     "reflect-metadata": "^0.1.13",
-    "tesseract.js": "^3.0.3",
+    "tesseract.js": "^6.0.0",
     "typescript-cookie": "^1.0.3",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.3",
@@ -28,6 +28,7 @@
     "worker-loader": "^2.0.0"
   },
   "devDependencies": {
+    "@types/offscreencanvas": "^2019.7.3",
     "@types/jest": "^24.0.19",
     "@types/node": "^18.0.5",
     "@types/resemblejs": "^4.1.0",

@@ -53,8 +53,7 @@
               <li>
                 <p>
                   Make sure you have item ownership turned off. Run this command
-                  <v-chip outlined>inventory.show_item_ownership false</v-chip> in Rust console or adjust it in the game
-                  options.
+                  <v-chip outlined>inventory.show_item_ownership false</v-chip> in Rust console to turn it off.
                 </p>
               </li>
 

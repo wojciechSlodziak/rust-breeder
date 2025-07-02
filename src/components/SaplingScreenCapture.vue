@@ -46,10 +46,18 @@
                 <p>
                   Make sure your <v-chip outlined>USER INTERFACE SCALE</v-chip> setting is set to
                   <v-chip outlined>1.0</v-chip> in Rust. Sometimes the slider shows 1.0, but the value could be at 0.97.
-                  Run <v-chip outlined>graphics.uiscale</v-chip> command in the Rust console to see the actual value.
+                  Run <v-chip outlined>graphics.uiscale</v-chip> command in Rust console to see the actual value.
                   <strong>HDR mode</strong> is not supported.
                 </p>
               </li>
+              <li>
+                <p>
+                  Make sure you have item ownership turned off. Run this command
+                  <v-chip outlined>inventory.show_item_ownership false</v-chip> in Rust console or adjust it in the game
+                  options.
+                </p>
+              </li>
+
               <li>
                 <p>
                   Make sure you run the game in <v-chip outlined>16:9</v-chip> aspect ratio resolution (1600x900,
